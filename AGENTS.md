@@ -39,3 +39,12 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## Project build plan (read before any feature work)
+
+This app is built phase by phase. Before writing code:
+
+1. Read `docs/00-architecture.md` (stack, folders, data model, golden rules).
+2. Read `docs/PROGRESS.md` to find the current phase.
+3. Implement ONLY the current phase file in `docs/` — respect its "Out of scope" list.
+4. When done: run tsc, lint and tests, tick the phase checklist, update `docs/PROGRESS.md`.
