@@ -7,7 +7,7 @@
 | Phase | Status | Date | Notes |
 |---|---|---|---|
 | Setup — Expo SDK 58 + Router + NativeWind + eas.json | ✅ Done | 2026-11-06 | tsc + lint passing |
-| 1 Foundation | ⬜ Not started | | |
+| 1 Foundation | ✅ Done | 2026-11-06 | Design system, 5-tab NativeTabs shell, QueryClient, Jest tests (11/11 passing) |
 | 2 Auth & profile | ⬜ Not started | | |
 | 3 Walk tracking | ⬜ Not started | | |
 | 4 Health (steps & calories) | ⬜ Not started | | |
@@ -31,6 +31,7 @@ Record any decision that later phases must respect.
 | 2026-11-06 | Each accepted sighting = new cat card; user may manually link to an existing cat | Avoid unreliable automatic cat identification in MVP |
 | 2026-11-06 | Points/achievements/validation computed server-side only | Anti-cheat, single source of truth |
 | 2026-11-06 | Leaderboards friends-only, weekly, separate metrics, no calories | Product principles |
+| 2026-11-06 | Use `expo-router/native-tabs` (`NativeTabs`) for `(tabs)` | Official SDK 58 native tab bar with SF Symbols (`sf`) & Material (`md`) icons |
 
 ## Open questions
 - Vision provider for cat detection (Google Cloud Vision vs Gemini) — decide in Phase 7.

@@ -21,51 +21,51 @@ npx expo install -- --save-dev jest-expo jest @testing-library/react-native @typ
 ## Tasks
 
 ### 1.1 Clean the template
-- [ ] Delete starter-only files: `src/app/explore.tsx`, `src/components/app-tabs*.tsx`, `animated-icon*`, `external-link.tsx`, `scripts/reset-project.js`, and the `reset-project` npm script. Keep `themed-*` only if reused, otherwise remove.
-- [ ] Remove unused starter assets.
+- [x] Delete starter-only files: `src/app/explore.tsx`, `src/components/app-tabs*.tsx`, `animated-icon*`, `external-link.tsx`, `scripts/reset-project.js`, and the `reset-project` npm script. Keep `themed-*` only if reused, otherwise remove.
+- [x] Remove unused starter assets.
 
 ### 1.2 Design tokens
-- [ ] Extend `tailwind.config.js` with the theme: brand colors (`primary` warm orange, `secondary` calm green, `surface`, `muted`, `danger`), radii, font sizes. Support dark mode via `dark:` classes (`darkMode: 'class'` or system — follow NativeWind v4 docs).
-- [ ] `src/constants/theme.ts` exports the same tokens as JS (for places that can't use `className`, e.g. map polylines).
+- [x] Extend `tailwind.config.js` with the theme: brand colors (`primary` warm orange, `secondary` calm green, `surface`, `muted`, `danger`), radii, font sizes. Support dark mode via `dark:` classes (`darkMode: 'class'` or system — follow NativeWind v4 docs).
+- [x] `src/constants/theme.ts` exports the same tokens as JS (for places that can't use `className`, e.g. map polylines).
 
 ### 1.3 UI primitives — `src/components/ui/`
 Build minimal, accessible, NativeWind-styled components. Each with typed props and variants:
-- [ ] `Screen` (safe-area + optional scroll + background)
-- [ ] `Text` (variants: `title`, `heading`, `body`, `caption`, `label`)
-- [ ] `Button` (variants: `primary`, `secondary`, `ghost`, `danger`; sizes; `loading`; haptic on press)
-- [ ] `Card`
-- [ ] `StatTile` (label + big value + unit — used everywhere for distance/time/steps)
-- [ ] `EmptyState` (icon, title, message, optional action)
-- [ ] `ErrorState` (message + retry)
-- [ ] `index.ts` barrel export
+- [x] `Screen` (safe-area + optional scroll + background)
+- [x] `Text` (variants: `title`, `heading`, `body`, `caption`, `label`)
+- [x] `Button` (variants: `primary`, `secondary`, `ghost`, `danger`; sizes; `loading`; haptic on press)
+- [x] `Card`
+- [x] `StatTile` (label + big value + unit — used everywhere for distance/time/steps)
+- [x] `EmptyState` (icon, title, message, optional action)
+- [x] `ErrorState` (message + retry)
+- [x] `index.ts` barrel export
 
 ### 1.4 Navigation shell
-- [ ] Route groups: `src/app/(tabs)/` with 5 tabs: **Home**, **Walk**, **Collection**, **Social**, **Profile**. Each shows a placeholder `EmptyState` describing the future feature.
-- [ ] Use Expo Router's tabs (check SDK 58 docs for `NativeTabs` vs JS `Tabs`; prefer native tabs if stable). Icons via `expo-symbols` (SF Symbols iOS / Material on Android).
-- [ ] Root `_layout.tsx`: imports `global.css`, wraps app in `QueryClientProvider`, `GestureHandlerRootView`, `SafeAreaProvider`, theme provider; keeps splash until ready.
-- [ ] Add a `+not-found.tsx` screen.
+- [x] Route groups: `src/app/(tabs)/` with 5 tabs: **Home**, **Walk**, **Collection**, **Social**, **Profile**. Each shows a placeholder `EmptyState` describing the future feature.
+- [x] Use Expo Router's tabs (check SDK 58 docs for `NativeTabs` vs JS `Tabs`; prefer native tabs if stable). Icons via `expo-symbols` (SF Symbols iOS / Material on Android).
+- [x] Root `_layout.tsx`: imports `global.css`, wraps app in `QueryClientProvider`, `GestureHandlerRootView`, `SafeAreaProvider`, theme provider; keeps splash until ready.
+- [x] Add a `+not-found.tsx` screen.
 
 ### 1.5 Lib setup
-- [ ] `src/lib/query-client.ts` — QueryClient with sensible defaults (retry 2, staleTime 30s).
-- [ ] `src/lib/env.ts` — Zod schema for env vars (empty for now, ready for Phase 2).
-- [ ] `src/lib/logger.ts` — thin wrapper (`info`, `warn`, `error`), silent in production.
-- [ ] `src/lib/format.ts` — `formatDistance(m)`, `formatDuration(s)`, `formatPace(sPerKm)`, `formatNumber(n)` (locale-aware). **Unit tested.**
-- [ ] `src/constants/config.ts` — placeholder for app constants.
+- [x] `src/lib/query-client.ts` — QueryClient with sensible defaults (retry 2, staleTime 30s).
+- [x] `src/lib/env.ts` — Zod schema for env vars (empty for now, ready for Phase 2).
+- [x] `src/lib/logger.ts` — thin wrapper (`info`, `warn`, `error`), silent in production.
+- [x] `src/lib/format.ts` — `formatDistance(m)`, `formatDuration(s)`, `formatPace(sPerKm)`, `formatNumber(n)` (locale-aware). **Unit tested.**
+- [x] `src/constants/config.ts` — placeholder for app constants.
 
 ### 1.6 Testing setup
-- [ ] Configure Jest with `jest-expo` preset in `package.json`; add `"test": "jest"` script.
-- [ ] Write tests for `format.ts` and one render test for `Button`.
+- [x] Configure Jest with `jest-expo` preset in `package.json`; add `"test": "jest"` script.
+- [x] Write tests for `format.ts` and one render test for `Button`.
 
 ### 1.7 Development build
-- [ ] Add `expo-dev-client`. Run `npx eas-cli@latest login` and `npx eas-cli@latest init` (adds `extra.eas.projectId`).
+- [x] Add `expo-dev-client`. Run `npx eas-cli@latest login` and `npx eas-cli@latest init` (adds `extra.eas.projectId`).
 - [ ] Build: `npx eas-cli@latest build --profile development --platform android` and install on a phone.
 - [ ] (If Apple Developer account available) register device with `eas device:create` and build iOS dev client.
-- [ ] Document the exact commands used in `PROGRESS.md`.
+- [x] Document the exact commands used in `PROGRESS.md`.
 
 ## Acceptance criteria
-- [ ] App opens to the Home tab; all 5 tabs navigate; no starter content remains.
-- [ ] Light and dark mode both look correct.
-- [ ] `npx tsc --noEmit`, `npx expo lint`, `npx jest` all pass.
+- [x] App opens to the Home tab; all 5 tabs navigate; no starter content remains.
+- [x] Light and dark mode both look correct.
+- [x] `npx tsc --noEmit`, `npx expo lint`, `npx jest` all pass.
 - [ ] App runs on a real phone through the development build with hot reload.
 
 ## Manual test script
