@@ -191,6 +191,9 @@ export interface Database {
           reject_reason: string | null;
           cat_confidence: number | null;
           cat_id: string | null;
+          validated_at: string | null;
+          validation_attempts: number;
+          validation_meta: Json;
           created_at: string;
         };
         Insert: {
@@ -206,6 +209,9 @@ export interface Database {
           reject_reason?: string | null;
           cat_confidence?: number | null;
           cat_id?: string | null;
+          validated_at?: string | null;
+          validation_attempts?: number;
+          validation_meta?: Json;
           created_at?: string;
         };
         Update: {
@@ -221,7 +227,31 @@ export interface Database {
           reject_reason?: string | null;
           cat_confidence?: number | null;
           cat_id?: string | null;
+          validated_at?: string | null;
+          validation_attempts?: number;
+          validation_meta?: Json;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      app_config: {
+        Row: {
+          key: string;
+          value: Json;
+          description: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          key: string;
+          value: Json;
+          description?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          key?: string;
+          value?: Json;
+          description?: string | null;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -249,6 +279,13 @@ export interface Database {
           moving_time_s: number;
           steps: number;
         }[];
+      };
+      hamming_distance: {
+        Args: {
+          a: string;
+          b: string;
+        };
+        Returns: number;
       };
     };
     Enums: {

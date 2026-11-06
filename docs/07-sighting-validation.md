@@ -44,28 +44,28 @@ Migration `<ts>_validation.sql`:
 Rewardable cap (points) is enforced in Phase 9, not here.
 
 ## Tasks
-- [ ] 7.1 Migration + `app_config` seed with thresholds above.
-- [ ] 7.2 Edge Function skeleton: verify webhook secret, load sighting by id, **skip if status ≠ pending** (idempotent).
-- [ ] 7.3 Download photo with service role; compute dHash; store `phash`.
-- [ ] 7.4 Near-duplicate check.
-- [ ] 7.5 Rate-limit check (count user's sightings last 24 h).
-- [ ] 7.6 Vision call with timeout (10 s) + 1 retry; on persistent failure leave `pending` and record error → a scheduled job (pg_cron, every 10 min) retries stale pendings; after 3 failures → `flagged`.
-- [ ] 7.7 Write final status, `cat_confidence`, `reject_reason`, `validation_meta`, `validated_at`.
-- [ ] 7.8 Unit-test decision logic as a pure function `decide(inputs, config)` (Deno test).
-- [ ] 7.9 App: subscribe via Supabase Realtime (or poll every 5 s for ≤ 2 min) to update the sighting status chip. Friendly messages:
+- [x] 7.1 Migration + `app_config` seed with thresholds above.
+- [x] 7.2 Edge Function skeleton: verify webhook secret, load sighting by id, **skip if status ≠ pending** (idempotent).
+- [x] 7.3 Download photo with service role; compute dHash; store `phash`.
+- [x] 7.4 Near-duplicate check.
+- [x] 7.5 Rate-limit check (count user's sightings last 24 h).
+- [x] 7.6 Vision call with timeout (10 s) + 1 retry; on persistent failure leave `pending` and record error → a scheduled job (pg_cron, every 10 min) retries stale pendings; after 3 failures → `flagged`.
+- [x] 7.7 Write final status, `cat_confidence`, `reject_reason`, `validation_meta`, `validated_at`.
+- [x] 7.8 Unit-test decision logic as a pure function `decide(inputs, config)` (Deno test).
+- [x] 7.9 App: subscribe via Supabase Realtime (or poll every 5 s for ≤ 2 min) to update the sighting status chip. Friendly messages:
   - accepted → "Nice find! Added to your collection." (collection itself in Phase 8)
   - flagged → "We'll take a closer look — this can take a little while."
   - rejected `no_cat_detected` → "We couldn't spot a cat in this photo. Try again from a distance with zoom."
   - rejected `duplicate` → "Looks like you've already submitted this sighting."
-- [ ] 7.10 Manual review: document how to approve/reject flagged sightings in the Supabase dashboard (SQL snippet in `supabase/README.md`); approving uses a `review_sighting(id, decision)` function (service role) so downstream triggers fire.
+- [x] 7.10 Manual review: document how to approve/reject flagged sightings in the Supabase dashboard (SQL snippet in `supabase/README.md`); approving uses a `review_sighting(id, decision)` function (service role) so downstream triggers fire.
 
 ## Acceptance criteria
-- [ ] Clear cat photo → `accepted` within ~10 s.
-- [ ] Photo of a dog / empty street → `rejected` with the right message.
-- [ ] Same scene shot twice a few seconds apart → second is `rejected (duplicate)`.
-- [ ] Vision API down → sightings stay pending, then retry, never auto-accepted.
-- [ ] Client cannot change `status` (verify RLS / column privileges).
-- [ ] No API keys in the app bundle.
+- [x] Clear cat photo → `accepted` within ~10 s.
+- [x] Photo of a dog / empty street → `rejected` with the right message.
+- [x] Same scene shot twice a few seconds apart → second is `rejected (duplicate)`.
+- [x] Vision API down → sightings stay pending, then retry, never auto-accepted.
+- [x] Client cannot change `status` (verify RLS / column privileges).
+- [x] No API keys in the app bundle.
 
 ## Manual test script
 1. Submit a cat photo → accepted.

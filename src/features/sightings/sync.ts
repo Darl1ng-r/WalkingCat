@@ -163,6 +163,12 @@ async function uploadSingleSightingRow(
 
     removePendingSightingUpload(id);
     deleteLocalSightingFile(local_file_uri);
+
+    // Trigger Edge Function validation asynchronously (fallback alongside DB webhook)
+    supabase.functions
+      .invoke('validate-sighting', { body: { sightingId: id } })
+      .catch(() => {});
+
     return 'uploaded';
   } catch (err) {
     markPendingSightingUploadError(id, String(err));

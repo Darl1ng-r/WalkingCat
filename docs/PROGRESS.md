@@ -13,7 +13,7 @@
 | 4 Health (steps & calories) | ✅ Done | 2026-11-06 | HealthKit (`queryStatisticsForQuantity` cumulativeSum) & Health Connect (`aggregateRecord`) providers, MET calorie estimator (`calories.ts`), walk health enrichment + 2h delayed wearable re-sync, 15m throttled daily sync, Home Today card & Permissions screen, 30/30 tests passing |
 | 5 History & dashboard | ✅ Done | 2026-11-06 | `get_activity_summary` RPC migration, paginated `listWalks`/`getWalk`/`deleteWalk`, `@shopify/flash-list` History screen with pending upload badge, Walk Detail screen with `trimRouteEnds(150m)` privacy toggle & route bounds fitting, Home "This Week" card + Progress screen (`ActivityBarChart`), 40/40 tests passing |
 | 6 Cat camera & sightings | ✅ Done | 2026-11-06 | `sightings` table + private `sighting-photos` bucket migration, `WelfareSheet`, no-flash `CameraView` with zoom presets, EXIF-stripping `processCapturedPhoto` + `expo-crypto` SHA-256, `toGeohash` (≤5 chars), offline `pending_sighting_uploads` queue, 1h signed URL cache, 48/48 tests passing |
-| 7 Sighting validation | ⬜ Not started | | |
+| 7 Sighting validation | ✅ Done | 2026-11-06 | `20261106000006_validation.sql` (`app_config`, `hamming_distance`, `sighting_reviews` view, `review_sighting` RPC), `validate-sighting` Edge Function (64-bit dHash, near-duplicate & rate-limit checks, Gemini 2.5 Flash vision with 10s timeout + 1 retry), Realtime + 5s poll status updates, 57/57 tests passing |
 | 8 Cat collection | ⬜ Not started | | |
 | 9 Points, achievements, challenges | ⬜ Not started | | |
 | 10 Friends & leaderboards | ⬜ Not started | | |
@@ -33,6 +33,7 @@ Record any decision that later phases must respect.
 | 2026-11-06 | Leaderboards friends-only, weekly, separate metrics, no calories | Product principles |
 | 2026-11-06 | Use `expo-router/native-tabs` (`NativeTabs`) for `(tabs)` | Official SDK 58 native tab bar with SF Symbols (`sf`) & Material (`md`) icons |
 | 2026-11-06 | Support both email confirmation ON and OFF in sign-up flow | `signUp` checks `requiresEmailConfirmation` (`user && !session`) so dev (confirm off) and prod (confirm on) both work seamlessly |
+| 2026-11-06 | Vision provider = Gemini API (`gemini-2.5-flash`) in `validate-sighting` Edge Function | Single structured JSON call checks `contains_cat`, `confidence`, `is_real_photo` (screen/print detection), and `is_safe` without exposing API keys in the app |
 
 ## Open questions
 - Vision provider for cat detection (Google Cloud Vision vs Gemini) — decide in Phase 7.

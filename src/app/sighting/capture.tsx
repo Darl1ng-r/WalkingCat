@@ -10,12 +10,14 @@ import { Pressable, View } from 'react-native';
 import { Button, Card, Screen, Text } from '@/components/ui';
 import {
   checkCaptureCooldown,
+  getSightingStatusCopy,
   processCapturedPhoto,
   SIGHTINGS_QUERY_KEYS,
   submitSightingPhoto,
   toGeohash,
   useCameraWelfareAck,
   useSaveSightingAreaSetting,
+  useSightingValidationStatus,
   WelfareSheet,
   type RawCapturedPhoto,
 } from '@/features/sightings';
@@ -52,9 +54,14 @@ export default function SightingCaptureScreen() {
   );
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [submittedState, setSubmittedState] = useState<
-    'uploaded' | 'queued' | null
-  >(null);
+  const [submittedSighting, setSubmittedSighting] = useState<{
+    id: string;
+    state: 'uploaded' | 'queued';
+  } | null>(null);
+
+  const { data: liveSighting } = useSightingValidationStatus(
+    submittedSighting?.id
+  );
 
   // 1. First-time welfare acknowledgement sheet (or user-opened reminder)
   if (!acknowledged || showWelfareModal) {
@@ -77,21 +84,43 @@ export default function SightingCaptureScreen() {
     );
   }
 
-  // 2. Post-submission confirmation screen
-  if (submittedState) {
+  // 2. Post-submission confirmation screen (live-updated via Realtime + 5s poll)
+  if (submittedSighting) {
+    const status = liveSighting?.status ?? 'pending';
+    const isUploading =
+      liveSighting?.isUploading ?? submittedSighting.state === 'queued';
+    const copy = getSightingStatusCopy(
+      status,
+      liveSighting?.reject_reason,
+      isUploading
+    );
+
     return (
       <Screen className="justify-center">
         <Card className="items-center gap-4 p-6">
           <View className="h-20 w-20 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
-            <Text className="text-4xl">🐱</Text>
+            <Text className="text-4xl">
+              {status === 'accepted'
+                ? '🎉'
+                : status === 'rejected'
+                  ? '🔎'
+                  : '🐱'}
+            </Text>
+          </View>
+          <View className="rounded-pill bg-primary/15 px-3 py-1">
+            <Text variant="label">{copy.badgeLabel}</Text>
           </View>
           <Text variant="title" className="text-center">
-            Submitted — checking your photo
+            {status === 'accepted'
+              ? 'Cat Spotted!'
+              : status === 'rejected'
+                ? 'Sighting Update'
+                : status === 'flagged'
+                  ? 'Under Review'
+                  : 'Submitted — checking your photo'}
           </Text>
           <Text variant="caption" className="text-center leading-5">
-            {submittedState === 'uploaded'
-              ? 'Your photo was uploaded privately without EXIF metadata and is queued for cat verification.'
-              : 'Saved safely on your device — it will upload automatically as soon as you are online.'}
+            {copy.friendlyMessage}
           </Text>
           <View className="w-full gap-2.5 pt-2">
             <Button
@@ -104,7 +133,7 @@ export default function SightingCaptureScreen() {
               variant="ghost"
               onPress={() => {
                 setCapturedPhoto(null);
-                setSubmittedState(null);
+                setSubmittedSighting(null);
                 setErrorMessage(null);
               }}
             />
@@ -166,7 +195,10 @@ export default function SightingCaptureScreen() {
           return;
         }
 
-        setSubmittedState(outcome.status);
+        setSubmittedSighting({
+          id: outcome.sightingId,
+          state: outcome.status,
+        });
       } catch (err) {
         setErrorMessage(
           err instanceof Error

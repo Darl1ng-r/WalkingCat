@@ -123,3 +123,58 @@ export async function listSightingsForWalk(
     (a, b) => new Date(a.taken_at).getTime() - new Date(b.taken_at).getTime()
   );
 }
+
+/**
+ * Fetches a single sighting's validation status by ID (checking local pending queue first).
+ */
+export async function getSightingById(
+  sightingId: string
+): Promise<SightingSummaryItem | null> {
+  if (!sightingId) {
+    return null;
+  }
+
+  const localPending = listPendingSightingUploads().find(
+    (r) => r.sighting_id === sightingId
+  );
+  if (localPending) {
+    return {
+      id: localPending.sighting_id,
+      walk_id: localPending.payload.walk_id,
+      imageUri: localPending.payload.local_file_uri,
+      taken_at: localPending.payload.taken_at,
+      area_geohash: localPending.payload.area_geohash,
+      status: 'pending',
+      reject_reason: null,
+      isUploading: true,
+    };
+  }
+
+  if (!isSupabaseConfigured) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from('sightings')
+    .select(
+      'id, walk_id, photo_path, taken_at, area_geohash, status, reject_reason'
+    )
+    .eq('id', sightingId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const signedUrl = await getSignedSightingPhotoUrl(data.photo_path);
+  return {
+    id: data.id,
+    walk_id: data.walk_id,
+    imageUri: signedUrl,
+    taken_at: data.taken_at,
+    area_geohash: data.area_geohash,
+    status: data.status,
+    reject_reason: data.reject_reason,
+    isUploading: false,
+  };
+}

@@ -3,43 +3,24 @@ import { View } from 'react-native';
 
 import { Card, Text } from '@/components/ui';
 import type { SightingSummaryItem } from '../api';
+import { getSightingStatusCopy } from '../validation-rules';
 
 export interface WalkSightingsListProps {
   sightings: readonly SightingSummaryItem[];
 }
 
-function getStatusBadge(item: SightingSummaryItem): {
-  label: string;
-  badgeClassName: string;
-} {
-  if (item.isUploading) {
-    return {
-      label: '⏳ Waiting to upload · Checking…',
-      badgeClassName: 'bg-primary/15',
-    };
-  }
-  switch (item.status) {
-    case 'accepted':
-      return {
-        label: '✓ Accepted',
-        badgeClassName: 'bg-secondary/20',
-      };
-    case 'rejected':
-      return {
-        label: 'Not a cat photo',
-        badgeClassName: 'bg-danger-muted',
-      };
-    case 'flagged':
-      return {
-        label: 'Under review',
-        badgeClassName: 'bg-primary/15',
-      };
-    case 'pending':
+function getToneBadgeClassName(
+  tone: 'neutral' | 'success' | 'warning' | 'danger'
+): string {
+  switch (tone) {
+    case 'success':
+      return 'bg-secondary/20';
+    case 'danger':
+      return 'bg-danger-muted';
+    case 'warning':
+    case 'neutral':
     default:
-      return {
-        label: '🔍 Checking…',
-        badgeClassName: 'bg-primary/15',
-      };
+      return 'bg-primary/15';
   }
 }
 
@@ -59,7 +40,12 @@ export function WalkSightingsList({ sightings }: WalkSightingsListProps) {
 
       <View className="gap-2.5">
         {sightings.map((item) => {
-          const badge = getStatusBadge(item);
+          const copy = getSightingStatusCopy(
+            item.status,
+            item.reject_reason,
+            item.isUploading
+          );
+          const badgeClassName = getToneBadgeClassName(copy.tone);
           const timeStr = new Date(item.taken_at).toLocaleTimeString([], {
             hour: 'numeric',
             minute: '2-digit',
@@ -90,11 +76,11 @@ export function WalkSightingsList({ sightings }: WalkSightingsListProps) {
                 </View>
 
                 <View className="flex-row flex-wrap items-center gap-2">
-                  <View className={`rounded-pill px-2.5 py-0.5 ${badge.badgeClassName}`}>
+                  <View className={`rounded-pill px-2.5 py-0.5 ${badgeClassName}`}>
                     <Text
                       variant="caption"
                       className="text-[11px] font-semibold text-text-primary dark:text-text-primary-dark">
-                      {badge.label}
+                      {copy.badgeLabel}
                     </Text>
                   </View>
 
@@ -104,6 +90,10 @@ export function WalkSightingsList({ sightings }: WalkSightingsListProps) {
                     </Text>
                   ) : null}
                 </View>
+
+                <Text variant="caption" className="text-xs leading-4">
+                  {copy.friendlyMessage}
+                </Text>
               </View>
             </View>
           );
