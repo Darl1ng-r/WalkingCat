@@ -24,22 +24,22 @@ Migration `<ts>_social.sql`:
 - Function `get_friends_leaderboard(p_metric text, p_week_start date)` → rank, user, value for self + accepted friends who opted in. Metrics: `steps`, `distance_m`, `walks`, `challenge_points`. **Calories excluded.**
 
 ## Tasks
-- [ ] 10.1 Migration, helper functions, RLS, privacy defaults. **RLS test script**: non-friend cannot read anything; friend can read only allowed fields; nobody can read another's walks/routes.
-- [ ] 10.2 `src/features/social/api.ts`: search by username (exact or prefix, min 3 chars, only `discoverable` users), send/accept/decline/cancel/remove/block, create invite code, redeem invite.
-- [ ] 10.3 **Invite link** via deep link `walkingcat://invite/<code>` (scheme already in `app.json`) + share sheet; universal links post-MVP.
-- [ ] 10.4 **Social tab** sections: Leaderboard (default), Friends, Requests (badge count).
-- [ ] 10.5 **Leaderboard:** segmented control for metric; week selector (this week / last week); ranks with avatar + value; current user highlighted; resets weekly (Monday per locale). Empty state: "Invite a friend to start a friendly race".
-- [ ] 10.6 **Friend activity:** simple list of friends' milestone events (last 14 days) with reactions. No routes, no maps.
-- [ ] 10.7 **Share a cat card** to friends (opt-in per card): appears as an event with photo + nickname; never area.
-- [ ] 10.8 Friend profile screen: display name, username, achievements count, this week's opted-in stats, remove/block.
-- [ ] 10.9 Anti-cheat on leaderboard: exclude `is_suspicious` walks; steps from health only (no manual entry); cap daily steps counted at a sane max (e.g. 60k) and flag outliers.
+- [x] 10.1 Migration, helper functions, RLS, privacy defaults. **RLS test script**: non-friend cannot read anything; friend can read only allowed fields; nobody can read another's walks/routes.
+- [x] 10.2 `src/features/social/api.ts`: search by username (exact or prefix, min 3 chars, only `discoverable` users), send/accept/decline/cancel/remove/block, create invite code, redeem invite.
+- [x] 10.3 **Invite link** via deep link `walkingcat://invite/<code>` (scheme already in `app.json`) + share sheet; universal links post-MVP.
+- [x] 10.4 **Social tab** sections: Leaderboard (default), Friends, Requests (badge count).
+- [x] 10.5 **Leaderboard:** segmented control for metric; week selector (this week / last week); ranks with avatar + value; current user highlighted; resets weekly (Monday per locale). Empty state: "Invite a friend to start a friendly race".
+- [x] 10.6 **Friend activity:** simple list of friends' milestone events (last 14 days) with reactions. No routes, no maps.
+- [x] 10.7 **Share a cat card** to friends (opt-in per card): appears as an event with photo + nickname; never area.
+- [x] 10.8 Friend profile screen: display name, username, achievements count, this week's opted-in stats, remove/block.
+- [x] 10.9 Anti-cheat on leaderboard: exclude `is_suspicious` walks; steps from health only (no manual entry); cap daily steps counted at a sane max (e.g. 60k) and flag outliers.
 
 ## Acceptance criteria
-- [ ] Two test accounts can connect via username search and via invite link.
-- [ ] Leaderboard shows correct weekly values per metric; opted-out users hidden.
-- [ ] Blocking hides the user everywhere and prevents new requests.
-- [ ] RLS test script passes — no route, walk point, sighting location, or photo of a non-shared cat is reachable by a friend.
-- [ ] Calories never appear in social features.
+- [x] Two test accounts can connect via username search and via invite link.
+- [x] Leaderboard shows correct weekly values per metric; opted-out users hidden.
+- [x] Blocking hides the user everywhere and prevents new requests.
+- [x] RLS test script passes — no route, walk point, sighting location, or photo of a non-shared cat is reachable by a friend.
+- [x] Calories never appear in social features.
 
 ## Manual test script
 1. User A invites B by link → B accepts → both see each other on the leaderboard.

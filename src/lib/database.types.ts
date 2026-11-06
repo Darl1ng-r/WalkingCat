@@ -528,9 +528,135 @@ export interface Database {
         };
         Relationships: [];
       };
+      friendships: {
+        Row: {
+          id: string;
+          requester_id: string;
+          addressee_id: string;
+          status: 'pending' | 'accepted' | 'declined' | 'blocked';
+          created_at: string;
+          responded_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          requester_id: string;
+          addressee_id: string;
+          status?: 'pending' | 'accepted' | 'declined' | 'blocked';
+          created_at?: string;
+          responded_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          requester_id?: string;
+          addressee_id?: string;
+          status?: 'pending' | 'accepted' | 'declined' | 'blocked';
+          created_at?: string;
+          responded_at?: string | null;
+        };
+        Relationships: [];
+      };
+      friend_invites: {
+        Row: {
+          code: string;
+          user_id: string;
+          expires_at: string;
+          uses: number;
+          max_uses: number;
+          created_at: string;
+        };
+        Insert: {
+          code: string;
+          user_id: string;
+          expires_at?: string;
+          uses?: number;
+          max_uses?: number;
+          created_at?: string;
+        };
+        Update: {
+          code?: string;
+          user_id?: string;
+          expires_at?: string;
+          uses?: number;
+          max_uses?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      activity_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          type:
+            | 'walk_completed'
+            | 'achievement_unlocked'
+            | 'collection_milestone'
+            | 'challenge_completed'
+            | 'cat_card_shared';
+          payload: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          type:
+            | 'walk_completed'
+            | 'achievement_unlocked'
+            | 'collection_milestone'
+            | 'challenge_completed'
+            | 'cat_card_shared';
+          payload?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          type?:
+            | 'walk_completed'
+            | 'achievement_unlocked'
+            | 'collection_milestone'
+            | 'challenge_completed'
+            | 'cat_card_shared';
+          payload?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      reactions: {
+        Row: {
+          id: string;
+          event_id: string;
+          user_id: string;
+          emoji: '👏' | '🐾' | '❤️' | '🔥';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          user_id: string;
+          emoji: '👏' | '🐾' | '❤️' | '🔥';
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          user_id?: string;
+          emoji?: '👏' | '🐾' | '❤️' | '🔥';
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
-      [_ in never]: never;
+      public_profiles: {
+        Row: {
+          id: string;
+          username: string;
+          display_name: string | null;
+          avatar_url: string | null;
+          created_at: string;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       is_username_available: {
@@ -592,6 +718,107 @@ export interface Database {
           p_difficulty: string;
         };
         Returns: string;
+      };
+      is_friend: {
+        Args: {
+          p_a: string;
+          p_b: string;
+        };
+        Returns: boolean;
+      };
+      is_blocked_between: {
+        Args: {
+          p_a: string;
+          p_b: string;
+        };
+        Returns: boolean;
+      };
+      create_friend_invite: {
+        Args: Record<PropertyKey, never>;
+        Returns: Database['public']['Tables']['friend_invites']['Row'];
+      };
+      redeem_friend_invite: {
+        Args: {
+          p_code: string;
+        };
+        Returns: string;
+      };
+      search_discoverable_users: {
+        Args: {
+          p_query: string;
+        };
+        Returns: {
+          id: string;
+          username: string;
+          display_name: string | null;
+          avatar_url: string | null;
+          friendship_status: string | null;
+        }[];
+      };
+      send_friend_request: {
+        Args: {
+          p_target_user_id: string;
+        };
+        Returns: Database['public']['Tables']['friendships']['Row'];
+      };
+      respond_friend_request: {
+        Args: {
+          p_friendship_id: string;
+          p_decision: string;
+        };
+        Returns: Database['public']['Tables']['friendships']['Row'];
+      };
+      remove_or_cancel_friendship: {
+        Args: {
+          p_other_user_id: string;
+        };
+        Returns: undefined;
+      };
+      block_user: {
+        Args: {
+          p_target_user_id: string;
+        };
+        Returns: undefined;
+      };
+      share_cat_card_to_friends: {
+        Args: {
+          p_cat_id: string;
+        };
+        Returns: Database['public']['Tables']['activity_events']['Row'];
+      };
+      get_friends_leaderboard: {
+        Args: {
+          p_metric: string;
+          p_week_start?: string;
+        };
+        Returns: {
+          rank: number;
+          user_id: string;
+          username: string;
+          display_name: string | null;
+          avatar_url: string | null;
+          value: number;
+          is_self: boolean;
+          has_outlier: boolean;
+        }[];
+      };
+      get_friend_profile_summary: {
+        Args: {
+          p_friend_id: string;
+        };
+        Returns: {
+          user_id: string;
+          username: string;
+          display_name: string | null;
+          avatar_url: string | null;
+          member_since: string;
+          achievements_count: number;
+          show_on_leaderboard: boolean;
+          week_steps: number;
+          week_distance_m: number;
+          week_walks: number;
+          week_challenge_points: number;
+        }[];
       };
     };
     Enums: {

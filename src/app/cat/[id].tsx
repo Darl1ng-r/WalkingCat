@@ -28,6 +28,7 @@ import {
   type CatSightingTimelineItem,
 } from '@/features/collection';
 import { invalidateSignedSightingPhotoUrl } from '@/features/sightings';
+import { useShareCatCardMutation } from '@/features/social';
 import { formatNumber } from '@/lib/format';
 
 function formatShortLocalDate(isoString: string): string {
@@ -71,12 +72,16 @@ export default function CatDetailScreen() {
   const linkMutation = useLinkSightingMutation();
   const unlinkMutation = useUnlinkSightingMutation();
   const deleteSightingMutation = useDeleteSightingMutation();
+  const shareCardMutation = useShareCatCardMutation();
 
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [nicknameDraft, setNicknameDraft] = useState('');
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [showLinkPicker, setShowLinkPicker] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [sharedSuccessNote, setSharedSuccessNote] = useState<string | null>(
+    null
+  );
 
   if (isLoading) {
     return (
@@ -379,6 +384,43 @@ export default function CatDetailScreen() {
           />
         </View>
       </View>
+
+      {/* Opt-In Per-Card Share to Friends */}
+      <Card className="gap-2.5">
+        <View className="flex-row items-center justify-between gap-3">
+          <View className="flex-1">
+            <Text variant="label">🤝 Share Card with Friends</Text>
+            <Text variant="caption" className="mt-0.5 text-xs leading-5">
+              {sharedSuccessNote ??
+                'Shares only this card’s photo and nickname to your friends’ Activity feed. Area and location are never shared.'}
+            </Text>
+          </View>
+          <Button
+            label={sharedSuccessNote ? 'Shared ✓' : 'Share Card'}
+            size="sm"
+            variant="secondary"
+            loading={shareCardMutation.isPending}
+            onPress={() => {
+              setActionError(null);
+              setSharedSuccessNote(null);
+              shareCardMutation
+                .mutateAsync(cat.id)
+                .then(() => {
+                  setSharedSuccessNote(
+                    'Shared with your friends! They can see the photo and nickname in Activity.'
+                  );
+                })
+                .catch((err) => {
+                  setActionError(
+                    err instanceof Error
+                      ? err.message
+                      : 'Could not share cat card.'
+                  );
+                });
+            }}
+          />
+        </View>
+      </Card>
 
       {/* Link to another existing cat */}
       {otherCats.length > 0 ? (

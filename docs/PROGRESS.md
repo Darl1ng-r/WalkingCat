@@ -16,7 +16,7 @@
 | 7 Sighting validation | ✅ Done | 2026-11-06 | `20261106000006_validation.sql` (`app_config`, `hamming_distance`, `sighting_reviews` view, `review_sighting` RPC), `validate-sighting` Edge Function (64-bit dHash, near-duplicate & rate-limit checks, Gemini 2.5 Flash vision with 10s timeout + 1 retry), Realtime + 5s poll status updates, 57/57 tests passing |
 | 8 Cat collection | ✅ Done | 2026-11-06 | `20261106000007_cats.sql` (`cats` table, idempotent triggers, `link_sighting_to_cat` & `unlink_sighting` RPCs), `CatCard` with Reanimated reveal, 2-col `FlashList` Collection screen + Recent Submissions, `/cat/[id]` detail & timeline, `NewCatAcceptedSheet`, Walk Detail sightings section, 63/63 tests passing |
 | 9 Points, achievements, challenges | ✅ Done | 2026-11-07 | `20261106000008_gamification.sql` + `seed.sql` + `gamification_test.sql` (`points_ledger`, `achievements`, `challenges`, idempotent triggers, daily caps, `pg_cron` daily/weekly instances), `PointsChip`, `ChallengeCard`, `WalkRewardsCard` with haptic + Reanimated entrance, `/achievements` & `/challenges` screens with Easy/Standard toggle, 71/71 tests passing |
-| 10 Friends & leaderboards | ⬜ Not started | | |
+| 10 Friends & leaderboards | ✅ Done | 2026-11-07 | `20261106000009_social.sql` + `social_rls_test.sql` + `sign-shared-cat-photo` Edge Function (`friendships`, `friend_invites`, `public_profiles`, `activity_events`, `reactions`, `get_friends_leaderboard` with 60k step cap & no calories), Social tab (Leaderboard, Activity, Friends, Requests), `/invite/[code]`, `/friend/[id]`, opt-in cat card share, 77/77 tests passing |
 | 11 Privacy, safety, moderation | ⬜ Not started | | |
 | 12 Polish, analytics, beta | ⬜ Not started | | |
 
