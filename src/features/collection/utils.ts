@@ -56,8 +56,10 @@ export interface NicknameValidationResult {
  * Validates a cat nickname (optional, up to 30 characters).
  * Empty string clears the nickname (`sanitized: null`).
  */
-export function validateCatNickname(raw: string): NicknameValidationResult {
-  const trimmed = raw.trim();
+export function validateCatNickname(
+  raw: string | null | undefined
+): NicknameValidationResult {
+  const trimmed = (raw ?? '').trim();
   if (trimmed.length === 0) {
     return { valid: true, sanitized: null };
   }

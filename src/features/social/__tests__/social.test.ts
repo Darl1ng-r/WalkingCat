@@ -58,6 +58,25 @@ describe('Social & Leaderboard Utilities (Phase 10)', () => {
     expect(parseInviteCodeFromInput('')).toBeNull();
   });
 
+  it('handles edge cases in invite codes, dates, and formatting', () => {
+    // Malformed URLs
+    expect(parseInviteCodeFromInput('https://example.com/other')).toBeNull();
+    expect(parseInviteCodeFromInput('invalid!!code##')).toBeNull();
+    expect(parseInviteCodeFromInput('walkingcat://invite/')).toBeNull();
+
+    // Boundary metric formatting
+    expect(formatLeaderboardValue('distance_m', 0)).toBe('0 m');
+    expect(formatLeaderboardValue('steps', 0)).toBe('0 steps');
+    expect(formatLeaderboardValue('steps', -10)).toBe('0 steps');
+    expect(formatLeaderboardValue('walks', 0)).toBe('0 walks');
+
+    // Negative steps cap
+    expect(capDailyStepsForLeaderboard(-50)).toEqual({
+      countedSteps: 0,
+      isOutlier: false,
+    });
+  });
+
   it('formats milestone and shared cat card events without exposing location or calories', () => {
     const walkCopy = formatActivityEventCopy(
       'walk_completed',

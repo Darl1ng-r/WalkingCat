@@ -111,6 +111,44 @@ describe('Gamification Rules (Phase 9)', () => {
     });
   });
 
+  describe('Edge cases and boundary values', () => {
+    it('handles negative, zero, and extreme values in calculations', () => {
+      // 0 steps or negative steps
+      expect(calculateDailyStepsMilestonePoints(0)).toEqual({
+        milestonesReached: [],
+        totalPoints: 0,
+      });
+      expect(calculateDailyStepsMilestonePoints(-500)).toEqual({
+        milestonesReached: [],
+        totalPoints: 0,
+      });
+
+      // Exactly at boundaries: 5000, 8000, 10000
+      expect(calculateDailyStepsMilestonePoints(5000).milestonesReached).toEqual([5000]);
+      expect(calculateDailyStepsMilestonePoints(8000).milestonesReached).toEqual([5000, 8000]);
+      expect(calculateDailyStepsMilestonePoints(10000).milestonesReached).toEqual([5000, 8000, 10000]);
+
+      // Exactly at walk boundary: 500m and 600s
+      const boundaryWalk = calculateWalkPointsBreakdown({
+        distanceMeters: 500,
+        movingTimeSeconds: 600,
+      });
+      expect(boundaryWalk.qualifies).toBe(true);
+      expect(boundaryWalk.walkPoints).toBe(20);
+      expect(boundaryWalk.distanceBonusPoints).toBe(0);
+      expect(boundaryWalk.totalPoints).toBe(20);
+
+      // Just below boundary
+      expect(calculateWalkPointsBreakdown({ distanceMeters: 499.9, movingTimeSeconds: 600 }).qualifies).toBe(false);
+      expect(calculateWalkPointsBreakdown({ distanceMeters: 500, movingTimeSeconds: 599 }).qualifies).toBe(false);
+
+      // Sighting points edge values
+      expect(calculateSightingPoints(-1)).toBe(15);
+      expect(calculateSightingPoints(5)).toBe(0);
+      expect(calculateSightingPoints(100)).toBe(0);
+    });
+  });
+
   describe('Challenge & Achievement Formatting', () => {
     it('formats challenge progress text and clamps progress ratio to [0, 1]', () => {
       expect(formatChallengeProgressText('steps', 3200, 5000)).toBe(

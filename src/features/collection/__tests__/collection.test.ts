@@ -80,6 +80,34 @@ describe('cat collection utilities', () => {
     expect(validateCatNickname('a'.repeat(31)).valid).toBe(false);
   });
 
+  it('handles edge cases in nickname validation and card numbers', () => {
+    // null or undefined or whitespace
+    expect(validateCatNickname(null as unknown as string)).toEqual({
+      valid: true,
+      sanitized: null,
+    });
+    expect(validateCatNickname(undefined as unknown as string)).toEqual({
+      valid: true,
+      sanitized: null,
+    });
+    // Exactly 30 characters
+    const exact30 = 'x'.repeat(30);
+    expect(validateCatNickname(exact30)).toEqual({
+      valid: true,
+      sanitized: exact30,
+    });
+
+    // Boundary numbers
+    expect(formatCatCardNumber(0)).toBe('#001');
+    expect(formatCatCardNumber(-5)).toBe('#001');
+    expect(formatCatCardNumber(NaN)).toBe('#001');
+    expect(formatCatCardNumber(9999)).toBe('#9999');
+
+    // Default display names on edge cases
+    expect(getCatDisplayName('', -1)).toBe('Unnamed cat #1');
+    expect(getCatDisplayName(undefined, NaN)).toBe('Unnamed cat #1');
+  });
+
   it('sorts cat cards by newest, most_seen, and a_z', () => {
     const newest = sortCatCards(SAMPLE_CATS, 'newest');
     expect(newest.map((c) => c.id)).toEqual(['cat-3', 'cat-2', 'cat-1']);
