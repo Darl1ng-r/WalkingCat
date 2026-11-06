@@ -13,6 +13,10 @@
     },
     "android": {
       "package": "com.walkingcat.app",
+      "permissions": [
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -52,7 +56,16 @@
           "requestLocationPermission": true,
           "locationPermission": "Allow StrayCat Walk to show your position on the map during a walk."
         }
-      ]
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "Allow StrayCat Walk to read your step count and active calories burned during walks. We never write to Apple Health.",
+          "NSHealthUpdateUsageDescription": false,
+          "background": false
+        }
+      ],
+      "react-native-health-connect"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -4,21 +4,27 @@ import { Pressable, View } from 'react-native';
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { useSession } from '@/features/auth';
 
-const PLACEHOLDER_SETTINGS = [
+const SETTINGS_ITEMS = [
+  {
+    emoji: '📍',
+    title: 'Permissions',
+    subtitle: 'Manage Location, Apple Health / Health Connect access',
+    href: '/settings/permissions' as const,
+    enabled: true,
+  },
   {
     emoji: '🔒',
     title: 'Privacy',
     subtitle: 'Route trimming, leaderboard & sharing defaults (Phase 11)',
-  },
-  {
-    emoji: '📍',
-    title: 'Permissions',
-    subtitle: 'Location, camera, and health connections (Phase 11)',
+    href: null,
+    enabled: false,
   },
   {
     emoji: '⚙️',
     title: 'Account & Data',
     subtitle: 'Export or delete walks, sightings, and account data (Phase 11)',
+    href: null,
+    enabled: false,
   },
 ] as const;
 
@@ -88,13 +94,18 @@ export default function ProfileScreen() {
 
       <View className="gap-3">
         <Text variant="label">Settings</Text>
-        {PLACEHOLDER_SETTINGS.map((item) => (
+        {SETTINGS_ITEMS.map((item) => (
           <Pressable
             key={item.title}
             accessibilityRole="button"
             accessibilityLabel={item.title}
-            disabled
-            className="opacity-75">
+            disabled={!item.enabled}
+            onPress={() => {
+              if (item.href) {
+                router.push(item.href);
+              }
+            }}
+            className={item.enabled ? 'active:opacity-80' : 'opacity-70'}>
             <Card className="flex-row items-center gap-3">
               <Text className="text-2xl">{item.emoji}</Text>
               <View className="flex-1">

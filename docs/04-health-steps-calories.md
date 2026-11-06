@@ -47,21 +47,21 @@ Migration `<ts>_health.sql`:
 - Use the platform's **aggregated statistics query** (HealthKit `HKStatisticsQuery` cumulative sum; Health Connect `aggregate`) — both deduplicate phone + wearable sources. Never sum raw samples yourself.
 
 ## Tasks
-- [ ] 4.1 Install libs + config plugins; rebuild dev client.
-- [ ] 4.2 Implement `HealthProvider` for iOS and Android + web stub.
-- [ ] 4.3 Permission UX: "Connect Health" card on Home (not during onboarding). Explain what is read and why. States: not connected / connected / denied / unavailable (e.g. Health Connect app not installed → link to install on Android).
-- [ ] 4.4 On walk finish: query steps + active kcal for `[started_at, ended_at]`; if kcal unavailable → compute estimate; store with `kcal_source`.
-- [ ] 4.5 Show steps + kcal on the walk summary with a small "estimate" / "from Apple Health" / "from Health Connect" label.
-- [ ] 4.6 Daily sync: on app foreground (throttled to once per 15 min) upsert today's and yesterday's `daily_activity`.
-- [ ] 4.7 Home tab: "Today" card with steps (or "Connect Health to see steps"), walks today, distance today.
-- [ ] 4.8 Settings → Permissions: show health status + "Manage in Health / Health Connect".
+- [x] 4.1 Install libs + config plugins; rebuild dev client.
+- [x] 4.2 Implement `HealthProvider` for iOS and Android + web stub.
+- [x] 4.3 Permission UX: "Connect Health" card on Home (not during onboarding). Explain what is read and why. States: not connected / connected / denied / unavailable (e.g. Health Connect app not installed → link to install on Android).
+- [x] 4.4 On walk finish: query steps + active kcal for `[started_at, ended_at]`; if kcal unavailable → compute estimate; store with `kcal_source`.
+- [x] 4.5 Show steps + kcal on the walk summary with a small "estimate" / "from Apple Health" / "from Health Connect" label.
+- [x] 4.6 Daily sync: on app foreground (throttled to once per 15 min) upsert today's and yesterday's `daily_activity`.
+- [x] 4.7 Home tab: "Today" card with steps (or "Connect Health to see steps"), walks today, distance today.
+- [x] 4.8 Settings → Permissions: show health status + "Manage in Health / Health Connect".
 
 ## Acceptance criteria
-- [ ] With permission: today's steps match the Health/Health Connect app (±1%).
-- [ ] Walk steps are attached after finishing a walk.
-- [ ] Without permission or on unsupported devices: app works fully; calories show "Estimate" label; steps show a friendly explanation.
-- [ ] No calorie figure anywhere is shown without a source label.
-- [ ] Phone + watch wearers don't get doubled steps.
+- [x] With permission: today's steps match the Health/Health Connect app (±1%).
+- [x] Walk steps are attached after finishing a walk.
+- [x] Without permission or on unsupported devices: app works fully; calories show "Estimate" label; steps show a friendly explanation.
+- [x] No calorie figure anywhere is shown without a source label.
+- [x] Phone + watch wearers don't get doubled steps.
 
 ## Manual test script
 1. Fresh install → no health prompt until tapping "Connect Health".

@@ -57,6 +57,9 @@ export async function syncPendingWalks(): Promise<SyncWalksResult> {
             avg_speed_mps: item.payload.avg_speed_mps,
             route_polyline: item.payload.route_polyline,
             point_count: item.payload.point_count,
+            steps: item.payload.steps ?? null,
+            active_kcal: item.payload.active_kcal ?? null,
+            kcal_source: item.payload.kcal_source ?? null,
             status: 'completed',
           },
           { onConflict: 'client_id' }

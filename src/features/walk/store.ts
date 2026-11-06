@@ -11,6 +11,11 @@ import {
   type WalkUploadPayload,
 } from '@/lib/db';
 import {
+  resolveWalkHealthData,
+  syncDailyHealthActivity,
+  type HealthSourceName,
+} from '@/features/health';
+import {
   computeDurations,
   encodePolyline,
   filterPoints,
@@ -38,6 +43,11 @@ export interface CompletedWalkSummary {
   movingTimeSeconds: number;
   distanceMeters: number;
   paceSecondsPerKm: number;
+  steps: number | null;
+  activeKcal: number;
+  kcalSource: 'health' | 'estimate';
+  healthSourceName: HealthSourceName;
+  usedDefaultWeight: boolean;
   routePoints: { latitude: number; longitude: number }[];
   encodedPolyline: string;
   syncStatus: 'uploading' | 'synced' | 'queued_offline';
@@ -63,7 +73,7 @@ export interface WalkStoreState {
   pauseWalk: () => void;
   resumeWalk: () => void;
   refreshMetricsFromDb: () => void;
-  finishWalk: () => Promise<CompletedWalkSummary | null>;
+  finishWalk: (weightKg?: number | null) => Promise<CompletedWalkSummary | null>;
   discardWalk: () => Promise<void>;
   dismissSummary: () => void;
   triggerSync: () => Promise<void>;
@@ -242,7 +252,7 @@ export const useWalkStore = create<WalkStoreState>((set, get) => ({
     });
   },
 
-  finishWalk: async () => {
+  finishWalk: async (weightKg?: number | null) => {
     const { walkId, startedAt, pauseIntervals } = get();
     if (!walkId || !startedAt) return null;
 
@@ -269,6 +279,14 @@ export const useWalkStore = create<WalkStoreState>((set, get) => ({
     const paceSecondsPerKm =
       dist >= 10 && movingTimeSeconds > 0 ? movingTimeSeconds / (dist / 1000) : 0;
 
+    const healthData = await resolveWalkHealthData({
+      startedAt: new Date(startedAt),
+      endedAt: new Date(endedAt),
+      movingTimeSeconds,
+      distanceMeters: dist,
+      weightKg,
+    });
+
     const payload: WalkUploadPayload = {
       client_id: walkId,
       started_at: new Date(startedAt).toISOString(),
@@ -279,6 +297,9 @@ export const useWalkStore = create<WalkStoreState>((set, get) => ({
       avg_speed_mps: Math.round(avgSpeedMps * 1000) / 1000,
       route_polyline: encodedPolyline,
       point_count: simplified.length,
+      steps: healthData.steps,
+      active_kcal: healthData.activeKcal,
+      kcal_source: healthData.kcalSource,
     };
 
     enqueueWalkUpload(walkId, payload);
@@ -292,6 +313,11 @@ export const useWalkStore = create<WalkStoreState>((set, get) => ({
       movingTimeSeconds,
       distanceMeters: dist,
       paceSecondsPerKm,
+      steps: healthData.steps,
+      activeKcal: healthData.activeKcal,
+      kcalSource: healthData.kcalSource,
+      healthSourceName: healthData.healthSourceName,
+      usedDefaultWeight: healthData.usedDefaultWeight,
       routePoints: simplified.map((p) => ({
         latitude: p.latitude,
         longitude: p.longitude,
@@ -313,6 +339,7 @@ export const useWalkStore = create<WalkStoreState>((set, get) => ({
     });
 
     const syncResult = await syncPendingWalks();
+    syncDailyHealthActivity(true).catch(() => {});
     const finalSyncStatus: CompletedWalkSummary['syncStatus'] =
       syncResult.remainingCount === 0 ? 'synced' : 'queued_offline';
 

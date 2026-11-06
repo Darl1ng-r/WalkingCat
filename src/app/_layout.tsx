@@ -70,6 +70,10 @@ function RootNavigator() {
         name="settings/edit-profile"
         options={{ presentation: 'modal', headerShown: false }}
       />
+      <Stack.Screen
+        name="settings/permissions"
+        options={{ presentation: 'modal', headerShown: false }}
+      />
       <Stack.Screen name="+not-found" options={{ headerShown: true, title: 'Not Found' }} />
     </Stack>
   );

@@ -97,6 +97,9 @@ export interface Database {
           avg_speed_mps: number;
           route_polyline: string;
           point_count: number;
+          steps: number | null;
+          active_kcal: number | null;
+          kcal_source: 'health' | 'estimate' | null;
           status: 'completed';
           is_suspicious: boolean;
           created_at: string;
@@ -113,6 +116,9 @@ export interface Database {
           avg_speed_mps?: number;
           route_polyline?: string;
           point_count?: number;
+          steps?: number | null;
+          active_kcal?: number | null;
+          kcal_source?: 'health' | 'estimate' | null;
           status?: 'completed';
           is_suspicious?: boolean;
           created_at?: string;
@@ -129,9 +135,45 @@ export interface Database {
           avg_speed_mps?: number;
           route_polyline?: string;
           point_count?: number;
+          steps?: number | null;
+          active_kcal?: number | null;
+          kcal_source?: 'health' | 'estimate' | null;
           status?: 'completed';
           is_suspicious?: boolean;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      daily_activity: {
+        Row: {
+          id: string;
+          user_id: string;
+          date: string;
+          steps: number;
+          active_kcal: number | null;
+          kcal_source: 'health' | 'estimate' | null;
+          source: 'healthkit' | 'health_connect' | 'none';
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          date: string;
+          steps?: number;
+          active_kcal?: number | null;
+          kcal_source?: 'health' | 'estimate' | null;
+          source?: 'healthkit' | 'health_connect' | 'none';
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          date?: string;
+          steps?: number;
+          active_kcal?: number | null;
+          kcal_source?: 'health' | 'estimate' | null;
+          source?: 'healthkit' | 'health_connect' | 'none';
+          updated_at?: string;
         };
         Relationships: [];
       };

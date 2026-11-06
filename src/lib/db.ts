@@ -20,6 +20,9 @@ export interface WalkUploadPayload {
   avg_speed_mps: number;
   route_polyline: string;
   point_count: number;
+  steps?: number | null;
+  active_kcal?: number | null;
+  kcal_source?: 'health' | 'estimate' | null;
 }
 
 export interface PendingWalkUploadRow {

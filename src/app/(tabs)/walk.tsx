@@ -4,6 +4,7 @@ import { Alert, AppState, Platform, View } from 'react-native';
 
 import { Button, Card, Screen, StatTile, Text } from '@/components/ui';
 import { AppConfig } from '@/constants/config';
+import { useSession } from '@/features/auth';
 import {
   checkCurrentLocationPermission,
   computeDurations,
@@ -12,9 +13,10 @@ import {
   RouteMap,
   useWalkStore,
 } from '@/features/walk';
-import { formatDistance, formatDuration, formatPace } from '@/lib/format';
+import { formatDistance, formatDuration, formatNumber, formatPace } from '@/lib/format';
 
 export default function WalkScreen() {
+  const { profile } = useSession();
   const {
     status,
     startedAt,
@@ -150,7 +152,7 @@ export default function WalkScreen() {
           {
             text: 'Save Anyway',
             onPress: () => {
-              finishWalk().catch(() => {});
+              finishWalk(profile?.weight_kg).catch(() => {});
             },
           },
         ]
@@ -163,7 +165,7 @@ export default function WalkScreen() {
       {
         text: 'Finish Walk',
         onPress: () => {
-          finishWalk().catch(() => {});
+          finishWalk(profile?.weight_kg).catch(() => {});
         },
       },
     ]);
@@ -215,6 +217,41 @@ export default function WalkScreen() {
           <StatTile label="Avg Pace" value={formatPace(summary.paceSecondsPerKm)} />
           <StatTile label="Total Time" value={formatDuration(summary.durationSeconds)} />
         </View>
+
+        <View className="flex-row gap-3">
+          <StatTile
+            label="Steps"
+            value={summary.steps !== null ? formatNumber(summary.steps) : '—'}
+            unit={summary.steps !== null ? undefined : 'Connect Health'}
+          />
+          <StatTile
+            label={
+              summary.kcalSource === 'health'
+                ? `Calories (${
+                    summary.healthSourceName === 'healthkit'
+                      ? 'from Apple Health'
+                      : 'from Health Connect'
+                  })`
+                : 'Calories (Estimate)'
+            }
+            value={`${formatNumber(summary.activeKcal)}`}
+            unit="kcal"
+          />
+        </View>
+
+        <Card className="gap-1.5">
+          <Text variant="label">How is this estimated?</Text>
+          <Text variant="caption" className="text-xs leading-5">
+            {summary.kcalSource === 'health'
+              ? 'Active energy was read directly from your connected health platform.'
+              : `Calculated using standard walking METs × ${
+                  summary.usedDefaultWeight
+                    ? 'a default 70 kg weight (add your weight in Profile for a closer estimate)'
+                    : 'your profile weight'
+                } × moving time.`}
+            {' '}Calorie figures are approximate estimates and are not medical advice.
+          </Text>
+        </Card>
 
         <Button label="Done" size="lg" onPress={dismissSummary} />
       </Screen>
