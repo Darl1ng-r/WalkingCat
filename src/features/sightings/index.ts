@@ -1,6 +1,7 @@
 export {
   getSightingById,
   getSignedSightingPhotoUrl,
+  invalidateSignedSightingPhotoUrl,
   listSightingsForWalk,
   type SightingStatus,
   type SightingSummaryItem,

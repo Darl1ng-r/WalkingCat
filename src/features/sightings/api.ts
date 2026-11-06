@@ -8,6 +8,7 @@ export type SightingStatus = 'pending' | 'accepted' | 'rejected' | 'flagged';
 export interface SightingSummaryItem {
   id: string;
   walk_id: string | null;
+  cat_id: string | null;
   imageUri: string | null;
   taken_at: string;
   area_geohash: string | null;
@@ -20,6 +21,15 @@ const SIGNED_URL_TTL_SECONDS = 3600; // 1 hour
 const CACHE_EXPIRY_MS = 50 * 60 * 1000; // 50 minutes
 
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+
+/**
+ * Evicts a cached signed URL (e.g., on image error or photo deletion).
+ */
+export function invalidateSignedSightingPhotoUrl(photoPath: string): void {
+  if (photoPath) {
+    signedUrlCache.delete(photoPath);
+  }
+}
 
 /**
  * Generates or returns a cached 1-hour signed URL for a private `sighting-photos` object.
@@ -78,6 +88,7 @@ export async function listSightingsForWalk(
     byId.set(row.sighting_id, {
       id: row.sighting_id,
       walk_id: row.payload.walk_id,
+      cat_id: null,
       imageUri: row.payload.local_file_uri,
       taken_at: row.payload.taken_at,
       area_geohash: row.payload.area_geohash,
@@ -91,7 +102,7 @@ export async function listSightingsForWalk(
     const { data, error } = await supabase
       .from('sightings')
       .select(
-        'id, walk_id, photo_path, taken_at, area_geohash, status, reject_reason'
+        'id, walk_id, cat_id, photo_path, taken_at, area_geohash, status, reject_reason'
       )
       .eq('walk_id', walkId)
       .order('taken_at', { ascending: true });
@@ -103,6 +114,7 @@ export async function listSightingsForWalk(
           return {
             id: row.id,
             walk_id: row.walk_id,
+            cat_id: row.cat_id,
             imageUri: signedUrl,
             taken_at: row.taken_at,
             area_geohash: row.area_geohash,
@@ -141,6 +153,7 @@ export async function getSightingById(
     return {
       id: localPending.sighting_id,
       walk_id: localPending.payload.walk_id,
+      cat_id: null,
       imageUri: localPending.payload.local_file_uri,
       taken_at: localPending.payload.taken_at,
       area_geohash: localPending.payload.area_geohash,
@@ -157,7 +170,7 @@ export async function getSightingById(
   const { data, error } = await supabase
     .from('sightings')
     .select(
-      'id, walk_id, photo_path, taken_at, area_geohash, status, reject_reason'
+      'id, walk_id, cat_id, photo_path, taken_at, area_geohash, status, reject_reason'
     )
     .eq('id', sightingId)
     .maybeSingle();
@@ -170,6 +183,7 @@ export async function getSightingById(
   return {
     id: data.id,
     walk_id: data.walk_id,
+    cat_id: data.cat_id,
     imageUri: signedUrl,
     taken_at: data.taken_at,
     area_geohash: data.area_geohash,

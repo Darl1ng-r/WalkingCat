@@ -9,6 +9,10 @@ import { Pressable, View } from 'react-native';
 
 import { Button, Card, Screen, Text } from '@/components/ui';
 import {
+  COLLECTION_QUERY_KEYS,
+  NewCatAcceptedSheet,
+} from '@/features/collection';
+import {
   checkCaptureCooldown,
   getSightingStatusCopy,
   processCapturedPhoto,
@@ -95,29 +99,41 @@ export default function SightingCaptureScreen() {
       isUploading
     );
 
+    if (status === 'accepted') {
+      return (
+        <Screen scroll contentContainerClassName="justify-center py-6">
+          <NewCatAcceptedSheet
+            sightingId={submittedSighting.id}
+            catId={liveSighting?.cat_id ?? null}
+            imageUri={liveSighting?.imageUri ?? capturedPhoto?.uri ?? null}
+            onDone={() => router.back()}
+            onSpotAnother={() => {
+              setCapturedPhoto(null);
+              setSubmittedSighting(null);
+              setErrorMessage(null);
+            }}
+          />
+        </Screen>
+      );
+    }
+
     return (
       <Screen className="justify-center">
         <Card className="items-center gap-4 p-6">
           <View className="h-20 w-20 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
             <Text className="text-4xl">
-              {status === 'accepted'
-                ? '🎉'
-                : status === 'rejected'
-                  ? '🔎'
-                  : '🐱'}
+              {status === 'rejected' ? '🔎' : '🐱'}
             </Text>
           </View>
           <View className="rounded-pill bg-primary/15 px-3 py-1">
             <Text variant="label">{copy.badgeLabel}</Text>
           </View>
           <Text variant="title" className="text-center">
-            {status === 'accepted'
-              ? 'Cat Spotted!'
-              : status === 'rejected'
-                ? 'Sighting Update'
-                : status === 'flagged'
-                  ? 'Under Review'
-                  : 'Submitted — checking your photo'}
+            {status === 'rejected'
+              ? 'Sighting Update'
+              : status === 'flagged'
+                ? 'Under Review'
+                : 'Submitted — checking your photo'}
           </Text>
           <Text variant="caption" className="text-center leading-5">
             {copy.friendlyMessage}
@@ -188,6 +204,9 @@ export default function SightingCaptureScreen() {
 
         await queryClient.invalidateQueries({
           queryKey: SIGHTINGS_QUERY_KEYS.all,
+        });
+        await queryClient.invalidateQueries({
+          queryKey: COLLECTION_QUERY_KEYS.all,
         });
 
         if (outcome.status === 'duplicate') {

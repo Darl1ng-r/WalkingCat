@@ -14,7 +14,7 @@
 | 5 History & dashboard | ✅ Done | 2026-11-06 | `get_activity_summary` RPC migration, paginated `listWalks`/`getWalk`/`deleteWalk`, `@shopify/flash-list` History screen with pending upload badge, Walk Detail screen with `trimRouteEnds(150m)` privacy toggle & route bounds fitting, Home "This Week" card + Progress screen (`ActivityBarChart`), 40/40 tests passing |
 | 6 Cat camera & sightings | ✅ Done | 2026-11-06 | `sightings` table + private `sighting-photos` bucket migration, `WelfareSheet`, no-flash `CameraView` with zoom presets, EXIF-stripping `processCapturedPhoto` + `expo-crypto` SHA-256, `toGeohash` (≤5 chars), offline `pending_sighting_uploads` queue, 1h signed URL cache, 48/48 tests passing |
 | 7 Sighting validation | ✅ Done | 2026-11-06 | `20261106000006_validation.sql` (`app_config`, `hamming_distance`, `sighting_reviews` view, `review_sighting` RPC), `validate-sighting` Edge Function (64-bit dHash, near-duplicate & rate-limit checks, Gemini 2.5 Flash vision with 10s timeout + 1 retry), Realtime + 5s poll status updates, 57/57 tests passing |
-| 8 Cat collection | ⬜ Not started | | |
+| 8 Cat collection | ✅ Done | 2026-11-06 | `20261106000007_cats.sql` (`cats` table, idempotent triggers, `link_sighting_to_cat` & `unlink_sighting` RPCs), `CatCard` with Reanimated reveal, 2-col `FlashList` Collection screen + Recent Submissions, `/cat/[id]` detail & timeline, `NewCatAcceptedSheet`, Walk Detail sightings section, 63/63 tests passing |
 | 9 Points, achievements, challenges | ⬜ Not started | | |
 | 10 Friends & leaderboards | ⬜ Not started | | |
 | 11 Privacy, safety, moderation | ⬜ Not started | | |

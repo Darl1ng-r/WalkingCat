@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
-import { View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, View } from 'react-native';
 
 import { Card, Text } from '@/components/ui';
 import type { SightingSummaryItem } from '../api';
@@ -7,6 +8,7 @@ import { getSightingStatusCopy } from '../validation-rules';
 
 export interface WalkSightingsListProps {
   sightings: readonly SightingSummaryItem[];
+  showEmptyPlaceholder?: boolean;
 }
 
 function getToneBadgeClassName(
@@ -24,15 +26,30 @@ function getToneBadgeClassName(
   }
 }
 
-export function WalkSightingsList({ sightings }: WalkSightingsListProps) {
+export function WalkSightingsList({
+  sightings,
+  showEmptyPlaceholder = false,
+}: WalkSightingsListProps) {
   if (sightings.length === 0) {
-    return null;
+    if (!showEmptyPlaceholder) {
+      return null;
+    }
+    return (
+      <Card className="gap-1.5">
+        <Text variant="heading">🐱 Cats spotted on this walk</Text>
+        <Text variant="caption">
+          No cat sightings were photographed during this walk.
+        </Text>
+      </Card>
+    );
   }
 
   return (
     <Card className="gap-3">
       <View className="flex-row items-center justify-between">
-        <Text variant="heading">🐱 Cat Sightings ({sightings.length})</Text>
+        <Text variant="heading">
+          🐱 Cats spotted on this walk ({sightings.length})
+        </Text>
         <Text variant="caption" className="text-xs">
           No-flash photos
         </Text>
@@ -52,14 +69,25 @@ export function WalkSightingsList({ sightings }: WalkSightingsListProps) {
           });
 
           return (
-            <View
+            <Pressable
               key={item.id}
+              disabled={!item.cat_id}
+              accessibilityRole={item.cat_id ? 'button' : undefined}
+              accessibilityLabel={
+                item.cat_id ? 'Open cat card in collection' : undefined
+              }
+              onPress={() => {
+                if (item.cat_id) {
+                  router.push(`/cat/${item.cat_id}`);
+                }
+              }}
               className="flex-row items-center gap-3 rounded-card border border-border p-2.5 dark:border-border-dark">
               {item.imageUri ? (
                 <Image
                   source={{ uri: item.imageUri }}
                   style={{ width: 56, height: 56, borderRadius: 10 }}
                   contentFit="cover"
+                  cachePolicy="memory-disk"
                   accessibilityLabel="Submitted cat sighting photo"
                 />
               ) : (
@@ -73,10 +101,18 @@ export function WalkSightingsList({ sightings }: WalkSightingsListProps) {
                   <Text variant="body" className="font-semibold">
                     Spotted at {timeStr}
                   </Text>
+                  {item.cat_id ? (
+                    <Text
+                      variant="caption"
+                      className="text-xs font-semibold text-primary">
+                      View Card →
+                    </Text>
+                  ) : null}
                 </View>
 
                 <View className="flex-row flex-wrap items-center gap-2">
-                  <View className={`rounded-pill px-2.5 py-0.5 ${badgeClassName}`}>
+                  <View
+                    className={`rounded-pill px-2.5 py-0.5 ${badgeClassName}`}>
                     <Text
                       variant="caption"
                       className="text-[11px] font-semibold text-text-primary dark:text-text-primary-dark">
@@ -86,7 +122,7 @@ export function WalkSightingsList({ sightings }: WalkSightingsListProps) {
 
                   {item.area_geohash ? (
                     <Text variant="caption" className="text-xs">
-                      📍 Area {item.area_geohash}
+                      📍 Seen around your neighborhood
                     </Text>
                   ) : null}
                 </View>
@@ -95,7 +131,7 @@ export function WalkSightingsList({ sightings }: WalkSightingsListProps) {
                   {copy.friendlyMessage}
                 </Text>
               </View>
-            </View>
+            </Pressable>
           );
         })}
       </View>

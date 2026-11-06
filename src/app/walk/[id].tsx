@@ -14,6 +14,7 @@ import {
 import { AppConfig } from '@/constants/config';
 import { useSession } from '@/features/auth';
 import { DEFAULT_WEIGHT_KG, healthProvider } from '@/features/health';
+import { useWalkSightings, WalkSightingsList } from '@/features/sightings';
 import {
   decodePolyline,
   RouteMap,
@@ -28,9 +29,6 @@ import {
   formatNumber,
   formatPace,
 } from '@/lib/format';
-
-// Phase 8 enables the "Cats spotted on this walk" section once cat sightings exist.
-const SHOW_WALK_CAT_SIGHTINGS_SLOT = false;
 
 function formatFullLocalDateTime(isoString: string): string {
   const date = new Date(isoString);
@@ -55,6 +53,7 @@ export default function WalkDetailScreen() {
 
   const { profile } = useSession();
   const { data: walk, isLoading, isError, refetch } = useWalkDetail(walkId);
+  const { data: walkSightings = [] } = useWalkSightings(walkId);
   const deleteMutation = useDeleteWalkMutation();
   const { hideRouteEnds, setHideRouteEnds } = useRoutePrivacyTrim();
   const [showCalorieFormula, setShowCalorieFormula] = useState(false);
@@ -276,14 +275,7 @@ export default function WalkDetailScreen() {
         </Card>
       ) : null}
 
-      {SHOW_WALK_CAT_SIGHTINGS_SLOT ? (
-        <Card className="gap-2">
-          <Text variant="heading">🐱 Cats spotted on this walk</Text>
-          <Text variant="caption">
-            Cat sightings linked to this walk will appear here in Phase 8.
-          </Text>
-        </Card>
-      ) : null}
+      <WalkSightingsList sightings={walkSightings} showEmptyPlaceholder />
 
       <View className="pt-2">
         <Button

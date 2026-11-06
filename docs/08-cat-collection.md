@@ -24,23 +24,23 @@ Migration `<ts>_cats.sql`:
 - RLS: owner-only for `cats`.
 
 ## Tasks
-- [ ] 8.1 Migration, trigger, and link/unlink functions (+ SQL tests or a test script).
-- [ ] 8.2 `src/features/collection/api.ts`: `listCats({ sort })`, `getCat(id)` (with sightings), `renameCat`, `linkSighting`, `unlinkSighting`, `deleteSighting`.
-- [ ] 8.3 **Collection tab:** grid of cards (photo via signed URL, nickname or "Unnamed cat #12", sighting count badge, first-seen date). Header stats: total cats, total sightings, days with discoveries. Sort: newest / most seen / A–Z. Empty state encouraging a walk (not "go find cats").
-- [ ] 8.4 **Card design:** playful collectible look (rounded, subtle border, number like `#012`), reusable `CatCard` component; reveal animation for newly accepted cards (Reanimated, subtle; respects reduce-motion).
-- [ ] 8.5 **Cat detail** `src/app/cat/[id].tsx`: hero photo, nickname (tap to edit), stats (first seen, last seen, sightings), timeline of sightings (photo + date + linked walk), general area label only if saved (e.g. "Seen around your neighborhood" — never coordinates).
-- [ ] 8.6 After a sighting is accepted, show a sheet: "New cat added! 🐱" with options **Give a nickname** / **I've seen this cat before** (pick from existing cats grid) / **Done**.
-- [ ] 8.7 Walk detail (Phase 5 placeholder): show "Cats spotted on this walk".
-- [ ] 8.8 Delete sighting (confirm) → removes photo from storage + updates cat; deleting last sighting deletes the cat.
-- [ ] 8.9 Pending/flagged/rejected sightings visible in a small "Recent submissions" list on the Collection tab (so users know what happened).
+- [x] 8.1 Migration, trigger, and link/unlink functions (+ SQL tests or a test script).
+- [x] 8.2 `src/features/collection/api.ts`: `listCats({ sort })`, `getCat(id)` (with sightings), `renameCat`, `linkSighting`, `unlinkSighting`, `deleteSighting`.
+- [x] 8.3 **Collection tab:** grid of cards (photo via signed URL, nickname or "Unnamed cat #12", sighting count badge, first-seen date). Header stats: total cats, total sightings, days with discoveries. Sort: newest / most seen / A–Z. Empty state encouraging a walk (not "go find cats").
+- [x] 8.4 **Card design:** playful collectible look (rounded, subtle border, number like `#012`), reusable `CatCard` component; reveal animation for newly accepted cards (Reanimated, subtle; respects reduce-motion).
+- [x] 8.5 **Cat detail** `src/app/cat/[id].tsx`: hero photo, nickname (tap to edit), stats (first seen, last seen, sightings), timeline of sightings (photo + date + linked walk), general area label only if saved (e.g. "Seen around your neighborhood" — never coordinates).
+- [x] 8.6 After a sighting is accepted, show a sheet: "New cat added! 🐱" with options **Give a nickname** / **I've seen this cat before** (pick from existing cats grid) / **Done**.
+- [x] 8.7 Walk detail (Phase 5 placeholder): show "Cats spotted on this walk".
+- [x] 8.8 Delete sighting (confirm) → removes photo from storage + updates cat; deleting last sighting deletes the cat.
+- [x] 8.9 Pending/flagged/rejected sightings visible in a small "Recent submissions" list on the Collection tab (so users know what happened).
 
 ## Acceptance criteria
-- [ ] Every accepted sighting appears as a card within seconds of acceptance.
-- [ ] Linking two sightings → one card with count 2; unlinking restores two cards.
-- [ ] Renaming persists; nickname length validated.
-- [ ] Deleting removes photo from storage (verify bucket).
-- [ ] No coordinates displayed or fetched anywhere in the collection.
-- [ ] Grid scrolls smoothly with 100+ cards (FlashList, image caching).
+- [x] Every accepted sighting appears as a card within seconds of acceptance.
+- [x] Linking two sightings → one card with count 2; unlinking restores two cards.
+- [x] Renaming persists; nickname length validated.
+- [x] Deleting removes photo from storage (verify bucket).
+- [x] No coordinates displayed or fetched anywhere in the collection.
+- [x] Grid scrolls smoothly with 100+ cards (FlashList, image caching).
 
 ## Manual test script
 1. Submit 2 cat photos → 2 cards appear with reveal animation.

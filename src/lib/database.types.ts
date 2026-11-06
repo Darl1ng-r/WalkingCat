@@ -255,6 +255,51 @@ export interface Database {
         };
         Relationships: [];
       };
+      cats: {
+        Row: {
+          id: string;
+          user_id: string;
+          card_number: number;
+          nickname: string | null;
+          cover_sighting_id: string | null;
+          cover_photo_path: string | null;
+          sighting_count: number;
+          first_seen_at: string;
+          last_seen_at: string;
+          area_geohash: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          card_number?: number;
+          nickname?: string | null;
+          cover_sighting_id?: string | null;
+          cover_photo_path?: string | null;
+          sighting_count?: number;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          area_geohash?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          card_number?: number;
+          nickname?: string | null;
+          cover_sighting_id?: string | null;
+          cover_photo_path?: string | null;
+          sighting_count?: number;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          area_geohash?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -286,6 +331,19 @@ export interface Database {
           b: string;
         };
         Returns: number;
+      };
+      link_sighting_to_cat: {
+        Args: {
+          p_sighting_id: string;
+          p_cat_id: string;
+        };
+        Returns: string;
+      };
+      unlink_sighting: {
+        Args: {
+          p_sighting_id: string;
+        };
+        Returns: string;
       };
     };
     Enums: {
