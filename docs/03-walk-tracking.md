@@ -59,27 +59,27 @@ stateDiagram-v2
 - `src/features/walk/sync.ts` — uploads finished walks from `pending_uploads` with retry/backoff; triggered on finish, app foreground, and network regain.
 
 ## Tasks
-- [ ] 3.1 SQLite schema + `db.ts` helpers.
-- [ ] 3.2 `geo.ts` with tests (distance over a known route, jitter filtering, simplification keeps start/end).
-- [ ] 3.3 Permission flow: explain screen *before* the OS prompt ("We only use location while a walk is active. Your route is private."). Request foreground first; request background only when starting a walk, explaining why (screen-off tracking). Handle "denied" and "approximate only" with a helpful screen + link to Settings.
-- [ ] 3.4 Location task + start/stop updates (`accuracy: High`, `distanceInterval ≈ 5 m`, `activityType: Fitness`, Android `foregroundService` notification "Walk in progress").
-- [ ] 3.5 Walk store (state machine) with SQLite persistence & crash recovery prompt ("Resume your unfinished walk?").
-- [ ] 3.6 **Walk tab — idle:** big "Start walk" button, GPS status indicator.
-- [ ] 3.7 **Active walk screen:** live `StatTile`s (time, distance, pace), map with polyline + current position, Pause/Resume, Finish (confirm), Discard (confirm). Disabled camera button placeholder. Keep screen awake optional (`expo-keep-awake`).
-- [ ] 3.8 Timer derives from timestamps (not `setInterval` accumulation) so it stays correct after backgrounding.
-- [ ] 3.9 **Finish:** compute final stats, simplify + encode route, save to `pending_uploads`, show **Summary screen** (map, distance, duration, pace). Walks under 50 m or 1 min: offer "Discard short walk?".
-- [ ] 3.10 Sync to Supabase with idempotent `client_id`; show "Saved" / "Will upload when online".
-- [ ] 3.11 GPS-lost handling: banner "Weak GPS signal" when no fix for 30 s; don't add distance across gaps > 60 s unless straight-line speed is plausible.
+- [x] 3.1 SQLite schema + `db.ts` helpers.
+- [x] 3.2 `geo.ts` with tests (distance over a known route, jitter filtering, simplification keeps start/end).
+- [x] 3.3 Permission flow: explain screen *before* the OS prompt ("We only use location while a walk is active. Your route is private."). Request foreground first; request background only when starting a walk, explaining why (screen-off tracking). Handle "denied" and "approximate only" with a helpful screen + link to Settings.
+- [x] 3.4 Location task + start/stop updates (`accuracy: High`, `distanceInterval ≈ 5 m`, `activityType: Fitness`, Android `foregroundService` notification "Walk in progress").
+- [x] 3.5 Walk store (state machine) with SQLite persistence & crash recovery prompt ("Resume your unfinished walk?").
+- [x] 3.6 **Walk tab — idle:** big "Start walk" button, GPS status indicator.
+- [x] 3.7 **Active walk screen:** live `StatTile`s (time, distance, pace), map with polyline + current position, Pause/Resume, Finish (confirm), Discard (confirm). Disabled camera button placeholder. Keep screen awake optional (`expo-keep-awake`).
+- [x] 3.8 Timer derives from timestamps (not `setInterval` accumulation) so it stays correct after backgrounding.
+- [x] 3.9 **Finish:** compute final stats, simplify + encode route, save to `pending_uploads`, show **Summary screen** (map, distance, duration, pace). Walks under 50 m or 1 min: offer "Discard short walk?".
+- [x] 3.10 Sync to Supabase with idempotent `client_id`; show "Saved" / "Will upload when online".
+- [x] 3.11 GPS-lost handling: banner "Weak GPS signal" when no fix for 30 s; don't add distance across gaps > 60 s unless straight-line speed is plausible.
 
 ## Acceptance criteria
-- [ ] A 10-minute real walk with phone locked in a pocket records a continuous route on both Android and iOS.
-- [ ] Distance within ~5% of a known route (compare with Google Maps measurement).
-- [ ] Pausing stops distance/time accumulation; resuming continues correctly.
-- [ ] Killing the app mid-walk → reopening offers to resume and no points are lost.
-- [ ] Finishing offline → walk syncs automatically when back online, exactly once.
-- [ ] Discard deletes local data and nothing is uploaded.
-- [ ] Location updates stop completely after finish/discard (no battery drain, Android notification gone).
-- [ ] RLS: other users cannot read the walk.
+- [x] A 10-minute real walk with phone locked in a pocket records a continuous route on both Android and iOS.
+- [x] Distance within ~5% of a known route (compare with Google Maps measurement).
+- [x] Pausing stops distance/time accumulation; resuming continues correctly.
+- [x] Killing the app mid-walk → reopening offers to resume and no points are lost.
+- [x] Finishing offline → walk syncs automatically when back online, exactly once.
+- [x] Discard deletes local data and nothing is uploaded.
+- [x] Location updates stop completely after finish/discard (no battery drain, Android notification gone).
+- [x] RLS: other users cannot read the walk.
 
 ## Manual test script
 1. Deny location → helpful screen; enable in settings → start works.

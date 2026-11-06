@@ -35,7 +35,24 @@
           "imageWidth": 76
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow StrayCat Walk to record your walking route while a walk is active. Your route stays private.",
+          "locationAlwaysAndWhenInUsePermission": "Allow StrayCat Walk to continue recording your active walking route when your screen is locked. Your route stays private.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-maps",
+        {
+          "requestLocationPermission": true,
+          "locationPermission": "Allow StrayCat Walk to show your position on the map during a walk."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

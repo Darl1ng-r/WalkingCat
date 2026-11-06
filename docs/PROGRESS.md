@@ -9,7 +9,7 @@
 | Setup — Expo SDK 58 + Router + NativeWind + eas.json | ✅ Done | 2026-11-06 | tsc + lint passing |
 | 1 Foundation | ✅ Done | 2026-11-06 | Design system, 5-tab NativeTabs shell, QueryClient, Jest tests (11/11 passing) |
 | 2 Auth & profile | ✅ Done | 2026-11-06 | Supabase client (`expo-sqlite` session storage), SQL migration (`profiles`, `privacy_settings`, RLS), auth screens, 3-step onboarding, profile & edit profile, 19/19 tests passing |
-| 3 Walk tracking | ⬜ Not started | | |
+| 3 Walk tracking | ✅ Done | 2026-11-06 | Local SQLite point buffer + offline upload queue, Haversine/jitter/Douglas-Peucker/Polyline in `geo.ts`, background `TaskManager` + foreground watcher, `RouteMap` (`expo-maps`), crash recovery, 26/26 tests passing |
 | 4 Health (steps & calories) | ⬜ Not started | | |
 | 5 History & dashboard | ⬜ Not started | | |
 | 6 Cat camera & sightings | ⬜ Not started | | |

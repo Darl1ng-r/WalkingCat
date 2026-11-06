@@ -84,6 +84,57 @@ export interface Database {
         };
         Relationships: [];
       };
+      walks: {
+        Row: {
+          id: string;
+          client_id: string;
+          user_id: string;
+          started_at: string;
+          ended_at: string;
+          duration_s: number;
+          moving_time_s: number;
+          distance_m: number;
+          avg_speed_mps: number;
+          route_polyline: string;
+          point_count: number;
+          status: 'completed';
+          is_suspicious: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          user_id: string;
+          started_at: string;
+          ended_at: string;
+          duration_s: number;
+          moving_time_s: number;
+          distance_m: number;
+          avg_speed_mps?: number;
+          route_polyline?: string;
+          point_count?: number;
+          status?: 'completed';
+          is_suspicious?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          client_id?: string;
+          user_id?: string;
+          started_at?: string;
+          ended_at?: string;
+          duration_s?: number;
+          moving_time_s?: number;
+          distance_m?: number;
+          avg_speed_mps?: number;
+          route_polyline?: string;
+          point_count?: number;
+          status?: 'completed';
+          is_suspicious?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
