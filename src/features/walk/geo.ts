@@ -341,3 +341,134 @@ export function decodePolyline(
 
   return poly;
 }
+
+function interpolateCoordinate(
+  a: { latitude: number; longitude: number },
+  b: { latitude: number; longitude: number },
+  fraction: number
+): { latitude: number; longitude: number } {
+  const t = Math.max(0, Math.min(1, fraction));
+  return {
+    latitude: a.latitude + (b.latitude - a.latitude) * t,
+    longitude: a.longitude + (b.longitude - a.longitude) * t,
+  };
+}
+
+/**
+ * Privacy display helper: trims the first `trimMeters` and last `trimMeters`
+ * along a route polyline so start/end locations (e.g. home) are hidden.
+ * Returns [] if the route is shorter than `2 * trimMeters`.
+ */
+export function trimRouteEnds(
+  points: readonly { latitude: number; longitude: number }[],
+  trimMeters: number = AppConfig.walk.defaultRouteTrimMeters
+): { latitude: number; longitude: number }[] {
+  if (points.length < 2) {
+    return [];
+  }
+
+  if (trimMeters <= 0) {
+    return points.map((p) => ({
+      latitude: p.latitude,
+      longitude: p.longitude,
+    }));
+  }
+
+  const cumDist: number[] = [0];
+  for (let i = 1; i < points.length; i += 1) {
+    const seg = haversine(points[i - 1], points[i]);
+    cumDist.push(cumDist[i - 1] + seg);
+  }
+
+  const totalLen = cumDist[cumDist.length - 1];
+  if (totalLen <= trimMeters * 2) {
+    return [];
+  }
+
+  const startCut = trimMeters;
+  const endCut = totalLen - trimMeters;
+
+  let startSegIndex = 1;
+  while (startSegIndex < cumDist.length && cumDist[startSegIndex] < startCut) {
+    startSegIndex += 1;
+  }
+  const startSegLen = cumDist[startSegIndex] - cumDist[startSegIndex - 1];
+  const startFrac =
+    startSegLen > 0 ? (startCut - cumDist[startSegIndex - 1]) / startSegLen : 0;
+  const firstPoint = interpolateCoordinate(
+    points[startSegIndex - 1],
+    points[startSegIndex],
+    startFrac
+  );
+
+  const middlePoints: { latitude: number; longitude: number }[] = [];
+  for (let i = startSegIndex; i < points.length - 1; i += 1) {
+    if (cumDist[i] > startCut && cumDist[i] < endCut) {
+      middlePoints.push({
+        latitude: points[i].latitude,
+        longitude: points[i].longitude,
+      });
+    }
+  }
+
+  let endSegIndex = startSegIndex;
+  while (endSegIndex < cumDist.length && cumDist[endSegIndex] < endCut) {
+    endSegIndex += 1;
+  }
+  const endSegLen = cumDist[endSegIndex] - cumDist[endSegIndex - 1];
+  const endFrac =
+    endSegLen > 0 ? (endCut - cumDist[endSegIndex - 1]) / endSegLen : 0;
+  const lastPoint = interpolateCoordinate(
+    points[endSegIndex - 1],
+    points[endSegIndex],
+    endFrac
+  );
+
+  return [firstPoint, ...middlePoints, lastPoint];
+}
+
+export interface RouteBounds {
+  center: { latitude: number; longitude: number };
+  zoom: number;
+}
+
+/**
+ * Computes a center coordinate and approximate map zoom level (11..17)
+ * that fits all coordinates in `points`.
+ */
+export function getRouteBounds(
+  points: readonly { latitude: number; longitude: number }[]
+): RouteBounds | null {
+  if (points.length === 0) {
+    return null;
+  }
+
+  let minLat = points[0].latitude;
+  let maxLat = points[0].latitude;
+  let minLng = points[0].longitude;
+  let maxLng = points[0].longitude;
+
+  for (const pt of points) {
+    if (pt.latitude < minLat) minLat = pt.latitude;
+    if (pt.latitude > maxLat) maxLat = pt.latitude;
+    if (pt.longitude < minLng) minLng = pt.longitude;
+    if (pt.longitude > maxLng) maxLng = pt.longitude;
+  }
+
+  const center = {
+    latitude: (minLat + maxLat) / 2,
+    longitude: (minLng + maxLng) / 2,
+  };
+
+  const maxSpanDeg = Math.max(maxLat - minLat, maxLng - minLng);
+
+  let zoom = 16;
+  if (maxSpanDeg > 0.15) zoom = 11;
+  else if (maxSpanDeg > 0.07) zoom = 12;
+  else if (maxSpanDeg > 0.035) zoom = 13;
+  else if (maxSpanDeg > 0.015) zoom = 14;
+  else if (maxSpanDeg > 0.006) zoom = 15;
+  else zoom = 16;
+
+  return { center, zoom };
+}

@@ -4,10 +4,12 @@ import { View } from 'react-native';
 
 import { Button, Card, EmptyState, Screen, StatTile, Text } from '@/components/ui';
 import { useTodayHealthSummary } from '@/features/health';
+import { ActivityBarChart, useActivityDashboard } from '@/features/walk';
 import { formatDistance, formatNumber } from '@/lib/format';
 
 export default function HomeScreen() {
   const { data, isLoading, requestConnect, openHealthSettings } = useTodayHealthSummary();
+  const { data: weekSummary } = useActivityDashboard('week');
   const [connecting, setConnecting] = useState(false);
 
   const permState = data?.permissionState ?? 'not_connected';
@@ -128,6 +130,83 @@ export default function HomeScreen() {
           />
         </Card>
       ) : null}
+
+      <Card className="gap-4">
+        <View className="flex-row items-start justify-between gap-2">
+          <View className="flex-1">
+            <Text variant="label">This Week</Text>
+            <Text variant="heading" className="mt-1">
+              {weekSummary?.encouragingTitle ?? 'A fresh week for a stroll 🌿'}
+            </Text>
+            <Text variant="caption" className="mt-0.5 text-xs leading-5">
+              {weekSummary?.encouragingSubtitle ??
+                'Whenever you step outside for a walk, your personal progress will show up here.'}
+            </Text>
+          </View>
+          <Button
+            label="Progress"
+            size="sm"
+            variant="ghost"
+            onPress={() => router.push('/history/progress')}
+          />
+        </View>
+
+        <View className="flex-row gap-2.5">
+          <StatTile
+            label="Active Days"
+            value={
+              weekSummary
+                ? `${weekSummary.activeDaysCount} of ${weekSummary.totalDays}`
+                : '0 of 7'
+            }
+            unit="days"
+          />
+          <StatTile
+            label="Walks"
+            value={weekSummary ? formatNumber(weekSummary.totalWalks) : '0'}
+          />
+        </View>
+
+        <View className="flex-row gap-2.5">
+          <StatTile
+            label="Distance"
+            value={
+              weekSummary
+                ? formatDistance(weekSummary.totalDistanceMeters)
+                : '0 m'
+            }
+          />
+          <StatTile
+            label="Steps"
+            value={
+              weekSummary && weekSummary.totalSteps > 0
+                ? formatNumber(weekSummary.totalSteps)
+                : '—'
+            }
+          />
+        </View>
+
+        {weekSummary ? (
+          <ActivityBarChart days={weekSummary.days} height={124} />
+        ) : null}
+
+        <View className="flex-row gap-3 pt-1">
+          <Button
+            label="Walk History"
+            size="sm"
+            variant="secondary"
+            className="flex-1"
+            onPress={() => router.push('/history')}
+          />
+          <Button
+            label="Week / Month View"
+            size="sm"
+            variant="ghost"
+            className="flex-1"
+            onPress={() => router.push('/history/progress')}
+          />
+        </View>
+      </Card>
 
       <EmptyState
         emoji="🐾"

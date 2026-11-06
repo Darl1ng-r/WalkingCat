@@ -21,21 +21,21 @@ Migration `<ts>_activity_views.sql`:
 - Index: `walks (user_id, started_at desc)`.
 
 ## Tasks
-- [ ] 5.1 `src/features/walk/api.ts`: `listWalks({ cursor })` (paginated, newest first), `getWalk(id)`, `deleteWalk(id)`.
-- [ ] 5.2 **History screen** (`src/app/history/index.tsx`, reachable from Home and Profile): FlashList of walk rows — date, duration, distance, steps (if any), mini static route thumbnail (optional; a small non-interactive map or just an icon in MVP). Infinite scroll, pull-to-refresh, empty state ("Your walks will appear here").
-- [ ] 5.3 Include not-yet-synced local walks at the top with a "Waiting to upload" badge.
-- [ ] 5.4 **Walk detail** (`src/app/walk/[id].tsx`): map with decoded polyline fitted to bounds, stats grid (distance, duration, moving time, avg pace, steps, kcal + source label), date/time, "Delete walk" (confirm). Placeholder section "Cats spotted on this walk" (hidden until Phase 8).
-- [ ] 5.5 **Privacy trim (display):** on the detail map, optionally hide the first/last 150 m of the route (setting default **on**, stored locally for now; moves to privacy settings in Phase 11). Pure function `trimRouteEnds(points, meters)` with tests.
-- [ ] 5.6 **Dashboard** on Home: "This week" card — walks, distance, steps, active days (e.g. "4 of 7 days"); bar chart of last 7 days (distance or steps toggle). Link to a **Progress screen** with week / month tabs.
-- [ ] 5.7 Encouraging, non-judgmental copy: celebrate what was done ("You walked on 3 days this week 🎉"), never "You missed…".
-- [ ] 5.8 Week starts on the user's locale first day; all dates displayed in local time.
+- [x] 5.1 `src/features/walk/api.ts`: `listWalks({ cursor })` (paginated, newest first), `getWalk(id)`, `deleteWalk(id)`.
+- [x] 5.2 **History screen** (`src/app/history/index.tsx`, reachable from Home and Profile): FlashList of walk rows — date, duration, distance, steps (if any), mini static route thumbnail (optional; a small non-interactive map or just an icon in MVP). Infinite scroll, pull-to-refresh, empty state ("Your walks will appear here").
+- [x] 5.3 Include not-yet-synced local walks at the top with a "Waiting to upload" badge.
+- [x] 5.4 **Walk detail** (`src/app/walk/[id].tsx`): map with decoded polyline fitted to bounds, stats grid (distance, duration, moving time, avg pace, steps, kcal + source label), date/time, "Delete walk" (confirm). Placeholder section "Cats spotted on this walk" (hidden until Phase 8).
+- [x] 5.5 **Privacy trim (display):** on the detail map, optionally hide the first/last 150 m of the route (setting default **on**, stored locally for now; moves to privacy settings in Phase 11). Pure function `trimRouteEnds(points, meters)` with tests.
+- [x] 5.6 **Dashboard** on Home: "This week" card — walks, distance, steps, active days (e.g. "4 of 7 days"); bar chart of last 7 days (distance or steps toggle). Link to a **Progress screen** with week / month tabs.
+- [x] 5.7 Encouraging, non-judgmental copy: celebrate what was done ("You walked on 3 days this week 🎉"), never "You missed…".
+- [x] 5.8 Week starts on the user's locale first day; all dates displayed in local time.
 
 ## Acceptance criteria
-- [ ] History shows all walks (synced + pending), paginates smoothly with 200+ walks.
-- [ ] Walk detail map matches the recorded route; ends trimmed when setting is on.
-- [ ] Deleting a walk removes it from server, list, and summaries.
-- [ ] Dashboard numbers equal the sum of the underlying walks (spot-check).
-- [ ] No negative/shaming language anywhere.
+- [x] History shows all walks (synced + pending), paginates smoothly with 200+ walks.
+- [x] Walk detail map matches the recorded route; ends trimmed when setting is on.
+- [x] Deleting a walk removes it from server, list, and summaries.
+- [x] Dashboard numbers equal the sum of the underlying walks (spot-check).
+- [x] No negative/shaming language anywhere.
 
 ## Manual test script
 1. Record 3 short walks → all appear in history, newest first.

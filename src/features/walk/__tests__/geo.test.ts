@@ -5,9 +5,11 @@ import {
   decodePolyline,
   encodePolyline,
   filterPoints,
+  getRouteBounds,
   haversine,
   simplifyRoute,
   totalDistance,
+  trimRouteEnds,
   type GeoPoint,
   type PauseInterval,
 } from '../geo';
@@ -127,6 +129,56 @@ describe('walk geo utilities', () => {
       expect(decoded).toHaveLength(3);
       expect(decoded[0]?.latitude).toBeCloseTo(38.5, 4);
       expect(decoded[2]?.longitude).toBeCloseTo(-126.453, 4);
+    });
+  });
+
+  describe('trimRouteEnds & getRouteBounds', () => {
+    it('returns empty array when route is shorter than 2 * trimMeters', () => {
+      // ~222m total, trim 150m from each end -> <= 300m -> empty
+      const shortRoute = [
+        { latitude: 0, longitude: 0 },
+        { latitude: 0.001, longitude: 0 },
+        { latitude: 0.002, longitude: 0 },
+      ];
+      expect(trimRouteEnds(shortRoute, 150)).toEqual([]);
+    });
+
+    it('trims 150m off both ends of a longer route and preserves intermediate vertices', () => {
+      // 0.001 deg lat is ~111.195m. 5 segments of 0.001 deg = ~556m total.
+      const route = [
+        { latitude: 0, longitude: 0 },
+        { latitude: 0.001, longitude: 0 },
+        { latitude: 0.002, longitude: 0 },
+        { latitude: 0.003, longitude: 0 },
+        { latitude: 0.004, longitude: 0 },
+        { latitude: 0.005, longitude: 0 },
+      ];
+
+      const fullDist = haversine(route[0], route[5]);
+      const trimmed = trimRouteEnds(route, 150);
+
+      expect(trimmed.length).toBeGreaterThanOrEqual(4);
+      const trimmedDist = haversine(trimmed[0], trimmed[trimmed.length - 1]);
+      expect(trimmedDist).toBeCloseTo(fullDist - 300, 0);
+    });
+
+    it('returns original points when trimMeters is 0', () => {
+      const route = [
+        { latitude: 10, longitude: 20 },
+        { latitude: 10.01, longitude: 20.01 },
+      ];
+      expect(trimRouteEnds(route, 0)).toEqual(route);
+    });
+
+    it('computes route bounding center and zoom level', () => {
+      const bounds = getRouteBounds([
+        { latitude: 37.77, longitude: -122.42 },
+        { latitude: 37.78, longitude: -122.4 },
+      ]);
+      expect(bounds).not.toBeNull();
+      expect(bounds?.center.latitude).toBeCloseTo(37.775, 4);
+      expect(bounds?.center.longitude).toBeCloseTo(-122.41, 4);
+      expect(bounds?.zoom).toBe(14);
     });
   });
 });

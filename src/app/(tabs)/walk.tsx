@@ -1,4 +1,6 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, AppState, Platform, View } from 'react-native';
 
@@ -12,10 +14,12 @@ import {
   requestWalkLocationPermissions,
   RouteMap,
   useWalkStore,
+  WALK_QUERY_KEYS,
 } from '@/features/walk';
 import { formatDistance, formatDuration, formatNumber, formatPace } from '@/lib/format';
 
 export default function WalkScreen() {
+  const queryClient = useQueryClient();
   const { profile } = useSession();
   const {
     status,
@@ -129,6 +133,14 @@ export default function WalkScreen() {
     }
   };
 
+  const completeAndRefreshWalk = async () => {
+    await finishWalk(profile?.weight_kg);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: WALK_QUERY_KEYS.all }),
+      queryClient.invalidateQueries({ queryKey: ['health', 'today'] }),
+    ]);
+  };
+
   const handleFinishPress = () => {
     if (!startedAt) return;
     const { movingTimeSeconds } = computeDurations(startedAt, Date.now(), pauseIntervals);
@@ -152,7 +164,7 @@ export default function WalkScreen() {
           {
             text: 'Save Anyway',
             onPress: () => {
-              finishWalk(profile?.weight_kg).catch(() => {});
+              completeAndRefreshWalk().catch(() => {});
             },
           },
         ]
@@ -165,7 +177,7 @@ export default function WalkScreen() {
       {
         text: 'Finish Walk',
         onPress: () => {
-          finishWalk(profile?.weight_kg).catch(() => {});
+          completeAndRefreshWalk().catch(() => {});
         },
       },
     ]);
@@ -253,7 +265,22 @@ export default function WalkScreen() {
           </Text>
         </Card>
 
-        <Button label="Done" size="lg" onPress={dismissSummary} />
+        <View className="flex-row gap-3">
+          <Button
+            label="Walk History"
+            variant="secondary"
+            className="flex-1"
+            onPress={() => {
+              dismissSummary();
+              router.push('/history');
+            }}
+          />
+          <Button
+            label="Done"
+            className="flex-1"
+            onPress={dismissSummary}
+          />
+        </View>
       </Screen>
     );
   }

@@ -6,6 +6,20 @@ import { useSession } from '@/features/auth';
 
 const SETTINGS_ITEMS = [
   {
+    emoji: '🥾',
+    title: 'Walk History',
+    subtitle: 'Browse past walks, routes, and offline uploads',
+    href: '/history' as const,
+    enabled: true,
+  },
+  {
+    emoji: '📊',
+    title: 'Activity Progress',
+    subtitle: 'Weekly and 30-day personal walking summaries',
+    href: '/history/progress' as const,
+    enabled: true,
+  },
+  {
     emoji: '📍',
     title: 'Permissions',
     subtitle: 'Manage Location, Apple Health / Health Connect access',

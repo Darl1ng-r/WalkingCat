@@ -188,6 +188,20 @@ export interface Database {
         };
         Returns: boolean;
       };
+      get_activity_summary: {
+        Args: {
+          p_from: string;
+          p_to: string;
+          p_tz_offset_minutes?: number;
+        };
+        Returns: {
+          date: string;
+          walks_count: number;
+          distance_m: number;
+          moving_time_s: number;
+          steps: number;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;

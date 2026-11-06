@@ -11,7 +11,7 @@
 | 2 Auth & profile | ✅ Done | 2026-11-06 | Supabase client (`expo-sqlite` session storage), SQL migration (`profiles`, `privacy_settings`, RLS), auth screens, 3-step onboarding, profile & edit profile, 19/19 tests passing |
 | 3 Walk tracking | ✅ Done | 2026-11-06 | Local SQLite point buffer + offline upload queue, Haversine/jitter/Douglas-Peucker/Polyline in `geo.ts`, background `TaskManager` + foreground watcher, `RouteMap` (`expo-maps`), crash recovery, 26/26 tests passing |
 | 4 Health (steps & calories) | ✅ Done | 2026-11-06 | HealthKit (`queryStatisticsForQuantity` cumulativeSum) & Health Connect (`aggregateRecord`) providers, MET calorie estimator (`calories.ts`), walk health enrichment + 2h delayed wearable re-sync, 15m throttled daily sync, Home Today card & Permissions screen, 30/30 tests passing |
-| 5 History & dashboard | ⬜ Not started | | |
+| 5 History & dashboard | ✅ Done | 2026-11-06 | `get_activity_summary` RPC migration, paginated `listWalks`/`getWalk`/`deleteWalk`, `@shopify/flash-list` History screen with pending upload badge, Walk Detail screen with `trimRouteEnds(150m)` privacy toggle & route bounds fitting, Home "This Week" card + Progress screen (`ActivityBarChart`), 40/40 tests passing |
 | 6 Cat camera & sightings | ⬜ Not started | | |
 | 7 Sighting validation | ⬜ Not started | | |
 | 8 Cat collection | ⬜ Not started | | |

@@ -3,28 +3,37 @@ import { Platform, View } from 'react-native';
 
 import { Card, Text } from '@/components/ui';
 import { BrandColors } from '@/constants/theme';
+import { getRouteBounds } from '../geo';
 
 export interface RouteMapProps {
   coordinates: readonly { latitude: number; longitude: number }[];
   showUserLocation?: boolean;
+  fitToBounds?: boolean;
   height?: number;
 }
 
 export function RouteMap({
   coordinates,
   showUserLocation = false,
+  fitToBounds = false,
   height = 240,
 }: RouteMapProps) {
   const latest = coordinates[coordinates.length - 1];
-  const cameraPosition = latest
+  const bounds = fitToBounds ? getRouteBounds(coordinates) : null;
+  const cameraPosition = bounds
     ? {
-        coordinates: {
-          latitude: latest.latitude,
-          longitude: latest.longitude,
-        },
-        zoom: 16,
+        coordinates: bounds.center,
+        zoom: bounds.zoom,
       }
-    : undefined;
+    : latest
+      ? {
+          coordinates: {
+            latitude: latest.latitude,
+            longitude: latest.longitude,
+          },
+          zoom: 16,
+        }
+      : undefined;
 
   const polylineCoords = coordinates.map((pt) => ({
     latitude: pt.latitude,

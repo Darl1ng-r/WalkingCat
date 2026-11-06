@@ -37,6 +37,7 @@ export interface PendingWalkUploadRow {
 let memActiveWalk: ActiveWalkRecord | null = null;
 const memWalkPoints = new Map<string, GeoPoint[]>();
 const memPendingUploads = new Map<string, PendingWalkUploadRow>();
+const memLocalPrefs = new Map<string, string>();
 
 interface SQLiteSyncDb {
   execSync(source: string): void;
@@ -86,6 +87,10 @@ function getDb(): SQLiteSyncDb | null {
         attempts INTEGER NOT NULL DEFAULT 0,
         last_error TEXT,
         created_at INTEGER NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS local_prefs (
+        pref_key TEXT PRIMARY KEY,
+        pref_value TEXT NOT NULL
       );
     `);
     sqliteDb = db;
@@ -305,4 +310,38 @@ export function removePendingWalkUpload(walkId: string): void {
   }
 
   db.runSync('DELETE FROM pending_uploads WHERE walk_id = ?', walkId);
+}
+
+const HIDE_ROUTE_ENDS_PREF_KEY = 'hide_route_ends';
+
+export function getLocalHideRouteEndsSetting(): boolean {
+  const db = getDb();
+  if (!db) {
+    const val = memLocalPrefs.get(HIDE_ROUTE_ENDS_PREF_KEY);
+    return val === undefined ? true : val === 'true';
+  }
+
+  const row = db.getFirstSync<{ pref_value: string }>(
+    'SELECT pref_value FROM local_prefs WHERE pref_key = ?',
+    HIDE_ROUTE_ENDS_PREF_KEY
+  );
+  if (!row) {
+    return true; // Default ON per privacy-by-default rules
+  }
+  return row.pref_value === 'true';
+}
+
+export function setLocalHideRouteEndsSetting(enabled: boolean): void {
+  const strVal = enabled ? 'true' : 'false';
+  const db = getDb();
+  if (!db) {
+    memLocalPrefs.set(HIDE_ROUTE_ENDS_PREF_KEY, strVal);
+    return;
+  }
+
+  db.runSync(
+    'INSERT OR REPLACE INTO local_prefs (pref_key, pref_value) VALUES (?, ?)',
+    HIDE_ROUTE_ENDS_PREF_KEY,
+    strVal
+  );
 }
