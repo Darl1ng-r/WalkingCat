@@ -8,6 +8,10 @@ import { Button, Card, Screen, StatTile, Text } from '@/components/ui';
 import { AppConfig } from '@/constants/config';
 import { useSession } from '@/features/auth';
 import {
+  GAMIFICATION_QUERY_KEYS,
+  WalkRewardsCard,
+} from '@/features/gamification';
+import {
   SIGHTINGS_QUERY_KEYS,
   useWalkSightings,
   WalkSightingsList,
@@ -148,6 +152,7 @@ export default function WalkScreen() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: WALK_QUERY_KEYS.all }),
       queryClient.invalidateQueries({ queryKey: SIGHTINGS_QUERY_KEYS.all }),
+      queryClient.invalidateQueries({ queryKey: GAMIFICATION_QUERY_KEYS.all }),
       queryClient.invalidateQueries({ queryKey: ['health', 'today'] }),
     ]);
   };
@@ -230,6 +235,12 @@ export default function WalkScreen() {
         </View>
 
         <RouteMap coordinates={summary.routePoints} height={240} />
+
+        <WalkRewardsCard
+          walkId={summary.walkId}
+          distanceMeters={summary.distanceMeters}
+          movingTimeSeconds={summary.movingTimeSeconds}
+        />
 
         <View className="flex-row gap-3">
           <StatTile label="Distance" value={formatDistance(summary.distanceMeters)} />

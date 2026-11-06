@@ -16,6 +16,7 @@ export interface Database {
           display_name: string | null;
           avatar_url: string | null;
           weight_kg: number | null;
+          challenge_difficulty: 'easy' | 'standard';
           onboarded_at: string | null;
           created_at: string;
           updated_at: string;
@@ -26,6 +27,7 @@ export interface Database {
           display_name?: string | null;
           avatar_url?: string | null;
           weight_kg?: number | null;
+          challenge_difficulty?: 'easy' | 'standard';
           onboarded_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -36,6 +38,7 @@ export interface Database {
           display_name?: string | null;
           avatar_url?: string | null;
           weight_kg?: number | null;
+          challenge_difficulty?: 'easy' | 'standard';
           onboarded_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -300,6 +303,231 @@ export interface Database {
         };
         Relationships: [];
       };
+      points_ledger: {
+        Row: {
+          id: string;
+          user_id: string;
+          amount: number;
+          reason: string;
+          source_type:
+            | 'walk'
+            | 'walk_distance'
+            | 'steps_milestone'
+            | 'sighting'
+            | 'achievement'
+            | 'challenge';
+          source_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          amount: number;
+          reason: string;
+          source_type:
+            | 'walk'
+            | 'walk_distance'
+            | 'steps_milestone'
+            | 'sighting'
+            | 'achievement'
+            | 'challenge';
+          source_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          amount?: number;
+          reason?: string;
+          source_type?:
+            | 'walk'
+            | 'walk_distance'
+            | 'steps_milestone'
+            | 'sighting'
+            | 'achievement'
+            | 'challenge';
+          source_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      achievements: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          icon: string;
+          points: number;
+          metric:
+            | 'walks_count'
+            | 'total_distance_m'
+            | 'cats_count'
+            | 'weekly_active_days';
+          threshold: number;
+          sort_order: number;
+        };
+        Insert: {
+          id: string;
+          title: string;
+          description: string;
+          icon: string;
+          points: number;
+          metric:
+            | 'walks_count'
+            | 'total_distance_m'
+            | 'cats_count'
+            | 'weekly_active_days';
+          threshold: number;
+          sort_order?: number;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string;
+          icon?: string;
+          points?: number;
+          metric?:
+            | 'walks_count'
+            | 'total_distance_m'
+            | 'cats_count'
+            | 'weekly_active_days';
+          threshold?: number;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      user_achievements: {
+        Row: {
+          id: string;
+          user_id: string;
+          achievement_id: string;
+          unlocked_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          achievement_id: string;
+          unlocked_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          achievement_id?: string;
+          unlocked_at?: string;
+        };
+        Relationships: [];
+      };
+      challenges: {
+        Row: {
+          id: string;
+          period: 'daily' | 'weekly';
+          metric:
+            | 'walks'
+            | 'distance_m'
+            | 'moving_time_s'
+            | 'steps'
+            | 'active_days'
+            | 'sightings';
+          target: number;
+          easy_target: number;
+          title: string;
+          easy_title: string;
+          description: string;
+          icon: string;
+          difficulty: 'easy' | 'standard';
+          sort_order: number;
+        };
+        Insert: {
+          id: string;
+          period: 'daily' | 'weekly';
+          metric:
+            | 'walks'
+            | 'distance_m'
+            | 'moving_time_s'
+            | 'steps'
+            | 'active_days'
+            | 'sightings';
+          target: number;
+          easy_target: number;
+          title: string;
+          easy_title: string;
+          description: string;
+          icon?: string;
+          difficulty?: 'easy' | 'standard';
+          sort_order?: number;
+        };
+        Update: {
+          id?: string;
+          period?: 'daily' | 'weekly';
+          metric?:
+            | 'walks'
+            | 'distance_m'
+            | 'moving_time_s'
+            | 'steps'
+            | 'active_days'
+            | 'sightings';
+          target?: number;
+          easy_target?: number;
+          title?: string;
+          easy_title?: string;
+          description?: string;
+          icon?: string;
+          difficulty?: 'easy' | 'standard';
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      challenge_instances: {
+        Row: {
+          id: string;
+          challenge_id: string;
+          period_start: string;
+          period_end: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          challenge_id: string;
+          period_start: string;
+          period_end: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          challenge_id?: string;
+          period_start?: string;
+          period_end?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      challenge_progress: {
+        Row: {
+          id: string;
+          user_id: string;
+          instance_id: string;
+          progress: number;
+          completed_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          instance_id: string;
+          progress?: number;
+          completed_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          instance_id?: string;
+          progress?: number;
+          completed_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -342,6 +570,26 @@ export interface Database {
       unlink_sighting: {
         Args: {
           p_sighting_id: string;
+        };
+        Returns: string;
+      };
+      get_points_summary: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          total_points: number;
+          week_points: number;
+          today_points: number;
+        }[];
+      };
+      ensure_active_challenge_instances: {
+        Args: {
+          p_date?: string;
+        };
+        Returns: undefined;
+      };
+      set_challenge_difficulty: {
+        Args: {
+          p_difficulty: string;
         };
         Returns: string;
       };

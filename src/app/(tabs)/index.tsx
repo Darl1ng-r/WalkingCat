@@ -3,6 +3,11 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button, Card, EmptyState, Screen, StatTile, Text } from '@/components/ui';
+import {
+  ChallengeCard,
+  PointsChip,
+  useChallenges,
+} from '@/features/gamification';
 import { useTodayHealthSummary } from '@/features/health';
 import { ActivityBarChart, useActivityDashboard } from '@/features/walk';
 import { formatDistance, formatNumber } from '@/lib/format';
@@ -10,6 +15,7 @@ import { formatDistance, formatNumber } from '@/lib/format';
 export default function HomeScreen() {
   const { data, isLoading, requestConnect, openHealthSettings } = useTodayHealthSummary();
   const { data: weekSummary } = useActivityDashboard('week');
+  const { data: challengesOverview } = useChallenges();
   const [connecting, setConnecting] = useState(false);
 
   const permState = data?.permissionState ?? 'not_connected';
@@ -29,14 +35,17 @@ export default function HomeScreen() {
 
   return (
     <Screen scroll contentContainerClassName="gap-6 pb-10">
-      <View className="mt-2">
-        <Text variant="label">Today</Text>
-        <Text variant="title" className="mt-1">
-          StrayCat Walk
-        </Text>
-        <Text variant="caption" className="mt-1">
-          Walk a little farther. Discover a little more.
-        </Text>
+      <View className="mt-2 flex-row items-start justify-between gap-3">
+        <View className="flex-1">
+          <Text variant="label">Today</Text>
+          <Text variant="title" className="mt-1">
+            StrayCat Walk
+          </Text>
+          <Text variant="caption" className="mt-1">
+            Walk a little farther. Discover a little more.
+          </Text>
+        </View>
+        <PointsChip />
       </View>
 
       <View className="gap-3">
@@ -129,6 +138,29 @@ export default function HomeScreen() {
             onPress={openHealthSettings}
           />
         </Card>
+      ) : null}
+
+      {challengesOverview && challengesOverview.activeDaily.length > 0 ? (
+        <View className="gap-3">
+          <View className="flex-row items-center justify-between">
+            <Text variant="label">Today&apos;s Challenges</Text>
+            <Button
+              label="All Challenges"
+              size="sm"
+              variant="ghost"
+              onPress={() => router.push('/challenges')}
+            />
+          </View>
+          <View className="gap-2.5">
+            {challengesOverview.activeDaily.map((challenge) => (
+              <ChallengeCard
+                key={challenge.instanceId}
+                challenge={challenge}
+                compact
+              />
+            ))}
+          </View>
+        </View>
       ) : null}
 
       <Card className="gap-4">

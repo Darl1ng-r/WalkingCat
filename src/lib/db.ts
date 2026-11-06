@@ -426,6 +426,37 @@ export function setLocalSaveSightingAreaSetting(enabled: boolean): void {
   );
 }
 
+const CHALLENGE_DIFFICULTY_PREF_KEY = 'challenge_difficulty';
+
+export function getLocalChallengeDifficultySetting(): 'easy' | 'standard' {
+  const db = getDb();
+  if (!db) {
+    return memLocalPrefs.get(CHALLENGE_DIFFICULTY_PREF_KEY) === 'easy'
+      ? 'easy'
+      : 'standard';
+  }
+  const row = db.getFirstSync<{ pref_value: string }>(
+    'SELECT pref_value FROM local_prefs WHERE pref_key = ?',
+    CHALLENGE_DIFFICULTY_PREF_KEY
+  );
+  return row?.pref_value === 'easy' ? 'easy' : 'standard';
+}
+
+export function setLocalChallengeDifficultySetting(
+  difficulty: 'easy' | 'standard'
+): void {
+  const db = getDb();
+  if (!db) {
+    memLocalPrefs.set(CHALLENGE_DIFFICULTY_PREF_KEY, difficulty);
+    return;
+  }
+  db.runSync(
+    'INSERT OR REPLACE INTO local_prefs (pref_key, pref_value) VALUES (?, ?)',
+    CHALLENGE_DIFFICULTY_PREF_KEY,
+    difficulty
+  );
+}
+
 export function enqueueSightingUpload(
   sightingId: string,
   payload: SightingUploadPayload

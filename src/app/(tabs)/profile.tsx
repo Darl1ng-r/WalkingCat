@@ -6,6 +6,20 @@ import { useSession } from '@/features/auth';
 
 const SETTINGS_ITEMS = [
   {
+    emoji: '🏅',
+    title: 'Achievements',
+    subtitle: 'View unlocked badges and personal milestone goals',
+    href: '/achievements' as const,
+    enabled: true,
+  },
+  {
+    emoji: '🎯',
+    title: 'Challenges & Points',
+    subtitle: 'Daily and weekly goals, Easy/Standard difficulty toggle',
+    href: '/challenges' as const,
+    enabled: true,
+  },
+  {
     emoji: '🥾',
     title: 'Walk History',
     subtitle: 'Browse past walks, routes, and offline uploads',

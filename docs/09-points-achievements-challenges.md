@@ -49,23 +49,23 @@ Weekly: 3 walks · 10 km total · walk on 4 different days · 2 cat sightings (*
 **Adjustable goals:** user picks "Easy / Standard" challenge level in settings; easy targets ≈ 60%.
 
 ## Tasks
-- [ ] 9.1 Migration + seeds + `app_config` point values.
-- [ ] 9.2 Triggers/functions above; **SQL tests** for: idempotency (re-run trigger = no double points), daily caps, suspicious walk = no points, deleting a walk does **not** create negative points (MVP: keep awarded points; document).
-- [ ] 9.3 pg_cron jobs to create challenge instances (daily at 00:00 user-agnostic UTC — document timezone simplification; consider per-user local day later).
-- [ ] 9.4 `src/features/gamification/api.ts` + hooks: points summary, achievements (locked/unlocked), active challenges with progress.
-- [ ] 9.5 **Home:** points chip; "Today's challenges" cards with progress bars.
-- [ ] 9.6 **Walk summary:** "+45 points" breakdown and any achievement unlocked / challenge completed (fetched after sync; celebratory but brief animation + haptic).
-- [ ] 9.7 **Achievements screen** (from Profile): grid of badges; locked ones show the goal, not shame.
-- [ ] 9.8 **Challenges screen:** active daily + weekly, time remaining, completed history; Easy/Standard toggle.
-- [ ] 9.9 **Rest-day friendly copy:** no streak counters that reset; use "active days this week" instead.
+- [x] 9.1 Migration + seeds + `app_config` point values.
+- [x] 9.2 Triggers/functions above; **SQL tests** for: idempotency (re-run trigger = no double points), daily caps, suspicious walk = no points, deleting a walk does **not** create negative points (MVP: keep awarded points; document).
+- [x] 9.3 pg_cron jobs to create challenge instances (daily at 00:00 user-agnostic UTC — document timezone simplification; consider per-user local day later).
+- [x] 9.4 `src/features/gamification/api.ts` + hooks: points summary, achievements (locked/unlocked), active challenges with progress.
+- [x] 9.5 **Home:** points chip; "Today's challenges" cards with progress bars.
+- [x] 9.6 **Walk summary:** "+45 points" breakdown and any achievement unlocked / challenge completed (fetched after sync; celebratory but brief animation + haptic).
+- [x] 9.7 **Achievements screen** (from Profile): grid of badges; locked ones show the goal, not shame.
+- [x] 9.8 **Challenges screen:** active daily + weekly, time remaining, completed history; Easy/Standard toggle.
+- [x] 9.9 **Rest-day friendly copy:** no streak counters that reset; use "active days this week" instead.
 
 ## Acceptance criteria
-- [ ] Completing a qualifying walk awards points exactly once, even if sync retries.
-- [ ] Caps enforced (4th walk of the day: 0 walk points; 6th sighting: 0 points but still collected).
-- [ ] Achievements unlock at correct thresholds, once.
-- [ ] Challenges progress from walks, steps, and sightings; complete once.
-- [ ] Client cannot insert into `points_ledger` (verified).
-- [ ] No streak-loss or negative messaging.
+- [x] Completing a qualifying walk awards points exactly once, even if sync retries.
+- [x] Caps enforced (4th walk of the day: 0 walk points; 6th sighting: 0 points but still collected).
+- [x] Achievements unlock at correct thresholds, once.
+- [x] Challenges progress from walks, steps, and sightings; complete once.
+- [x] Client cannot insert into `points_ledger` (verified).
+- [x] No streak-loss or negative messaging.
 
 ## Manual test script
 1. Fresh user → first walk → "First walk" achievement + points.
