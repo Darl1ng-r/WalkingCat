@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/ui": "~58.0.27",
+    "@supabase/supabase-js": "^2.119.0",
     "@tanstack/react-query": "^5.106.1",
     "expo": "~58.0.23",
     "expo-constants": "~58.0.15",
@@ -16,6 +17,7 @@
     "expo-linking": "~58.0.16",
     "expo-router": "~58.0.30",
     "expo-splash-screen": "~58.0.13",
+    "expo-sqlite": "~58.0.15",
     "expo-status-bar": "~58.0.4",
     "expo-symbols": "~58.0.4",
     "expo-system-ui": "~58.0.7",
@@ -50,7 +52,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "jest --watchAll=false"
+    "test": "jest --watchAll=false",
+    "db:types": "npx supabase gen types typescript --linked > src/lib/database.types.ts"
   },
   "jest": {
     "preset": "jest-expo"

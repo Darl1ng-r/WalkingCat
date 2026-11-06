@@ -8,7 +8,7 @@
 |---|---|---|---|
 | Setup — Expo SDK 58 + Router + NativeWind + eas.json | ✅ Done | 2026-11-06 | tsc + lint passing |
 | 1 Foundation | ✅ Done | 2026-11-06 | Design system, 5-tab NativeTabs shell, QueryClient, Jest tests (11/11 passing) |
-| 2 Auth & profile | ⬜ Not started | | |
+| 2 Auth & profile | ✅ Done | 2026-11-06 | Supabase client (`expo-sqlite` session storage), SQL migration (`profiles`, `privacy_settings`, RLS), auth screens, 3-step onboarding, profile & edit profile, 19/19 tests passing |
 | 3 Walk tracking | ⬜ Not started | | |
 | 4 Health (steps & calories) | ⬜ Not started | | |
 | 5 History & dashboard | ⬜ Not started | | |
@@ -32,6 +32,7 @@ Record any decision that later phases must respect.
 | 2026-11-06 | Points/achievements/validation computed server-side only | Anti-cheat, single source of truth |
 | 2026-11-06 | Leaderboards friends-only, weekly, separate metrics, no calories | Product principles |
 | 2026-11-06 | Use `expo-router/native-tabs` (`NativeTabs`) for `(tabs)` | Official SDK 58 native tab bar with SF Symbols (`sf`) & Material (`md`) icons |
+| 2026-11-06 | Support both email confirmation ON and OFF in sign-up flow | `signUp` checks `requiresEmailConfirmation` (`user && !session`) so dev (confirm off) and prod (confirm on) both work seamlessly |
 
 ## Open questions
 - Vision provider for cat detection (Google Cloud Vision vs Gemini) — decide in Phase 7.
