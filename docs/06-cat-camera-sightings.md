@@ -44,23 +44,23 @@ sequenceDiagram
 ```
 
 ## Tasks
-- [ ] 6.1 **Welfare sheet** (shown first time, then a one-line reminder on the camera screen): keep your distance, no flash, don't touch/chase/feed, never enter private property. "Got it" stores acknowledgement.
-- [ ] 6.2 **Camera screen** `src/app/sighting/capture.tsx` (modal): `CameraView` with `flash="off"` hard-coded (no toggle), zoom slider (encourage zoom instead of approaching — hint text "Use zoom, not your feet 🐾"), shutter button, close. Permission denied state with Settings link.
-- [ ] 6.3 **Review screen:** full photo, Retake / Submit. Optional "Save general area" toggle (default from privacy setting, default **off**) → if on, get one current location and store only a 5-char geohash (pure function `toGeohash(lat,lng,5)`, tested).
-- [ ] 6.4 **Processing** `src/features/sightings/process.ts`: resize longest side to 1600 px, JPEG quality 0.8 via image-manipulator (this drops EXIF/GPS metadata — verify), compute SHA-256 of the processed file with `expo-crypto`.
-- [ ] 6.5 **Offline-safe upload queue** (reuse the Phase 3 `pending_uploads` pattern): save processed file into app document directory + queue row; upload when online; delete local copy after success.
-- [ ] 6.6 Insert `sightings` row with `walk_id` when taken during a walk; handle unique-violation on `sha256` → "You already submitted this photo".
-- [ ] 6.7 Enable the camera button on the active walk screen; add a "Spotted a cat" button on Home for sightings outside a walk (walk_id null).
-- [ ] 6.8 Walk summary lists photos taken during the walk with status chips (`Checking…`).
-- [ ] 6.9 Client-side guardrails: max 1 capture per 10 s (debounce), images < 10 MB, reject if dimensions < 400 px.
+- [x] 6.1 **Welfare sheet** (shown first time, then a one-line reminder on the camera screen): keep your distance, no flash, don't touch/chase/feed, never enter private property. "Got it" stores acknowledgement.
+- [x] 6.2 **Camera screen** `src/app/sighting/capture.tsx` (modal): `CameraView` with `flash="off"` hard-coded (no toggle), zoom slider (encourage zoom instead of approaching — hint text "Use zoom, not your feet 🐾"), shutter button, close. Permission denied state with Settings link.
+- [x] 6.3 **Review screen:** full photo, Retake / Submit. Optional "Save general area" toggle (default from privacy setting, default **off**) → if on, get one current location and store only a 5-char geohash (pure function `toGeohash(lat,lng,5)`, tested).
+- [x] 6.4 **Processing** `src/features/sightings/process.ts`: resize longest side to 1600 px, JPEG quality 0.8 via image-manipulator (this drops EXIF/GPS metadata — verify), compute SHA-256 of the processed file with `expo-crypto`.
+- [x] 6.5 **Offline-safe upload queue** (reuse the Phase 3 `pending_uploads` pattern): save processed file into app document directory + queue row; upload when online; delete local copy after success.
+- [x] 6.6 Insert `sightings` row with `walk_id` when taken during a walk; handle unique-violation on `sha256` → "You already submitted this photo".
+- [x] 6.7 Enable the camera button on the active walk screen; add a "Spotted a cat" button on Home for sightings outside a walk (walk_id null).
+- [x] 6.8 Walk summary lists photos taken during the walk with status chips (`Checking…`).
+- [x] 6.9 Client-side guardrails: max 1 capture per 10 s (debounce), images < 10 MB, reject if dimensions < 400 px.
 
 ## Acceptance criteria
-- [ ] Photo can be taken from an active walk and from Home; flash is never used.
-- [ ] Uploaded file has no EXIF GPS data (verify by downloading and inspecting).
-- [ ] Offline submission uploads later exactly once.
-- [ ] Submitting the identical file twice is blocked.
-- [ ] Other users cannot access the photo URL (signed URLs only, private bucket).
-- [ ] No microphone permission requested.
+- [x] Photo can be taken from an active walk and from Home; flash is never used.
+- [x] Uploaded file has no EXIF GPS data (verify by downloading and inspecting).
+- [x] Offline submission uploads later exactly once.
+- [x] Submitting the identical file twice is blocked.
+- [x] Other users cannot access the photo URL (signed URLs only, private bucket).
+- [x] No microphone permission requested.
 
 ## Manual test script
 1. Start a walk → camera → welfare sheet → take photo → review → submit → "Checking…".

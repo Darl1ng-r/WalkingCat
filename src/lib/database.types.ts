@@ -177,6 +177,54 @@ export interface Database {
         };
         Relationships: [];
       };
+      sightings: {
+        Row: {
+          id: string;
+          user_id: string;
+          walk_id: string | null;
+          photo_path: string;
+          sha256: string;
+          phash: string | null;
+          taken_at: string;
+          area_geohash: string | null;
+          status: 'pending' | 'accepted' | 'rejected' | 'flagged';
+          reject_reason: string | null;
+          cat_confidence: number | null;
+          cat_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          user_id: string;
+          walk_id?: string | null;
+          photo_path: string;
+          sha256: string;
+          phash?: string | null;
+          taken_at: string;
+          area_geohash?: string | null;
+          status?: 'pending' | 'accepted' | 'rejected' | 'flagged';
+          reject_reason?: string | null;
+          cat_confidence?: number | null;
+          cat_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          walk_id?: string | null;
+          photo_path?: string;
+          sha256?: string;
+          phash?: string | null;
+          taken_at?: string;
+          area_geohash?: string | null;
+          status?: 'pending' | 'accepted' | 'rejected' | 'flagged';
+          reject_reason?: string | null;
+          cat_confidence?: number | null;
+          cat_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

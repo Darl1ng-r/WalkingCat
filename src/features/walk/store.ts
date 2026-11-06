@@ -15,6 +15,7 @@ import {
   syncDailyHealthActivity,
   type HealthSourceName,
 } from '@/features/health';
+import { syncPendingSightings } from '@/features/sightings/sync';
 import {
   computeDurations,
   encodePolyline,
@@ -339,6 +340,7 @@ export const useWalkStore = create<WalkStoreState>((set, get) => ({
     });
 
     const syncResult = await syncPendingWalks();
+    syncPendingSightings().catch(() => {});
     syncDailyHealthActivity(true).catch(() => {});
     const finalSyncStatus: CompletedWalkSummary['syncStatus'] =
       syncResult.remainingCount === 0 ? 'synced' : 'queued_offline';
@@ -380,6 +382,7 @@ export const useWalkStore = create<WalkStoreState>((set, get) => ({
 
   triggerSync: async () => {
     const res = await syncPendingWalks();
+    await syncPendingSightings().catch(() => {});
     set((state) => ({
       pendingUploadCount: res.remainingCount,
       summary:

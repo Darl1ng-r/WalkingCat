@@ -12,7 +12,7 @@
 | 3 Walk tracking | ✅ Done | 2026-11-06 | Local SQLite point buffer + offline upload queue, Haversine/jitter/Douglas-Peucker/Polyline in `geo.ts`, background `TaskManager` + foreground watcher, `RouteMap` (`expo-maps`), crash recovery, 26/26 tests passing |
 | 4 Health (steps & calories) | ✅ Done | 2026-11-06 | HealthKit (`queryStatisticsForQuantity` cumulativeSum) & Health Connect (`aggregateRecord`) providers, MET calorie estimator (`calories.ts`), walk health enrichment + 2h delayed wearable re-sync, 15m throttled daily sync, Home Today card & Permissions screen, 30/30 tests passing |
 | 5 History & dashboard | ✅ Done | 2026-11-06 | `get_activity_summary` RPC migration, paginated `listWalks`/`getWalk`/`deleteWalk`, `@shopify/flash-list` History screen with pending upload badge, Walk Detail screen with `trimRouteEnds(150m)` privacy toggle & route bounds fitting, Home "This Week" card + Progress screen (`ActivityBarChart`), 40/40 tests passing |
-| 6 Cat camera & sightings | ⬜ Not started | | |
+| 6 Cat camera & sightings | ✅ Done | 2026-11-06 | `sightings` table + private `sighting-photos` bucket migration, `WelfareSheet`, no-flash `CameraView` with zoom presets, EXIF-stripping `processCapturedPhoto` + `expo-crypto` SHA-256, `toGeohash` (≤5 chars), offline `pending_sighting_uploads` queue, 1h signed URL cache, 48/48 tests passing |
 | 7 Sighting validation | ⬜ Not started | | |
 | 8 Cat collection | ⬜ Not started | | |
 | 9 Points, achievements, challenges | ⬜ Not started | | |

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
@@ -13,6 +14,7 @@ import {
 
 export default function PermissionsSettingsScreen() {
   const { data: healthData, requestConnect, openHealthSettings } = useTodayHealthSummary();
+  const [camPermission, requestCamPermission] = useCameraPermissions();
   const { data: locData, refetch: refetchLocStatus } = useQuery({
     queryKey: ['location', 'permission'],
     queryFn: checkCurrentLocationPermission,
@@ -23,6 +25,7 @@ export default function PermissionsSettingsScreen() {
   };
   const [requestingLoc, setRequestingLoc] = useState(false);
   const [requestingHealth, setRequestingHealth] = useState(false);
+  const [requestingCam, setRequestingCam] = useState(false);
 
   const handleRequestLocation = async () => {
     setRequestingLoc(true);
@@ -31,6 +34,15 @@ export default function PermissionsSettingsScreen() {
       await refetchLocStatus();
     } finally {
       setRequestingLoc(false);
+    }
+  };
+
+  const handleRequestCamera = async () => {
+    setRequestingCam(true);
+    try {
+      await requestCamPermission();
+    } finally {
+      setRequestingCam(false);
     }
   };
 
@@ -116,6 +128,37 @@ export default function PermissionsSettingsScreen() {
             size="sm"
             variant="ghost"
             onPress={openHealthSettings}
+          />
+        </View>
+      </Card>
+
+      <Card className="gap-3">
+        <View className="flex-row items-center justify-between">
+          <Text variant="heading">📷 Camera (No Flash)</Text>
+          <Text variant="label" className={camPermission?.granted ? 'text-secondary' : ''}>
+            {camPermission?.granted ? 'Granted' : 'Not Granted'}
+          </Text>
+        </View>
+        <Text variant="caption" className="leading-5">
+          Used only when you open the cat camera to photograph a cat you spot. Flash and microphone
+          are permanently disabled.
+        </Text>
+        <View className="flex-row gap-3">
+          {!camPermission?.granted ? (
+            <Button
+              label="Allow Camera"
+              size="sm"
+              loading={requestingCam}
+              onPress={() => {
+                handleRequestCamera().catch(() => {});
+              }}
+            />
+          ) : null}
+          <Button
+            label="Open Device Settings"
+            size="sm"
+            variant="ghost"
+            onPress={openDeviceLocationSettings}
           />
         </View>
       </Card>

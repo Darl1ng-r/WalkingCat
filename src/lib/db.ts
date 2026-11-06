@@ -33,10 +33,28 @@ export interface PendingWalkUploadRow {
   created_at: number;
 }
 
+export interface SightingUploadPayload {
+  id: string;
+  walk_id: string | null;
+  local_file_uri: string;
+  sha256: string;
+  taken_at: string;
+  area_geohash: string | null;
+}
+
+export interface PendingSightingUploadRow {
+  sighting_id: string;
+  payload: SightingUploadPayload;
+  attempts: number;
+  last_error: string | null;
+  created_at: number;
+}
+
 // In-memory fallback for Jest / Web environments
 let memActiveWalk: ActiveWalkRecord | null = null;
 const memWalkPoints = new Map<string, GeoPoint[]>();
 const memPendingUploads = new Map<string, PendingWalkUploadRow>();
+const memPendingSightingUploads = new Map<string, PendingSightingUploadRow>();
 const memLocalPrefs = new Map<string, string>();
 
 interface SQLiteSyncDb {
@@ -91,6 +109,13 @@ function getDb(): SQLiteSyncDb | null {
       CREATE TABLE IF NOT EXISTS local_prefs (
         pref_key TEXT PRIMARY KEY,
         pref_value TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS pending_sighting_uploads (
+        sighting_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        last_error TEXT,
+        created_at INTEGER NOT NULL
       );
     `);
     sqliteDb = db;
@@ -343,5 +368,158 @@ export function setLocalHideRouteEndsSetting(enabled: boolean): void {
     'INSERT OR REPLACE INTO local_prefs (pref_key, pref_value) VALUES (?, ?)',
     HIDE_ROUTE_ENDS_PREF_KEY,
     strVal
+  );
+}
+
+const CAMERA_WELFARE_ACK_PREF_KEY = 'camera_welfare_ack';
+const SAVE_SIGHTING_AREA_PREF_KEY = 'save_sighting_area';
+
+export function getLocalCameraWelfareAck(): boolean {
+  const db = getDb();
+  if (!db) {
+    return memLocalPrefs.get(CAMERA_WELFARE_ACK_PREF_KEY) === 'true';
+  }
+  const row = db.getFirstSync<{ pref_value: string }>(
+    'SELECT pref_value FROM local_prefs WHERE pref_key = ?',
+    CAMERA_WELFARE_ACK_PREF_KEY
+  );
+  return row?.pref_value === 'true';
+}
+
+export function setLocalCameraWelfareAck(acknowledged: boolean): void {
+  const strVal = acknowledged ? 'true' : 'false';
+  const db = getDb();
+  if (!db) {
+    memLocalPrefs.set(CAMERA_WELFARE_ACK_PREF_KEY, strVal);
+    return;
+  }
+  db.runSync(
+    'INSERT OR REPLACE INTO local_prefs (pref_key, pref_value) VALUES (?, ?)',
+    CAMERA_WELFARE_ACK_PREF_KEY,
+    strVal
+  );
+}
+
+export function getLocalSaveSightingAreaSetting(): boolean {
+  const db = getDb();
+  if (!db) {
+    return memLocalPrefs.get(SAVE_SIGHTING_AREA_PREF_KEY) === 'true';
+  }
+  const row = db.getFirstSync<{ pref_value: string }>(
+    'SELECT pref_value FROM local_prefs WHERE pref_key = ?',
+    SAVE_SIGHTING_AREA_PREF_KEY
+  );
+  return row?.pref_value === 'true'; // Default OFF per privacy-by-default rules
+}
+
+export function setLocalSaveSightingAreaSetting(enabled: boolean): void {
+  const strVal = enabled ? 'true' : 'false';
+  const db = getDb();
+  if (!db) {
+    memLocalPrefs.set(SAVE_SIGHTING_AREA_PREF_KEY, strVal);
+    return;
+  }
+  db.runSync(
+    'INSERT OR REPLACE INTO local_prefs (pref_key, pref_value) VALUES (?, ?)',
+    SAVE_SIGHTING_AREA_PREF_KEY,
+    strVal
+  );
+}
+
+export function enqueueSightingUpload(
+  sightingId: string,
+  payload: SightingUploadPayload
+): void {
+  const now = Date.now();
+  const db = getDb();
+  if (!db) {
+    memPendingSightingUploads.set(sightingId, {
+      sighting_id: sightingId,
+      payload,
+      attempts: 0,
+      last_error: null,
+      created_at: now,
+    });
+    return;
+  }
+
+  db.runSync(
+    `INSERT OR REPLACE INTO pending_sighting_uploads (sighting_id, payload, attempts, last_error, created_at)
+     VALUES (?, ?, 0, NULL, ?)`,
+    sightingId,
+    JSON.stringify(payload),
+    now
+  );
+}
+
+export function listPendingSightingUploads(): PendingSightingUploadRow[] {
+  const db = getDb();
+  if (!db) {
+    return Array.from(memPendingSightingUploads.values()).sort(
+      (a, b) => a.created_at - b.created_at
+    );
+  }
+
+  const rows = db.getAllSync<{
+    sighting_id: string;
+    payload: string;
+    attempts: number;
+    last_error: string | null;
+    created_at: number;
+  }>(
+    'SELECT sighting_id, payload, attempts, last_error, created_at FROM pending_sighting_uploads ORDER BY created_at ASC'
+  );
+
+  const parsed: PendingSightingUploadRow[] = [];
+  for (const row of rows) {
+    try {
+      parsed.push({
+        sighting_id: row.sighting_id,
+        payload: JSON.parse(row.payload) as SightingUploadPayload,
+        attempts: row.attempts,
+        last_error: row.last_error,
+        created_at: row.created_at,
+      });
+    } catch {
+      // Ignore malformed row
+    }
+  }
+  return parsed;
+}
+
+export function markPendingSightingUploadError(
+  sightingId: string,
+  errorMessage: string
+): void {
+  const db = getDb();
+  if (!db) {
+    const existing = memPendingSightingUploads.get(sightingId);
+    if (existing) {
+      memPendingSightingUploads.set(sightingId, {
+        ...existing,
+        attempts: existing.attempts + 1,
+        last_error: errorMessage,
+      });
+    }
+    return;
+  }
+
+  db.runSync(
+    'UPDATE pending_sighting_uploads SET attempts = attempts + 1, last_error = ? WHERE sighting_id = ?',
+    errorMessage,
+    sightingId
+  );
+}
+
+export function removePendingSightingUpload(sightingId: string): void {
+  const db = getDb();
+  if (!db) {
+    memPendingSightingUploads.delete(sightingId);
+    return;
+  }
+
+  db.runSync(
+    'DELETE FROM pending_sighting_uploads WHERE sighting_id = ?',
+    sightingId
   );
 }

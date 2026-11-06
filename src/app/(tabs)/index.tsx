@@ -208,6 +208,20 @@ export default function HomeScreen() {
         </View>
       </Card>
 
+      <Card className="flex-row items-center justify-between gap-3">
+        <View className="flex-1">
+          <Text variant="heading">🐱 Spotted a cat?</Text>
+          <Text variant="caption" className="mt-0.5 text-xs leading-5">
+            Snap a gentle, no-flash photo anytime—even when you aren&apos;t recording a walk.
+          </Text>
+        </View>
+        <Button
+          label="📷 Spot a Cat"
+          size="sm"
+          onPress={() => router.push('/sighting/capture')}
+        />
+      </Card>
+
       <EmptyState
         emoji="🐾"
         title="Ready for a walk?"

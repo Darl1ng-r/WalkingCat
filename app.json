@@ -65,7 +65,16 @@
           "background": false
         }
       ],
-      "react-native-health-connect"
+      "react-native-health-connect",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow StrayCat Walk to photograph cats you spot on your walks. Photos stay private unless you choose to share.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

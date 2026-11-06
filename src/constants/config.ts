@@ -17,6 +17,7 @@ export const AppConfig = {
     captureCooldownMs: 10_000,
     maxImageDimensionPx: 1600,
     minImageDimensionPx: 400,
+    maxFileSizeBytes: 10 * 1024 * 1024, // 10 MB
     jpegQuality: 0.8,
     geohashPrecision: 5,
   },

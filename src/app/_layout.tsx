@@ -74,6 +74,10 @@ function RootNavigator() {
         name="settings/permissions"
         options={{ presentation: 'modal', headerShown: false }}
       />
+      <Stack.Screen
+        name="sighting/capture"
+        options={{ presentation: 'modal', headerShown: false }}
+      />
       <Stack.Screen name="+not-found" options={{ headerShown: true, title: 'Not Found' }} />
     </Stack>
   );

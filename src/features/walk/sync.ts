@@ -47,6 +47,7 @@ export async function syncPendingWalks(): Promise<SyncWalksResult> {
       try {
         const { error } = await supabase.from('walks').upsert(
           {
+            id: item.payload.client_id,
             client_id: item.payload.client_id,
             user_id: userId,
             started_at: item.payload.started_at,

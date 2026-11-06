@@ -8,6 +8,11 @@ import { Button, Card, Screen, StatTile, Text } from '@/components/ui';
 import { AppConfig } from '@/constants/config';
 import { useSession } from '@/features/auth';
 import {
+  SIGHTINGS_QUERY_KEYS,
+  useWalkSightings,
+  WalkSightingsList,
+} from '@/features/sightings';
+import {
   checkCurrentLocationPermission,
   computeDurations,
   openDeviceLocationSettings,
@@ -23,6 +28,7 @@ export default function WalkScreen() {
   const { profile } = useSession();
   const {
     status,
+    walkId,
     startedAt,
     pauseIntervals,
     routePoints,
@@ -43,6 +49,10 @@ export default function WalkScreen() {
     dismissSummary,
     triggerSync,
   } = useWalkStore();
+
+  const { data: walkSightings = [] } = useWalkSightings(
+    status === 'summary' ? summary?.walkId : walkId
+  );
 
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [showPermissionExplainer, setShowPermissionExplainer] = useState(false);
@@ -137,6 +147,7 @@ export default function WalkScreen() {
     await finishWalk(profile?.weight_kg);
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: WALK_QUERY_KEYS.all }),
+      queryClient.invalidateQueries({ queryKey: SIGHTINGS_QUERY_KEYS.all }),
       queryClient.invalidateQueries({ queryKey: ['health', 'today'] }),
     ]);
   };
@@ -265,6 +276,8 @@ export default function WalkScreen() {
           </Text>
         </Card>
 
+        <WalkSightingsList sightings={walkSightings} />
+
         <View className="flex-row gap-3">
           <Button
             label="Walk History"
@@ -338,11 +351,19 @@ export default function WalkScreen() {
           <StatTile label="Avg Pace" value={formatPace(paceSecondsPerKm)} />
         </View>
 
-        {/* Disabled camera placeholder slot for Phase 6 */}
         <Button
-          label="📷 Spot a Cat (Coming in Phase 6)"
+          label={
+            walkSightings.length > 0
+              ? `📷 Spot a Cat (${walkSightings.length} spotted)`
+              : '📷 Spot a Cat'
+          }
           variant="secondary"
-          disabled
+          onPress={() =>
+            router.push({
+              pathname: '/sighting/capture',
+              params: walkId ? { walkId } : {},
+            })
+          }
         />
 
         <View className="mt-1 flex-row gap-3">
