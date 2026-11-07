@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 
 import type { GeoPoint, PauseInterval } from '@/features/walk/geo';
 import { logger } from './logger';
+import { openSyncDatabase, type SQLiteSyncDb } from './sqlite-adapter';
 
 export interface ActiveWalkRecord {
   id: string;
@@ -57,13 +58,6 @@ const memPendingUploads = new Map<string, PendingWalkUploadRow>();
 const memPendingSightingUploads = new Map<string, PendingSightingUploadRow>();
 const memLocalPrefs = new Map<string, string>();
 
-interface SQLiteSyncDb {
-  execSync(source: string): void;
-  runSync(source: string, ...params: (string | number | null)[]): unknown;
-  getFirstSync<T>(source: string, ...params: (string | number | null)[]): T | null;
-  getAllSync<T>(source: string, ...params: (string | number | null)[]): T[];
-}
-
 let sqliteDb: SQLiteSyncDb | null = null;
 
 function getDb(): SQLiteSyncDb | null {
@@ -76,11 +70,10 @@ function getDb(): SQLiteSyncDb | null {
   }
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const SQLite = require('expo-sqlite') as {
-      openDatabaseSync: (name: string) => SQLiteSyncDb;
-    };
-    const db = SQLite.openDatabaseSync('walkingcat_walks.db');
+    const db = openSyncDatabase('walkingcat_walks.db');
+    if (!db) {
+      return null;
+    }
     db.execSync(`
       CREATE TABLE IF NOT EXISTS active_walk (
         singleton INTEGER PRIMARY KEY CHECK (singleton = 1),

@@ -7,6 +7,7 @@ import {
   listPendingSightingUploads,
   removePendingSightingUpload,
 } from '@/lib/db';
+import { demoState, isDemoMode } from '@/lib/demo-data';
 import { isSupabaseConfigured } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
@@ -46,6 +47,9 @@ export async function listCats(
 ): Promise<CatCardItem[]> {
   const sort = options.sort ?? 'newest';
   if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      return sortCatCards(demoState.cats, sort);
+    }
     return [];
   }
 
@@ -120,7 +124,28 @@ export async function listCats(
  * Fetches a single cat card and its timeline of accepted sightings.
  */
 export async function getCat(catId: string): Promise<CatDetailItem | null> {
-  if (!catId || !isSupabaseConfigured) {
+  if (!catId) {
+    return null;
+  }
+  if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      const found = demoState.cats.find((c) => c.id === catId);
+      if (!found) return null;
+      return {
+        ...found,
+        sightings: Array.from({ length: found.sighting_count }, (_, idx) => ({
+          id: `${found.id}-sighting-${idx + 1}`,
+          walk_id: demoState.walks[idx % demoState.walks.length]?.id ?? null,
+          photo_path: found.cover_photo_path,
+          imageUri: found.coverUrl,
+          taken_at: new Date(
+            new Date(found.last_seen_at).getTime() - idx * 3 * 86_400_000
+          ).toISOString(),
+          area_geohash: found.area_geohash,
+          created_at: found.last_seen_at,
+        })),
+      };
+    }
     return null;
   }
 
@@ -194,6 +219,12 @@ export async function renameCat(
   }
 
   if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      const target = demoState.cats.find((c) => c.id === catId);
+      if (target) {
+        target.nickname = validation.sanitized;
+      }
+    }
     return validation.sanitized;
   }
 

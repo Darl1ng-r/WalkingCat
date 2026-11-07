@@ -3,6 +3,8 @@ import {
   removePendingWalkUpload,
   type PendingWalkUploadRow,
 } from '@/lib/db';
+import { demoState, isDemoMode } from '@/lib/demo-data';
+import { isSupabaseConfigured } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import {
@@ -84,6 +86,16 @@ export async function listWalks(params: {
 } = {}): Promise<ListWalksPage> {
   const { cursor = null, limit = 20 } = params;
 
+  if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      return {
+        items: cursor ? [] : demoState.walks,
+        nextCursor: null,
+      };
+    }
+    return { items: [], nextCursor: null };
+  }
+
   let query = supabase
     .from('walks')
     .select(
@@ -137,6 +149,13 @@ export async function getWalk(id: string): Promise<WalkDetailRecord | null> {
     return mapPendingRowToWalkDetail(pendingMatch);
   }
 
+  if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      return demoState.walks.find((w) => w.id === id || w.client_id === id) ?? null;
+    }
+    return null;
+  }
+
   const { data, error } = await supabase
     .from('walks')
     .select(
@@ -177,6 +196,10 @@ export async function getWalk(id: string): Promise<WalkDetailRecord | null> {
  */
 export async function deleteWalk(id: string): Promise<void> {
   removePendingWalkUpload(id);
+
+  if (!isSupabaseConfigured) {
+    return;
+  }
 
   const { error } = await supabase
     .from('walks')
@@ -262,24 +285,36 @@ export async function getActivityDashboardSummary(
   const tzOffsetMinutes = -now.getTimezoneOffset();
   let serverRows: RawActivitySummaryRow[] = [];
 
-  const { data: sessionData } = await supabase.auth.getSession();
-  if (sessionData.session?.user) {
-    const { data, error } = await supabase.rpc('get_activity_summary', {
-      p_from: range.fromDate,
-      p_to: range.toDate,
-      p_tz_offset_minutes: tzOffsetMinutes,
-    });
-
-    if (!error && data) {
-      serverRows = data.map((r) => ({
-        date: r.date,
-        walks_count: Number(r.walks_count) || 0,
-        distance_m: Number(r.distance_m) || 0,
-        moving_time_s: Number(r.moving_time_s) || 0,
-        steps: Number(r.steps) || 0,
+  if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      serverRows = demoState.walks.map((w) => ({
+        date: toLocalDateKey(w.started_at),
+        walks_count: 1,
+        distance_m: w.distance_m,
+        moving_time_s: w.moving_time_s,
+        steps: w.steps ?? 0,
       }));
-    } else {
-      serverRows = await fetchFallbackActivityRows(range.fromDate, range.toDate);
+    }
+  } else {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.user) {
+      const { data, error } = await supabase.rpc('get_activity_summary', {
+        p_from: range.fromDate,
+        p_to: range.toDate,
+        p_tz_offset_minutes: tzOffsetMinutes,
+      });
+
+      if (!error && data) {
+        serverRows = data.map((r) => ({
+          date: r.date,
+          walks_count: Number(r.walks_count) || 0,
+          distance_m: Number(r.distance_m) || 0,
+          moving_time_s: Number(r.moving_time_s) || 0,
+          steps: Number(r.steps) || 0,
+        }));
+      } else {
+        serverRows = await fetchFallbackActivityRows(range.fromDate, range.toDate);
+      }
     }
   }
 

@@ -2,6 +2,7 @@ import {
   getLocalChallengeDifficultySetting,
   setLocalChallengeDifficultySetting,
 } from '@/lib/db';
+import { demoState, isDemoMode } from '@/lib/demo-data';
 import { isSupabaseConfigured } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
@@ -110,6 +111,13 @@ function getWeekUtcBounds(now = new Date()): { start: string; end: string } {
  */
 export async function getPointsSummary(): Promise<PointsSummary> {
   if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      return {
+        totalPoints: demoState.totalEarnedPoints,
+        weekPoints: 185,
+        todayPoints: 45,
+      };
+    }
     return { totalPoints: 0, weekPoints: 0, todayPoints: 0 };
   }
 
@@ -134,10 +142,10 @@ export async function getPointsSummary(): Promise<PointsSummary> {
  */
 export async function listAchievements(): Promise<AchievementItem[]> {
   if (!isSupabaseConfigured) {
-    return SEED_ACHIEVEMENTS.map((a) => ({
+    return SEED_ACHIEVEMENTS.map((a, idx) => ({
       ...a,
-      unlocked: false,
-      unlockedAt: null,
+      unlocked: isDemoMode ? idx < 4 : false,
+      unlockedAt: isDemoMode && idx < 4 ? '2026-11-01T14:20:00.000Z' : null,
     }));
   }
 
@@ -217,46 +225,61 @@ export async function listChallengesWithProgress(
   ): ChallengesOverview => {
     const activeDaily: ChallengeInstanceItem[] = SEED_CHALLENGE_TEMPLATES.filter(
       (t) => t.period === 'daily'
-    ).map((t) => ({
-      instanceId: `${t.id}:${todayStr}`,
-      challengeId: t.id,
-      period: t.period,
-      metric: t.metric,
-      title: diff === 'easy' ? t.easy_title : t.title,
-      description: t.description,
-      icon: t.icon,
-      target: diff === 'easy' ? t.easy_target : t.target,
-      progress: 0,
-      rewardPoints: DEFAULT_POINT_RULES.dailyChallengePoints,
-      periodStart: todayStr,
-      periodEnd: todayStr,
-      completedAt: null,
-    }));
+    ).map((t, idx) => {
+      const target = diff === 'easy' ? t.easy_target : t.target;
+      const demoProgress = isDemoMode
+        ? idx === 0
+          ? target
+          : Math.round(target * 0.65)
+        : 0;
+      return {
+        instanceId: `${t.id}:${todayStr}`,
+        challengeId: t.id,
+        period: t.period,
+        metric: t.metric,
+        title: diff === 'easy' ? t.easy_title : t.title,
+        description: t.description,
+        icon: t.icon,
+        target,
+        progress: demoProgress,
+        rewardPoints: DEFAULT_POINT_RULES.dailyChallengePoints,
+        periodStart: todayStr,
+        periodEnd: todayStr,
+        completedAt:
+          isDemoMode && idx === 0 ? new Date().toISOString() : null,
+      };
+    });
 
     const activeWeekly: ChallengeInstanceItem[] =
       SEED_CHALLENGE_TEMPLATES.filter((t) => t.period === 'weekly').map(
-        (t) => ({
-          instanceId: `${t.id}:${weekBounds.start}`,
-          challengeId: t.id,
-          period: t.period,
-          metric: t.metric,
-          title: diff === 'easy' ? t.easy_title : t.title,
-          description: t.description,
-          icon: t.icon,
-          target: diff === 'easy' ? t.easy_target : t.target,
-          progress: 0,
-          rewardPoints: DEFAULT_POINT_RULES.weeklyChallengePoints,
-          periodStart: weekBounds.start,
-          periodEnd: weekBounds.end,
-          completedAt: null,
-        })
+        (t, idx) => {
+          const target = diff === 'easy' ? t.easy_target : t.target;
+          const demoProgress = isDemoMode
+            ? Math.round(target * (idx === 0 ? 0.8 : 0.6))
+            : 0;
+          return {
+            instanceId: `${t.id}:${weekBounds.start}`,
+            challengeId: t.id,
+            period: t.period,
+            metric: t.metric,
+            title: diff === 'easy' ? t.easy_title : t.title,
+            description: t.description,
+            icon: t.icon,
+            target,
+            progress: demoProgress,
+            rewardPoints: DEFAULT_POINT_RULES.weeklyChallengePoints,
+            periodStart: weekBounds.start,
+            periodEnd: weekBounds.end,
+            completedAt: null,
+          };
+        }
       );
 
     return {
       difficulty: diff,
       activeDaily,
       activeWeekly,
-      completedHistory: [],
+      completedHistory: isDemoMode ? activeDaily.slice(0, 1) : [],
     };
   };
 

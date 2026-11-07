@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 
 import type { Database } from './database.types';
 import { env } from './env';
+import { installNativeLocalStoragePolyfill } from './sqlite-adapter';
 
 function getAuthStorage(): SupportedStorage | undefined {
   if (Platform.OS === 'web' || process.env.NODE_ENV === 'test') {
@@ -21,9 +22,7 @@ function getAuthStorage(): SupportedStorage | undefined {
     };
   }
 
-  // Install expo-sqlite's localStorage polyfill on native (iOS & Android)
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('expo-sqlite/localStorage/install');
+  installNativeLocalStoragePolyfill();
   return globalThis.localStorage;
 }
 

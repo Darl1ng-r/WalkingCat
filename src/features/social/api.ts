@@ -1,4 +1,5 @@
 import { getSignedSightingPhotoUrl } from '@/features/sightings';
+import { demoState, isDemoMode } from '@/lib/demo-data';
 import { isSupabaseConfigured } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
@@ -262,6 +263,59 @@ export async function listFriendshipsOverview(
   currentUserId: string | null | undefined
 ): Promise<FriendshipsOverview> {
   if (!currentUserId || !isSupabaseConfigured) {
+    if (isDemoMode) {
+      return {
+        acceptedFriends: [
+          {
+            friendshipId: 'demo-fr-1',
+            friend: {
+              id: 'demo-friend-1',
+              username: 'tariq_strolls',
+              display_name: 'Tariq Hassan',
+              avatar_url: null,
+            },
+            createdAt: '2026-10-12T10:00:00.000Z',
+            respondedAt: '2026-10-12T10:05:00.000Z',
+          },
+          {
+            friendshipId: 'demo-fr-2',
+            friend: {
+              id: 'demo-friend-2',
+              username: 'layla_paws',
+              display_name: 'Layla Haddad',
+              avatar_url: null,
+            },
+            createdAt: '2026-10-15T14:00:00.000Z',
+            respondedAt: '2026-10-15T14:15:00.000Z',
+          },
+          {
+            friendshipId: 'demo-fr-3',
+            friend: {
+              id: 'demo-friend-3',
+              username: 'omar_runner',
+              display_name: 'Omar Nabil',
+              avatar_url: null,
+            },
+            createdAt: '2026-10-20T09:00:00.000Z',
+            respondedAt: '2026-10-20T09:30:00.000Z',
+          },
+        ],
+        incomingRequests: [
+          {
+            friendshipId: 'demo-req-1',
+            friend: {
+              id: 'demo-friend-4',
+              username: 'nadia_garden',
+              display_name: 'Nadia Karim',
+              avatar_url: null,
+            },
+            createdAt: new Date(Date.now() - 3600_000).toISOString(),
+            respondedAt: null,
+          },
+        ],
+        outgoingRequests: [],
+      };
+    }
     return {
       acceptedFriends: [],
       incomingRequests: [],
@@ -353,6 +407,58 @@ export async function getFriendsLeaderboard(
   weekPeriod: LeaderboardWeekPeriod = 'this_week'
 ): Promise<LeaderboardEntry[]> {
   if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      const mult = weekPeriod === 'last_week' ? 0.9 : 1;
+      const metricMap: Record<LeaderboardMetric, number[]> = {
+        steps: [48210, 44900, 39120, 31400],
+        distance_m: [34800, 31950, 27600, 22100],
+        walks: [7, 6, 5, 4],
+        challenge_points: [210, 185, 150, 120],
+      };
+      const vals = metricMap[metric] ?? [100, 90, 80, 70];
+      return [
+        {
+          rank: 1,
+          userId: 'demo-friend-2',
+          username: 'layla_paws',
+          displayName: 'Layla Haddad',
+          avatarUrl: null,
+          value: Math.round(vals[0] * mult),
+          isSelf: false,
+          hasOutlier: false,
+        },
+        {
+          rank: 2,
+          userId: demoState.userId,
+          username: demoState.username,
+          displayName: demoState.displayName,
+          avatarUrl: null,
+          value: Math.round(vals[1] * mult),
+          isSelf: true,
+          hasOutlier: false,
+        },
+        {
+          rank: 3,
+          userId: 'demo-friend-1',
+          username: 'tariq_strolls',
+          displayName: 'Tariq Hassan',
+          avatarUrl: null,
+          value: Math.round(vals[2] * mult),
+          isSelf: false,
+          hasOutlier: false,
+        },
+        {
+          rank: 4,
+          userId: 'demo-friend-3',
+          username: 'omar_runner',
+          displayName: 'Omar Nabil',
+          avatarUrl: null,
+          value: Math.round(vals[3] * mult),
+          isSelf: false,
+          hasOutlier: false,
+        },
+      ];
+    }
     return [];
   }
 
@@ -438,6 +544,86 @@ export async function listFriendActivityEvents(
   limit = 30
 ): Promise<ActivityEventItem[]> {
   if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      const cat1 = demoState.cats[0];
+      return [
+        {
+          id: 'demo-ev-1',
+          userId: 'demo-friend-2',
+          actor: {
+            id: 'demo-friend-2',
+            username: 'layla_paws',
+            display_name: 'Layla Haddad',
+            avatar_url: null,
+          },
+          type: 'cat_card_shared',
+          createdAt: new Date(Date.now() - 2 * 3600_000).toISOString(),
+          copy: formatActivityEventCopy(
+            'cat_card_shared',
+            {
+              cat_id: cat1?.id ?? 'demo-cat-1',
+              card_number: 1,
+              nickname: cat1?.nickname ?? 'Marmalade',
+              sighting_count: 4,
+              cover_photo_path: 'demo/marmalade.svg',
+              theme_id: cat1?.theme_id ?? 'theme_golden_foil',
+            },
+            'Layla Haddad'
+          ),
+          sharedCatPhotoUrl: cat1?.coverUrl ?? null,
+          reactions: [
+            { emoji: '🐾', count: 3, reactedByMe: true },
+            { emoji: '❤️', count: 2, reactedByMe: false },
+          ],
+          myReaction: '🐾',
+        },
+        {
+          id: 'demo-ev-2',
+          userId: 'demo-friend-1',
+          actor: {
+            id: 'demo-friend-1',
+            username: 'tariq_strolls',
+            display_name: 'Tariq Hassan',
+            avatar_url: null,
+          },
+          type: 'walk_completed',
+          createdAt: new Date(Date.now() - 6 * 3600_000).toISOString(),
+          copy: formatActivityEventCopy(
+            'walk_completed',
+            { distance_m: 3850, moving_time_s: 2740 },
+            'Tariq Hassan'
+          ),
+          sharedCatPhotoUrl: null,
+          reactions: [{ emoji: '👏', count: 2, reactedByMe: false }],
+          myReaction: null,
+        },
+        {
+          id: 'demo-ev-3',
+          userId: demoState.userId,
+          actor: {
+            id: demoState.userId,
+            username: demoState.username,
+            display_name: demoState.displayName,
+            avatar_url: null,
+          },
+          type: 'achievement_unlocked',
+          createdAt: new Date(Date.now() - 20 * 3600_000).toISOString(),
+          copy: formatActivityEventCopy(
+            'achievement_unlocked',
+            {
+              achievement_id: 'cats_5',
+              title: 'Neighborhood Naturalist',
+              icon: '🐱',
+              points: 50,
+            },
+            'You'
+          ),
+          sharedCatPhotoUrl: null,
+          reactions: [{ emoji: '🔥', count: 3, reactedByMe: false }],
+          myReaction: null,
+        },
+      ];
+    }
     return [];
   }
 
@@ -620,7 +806,28 @@ export async function shareCatCardToFriends(catId: string): Promise<void> {
 export async function getFriendProfileSummary(
   friendId: string
 ): Promise<FriendProfileSummary | null> {
-  if (!friendId || !isSupabaseConfigured) {
+  if (!friendId) {
+    return null;
+  }
+  if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      return {
+        userId: friendId,
+        username: friendId === 'demo-friend-2' ? 'layla_paws' : 'tariq_strolls',
+        displayName:
+          friendId === 'demo-friend-2' ? 'Layla Haddad' : 'Tariq Hassan',
+        avatarUrl: null,
+        memberSince: '2026-09-20T10:00:00.000Z',
+        achievementsCount: 6,
+        showOnLeaderboard: true,
+        weekSteps: 48210,
+        weekDistanceM: 34800,
+        weekWalks: 7,
+        weekChallengePoints: 210,
+        equippedBannerId: 'banner_twilight_harbor',
+        equippedTitleId: 'title_legend_of_the_ave',
+      };
+    }
     return null;
   }
 

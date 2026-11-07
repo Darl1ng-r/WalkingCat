@@ -1,4 +1,5 @@
 import { track } from '@/lib/analytics';
+import { demoState, isDemoMode } from '@/lib/demo-data';
 import { isSupabaseConfigured } from '@/lib/env';
 import { supabase } from '@/lib/supabase';
 
@@ -11,6 +12,7 @@ import {
   computeCosmeticsWallet,
   DEFAULT_PROFILE_BANNER_ID,
   DEFAULT_PROFILE_TITLE_ID,
+  getCosmeticById,
 } from './catalog';
 
 export interface UnlockCosmeticResult {
@@ -57,6 +59,18 @@ function parseCosmeticMetadata(raw: unknown): CosmeticMetadata {
 
 export async function getCosmeticsOverview(): Promise<CosmeticsOverview> {
   if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      return {
+        wallet: computeCosmeticsWallet(
+          demoState.totalEarnedPoints,
+          demoState.pointsSpent
+        ),
+        catalog: COSMETIC_CATALOG,
+        unlockedIds: Array.from(demoState.unlockedCosmeticIds),
+        equippedBannerId: demoState.equippedBannerId,
+        equippedTitleId: demoState.equippedTitleId,
+      };
+    }
     return getDefaultOverview();
   }
 
@@ -135,9 +149,42 @@ export async function getCosmeticsOverview(): Promise<CosmeticsOverview> {
 }
 
 export async function unlockCosmeticItem(
-  cosmeticId: string,
+  cosmeticId: string
 ): Promise<UnlockCosmeticResult> {
   if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      const item = getCosmeticById(cosmeticId);
+      if (!item) {
+        throw new Error('Cosmetic item not found.');
+      }
+      const wallet = computeCosmeticsWallet(
+        demoState.totalEarnedPoints,
+        demoState.pointsSpent
+      );
+      if (demoState.unlockedCosmeticIds.has(cosmeticId) || item.cost_points <= 0) {
+        return {
+          cosmeticId: item.id,
+          pointsSpent: item.cost_points,
+          availablePoints: wallet.availablePoints,
+          alreadyUnlocked: true,
+        };
+      }
+      if (wallet.availablePoints < item.cost_points) {
+        throw new Error('Insufficient Paw Points.');
+      }
+      demoState.unlockedCosmeticIds.add(item.id);
+      demoState.pointsSpent += item.cost_points;
+      const updated = computeCosmeticsWallet(
+        demoState.totalEarnedPoints,
+        demoState.pointsSpent
+      );
+      return {
+        cosmeticId: item.id,
+        pointsSpent: item.cost_points,
+        availablePoints: updated.availablePoints,
+        alreadyUnlocked: false,
+      };
+    }
     throw new Error('Connect to Supabase to unlock cosmetics.');
   }
 
@@ -173,9 +220,16 @@ export async function unlockCosmeticItem(
 
 export async function equipCatTheme(
   catId: string,
-  themeId: string,
+  themeId: string
 ): Promise<string> {
   if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      const cat = demoState.cats.find((c) => c.id === catId);
+      if (cat) {
+        cat.theme_id = themeId;
+      }
+      return themeId;
+    }
     throw new Error('Connect to Supabase to equip card themes.');
   }
 
@@ -197,9 +251,17 @@ export async function equipCatTheme(
 
 export async function equipProfileCosmeticItem(
   slot: 'banner' | 'title',
-  cosmeticId: string,
+  cosmeticId: string
 ): Promise<string> {
   if (!isSupabaseConfigured) {
+    if (isDemoMode) {
+      if (slot === 'banner') {
+        demoState.equippedBannerId = cosmeticId;
+      } else {
+        demoState.equippedTitleId = cosmeticId;
+      }
+      return cosmeticId;
+    }
     throw new Error('Connect to Supabase to equip profile cosmetics.');
   }
 

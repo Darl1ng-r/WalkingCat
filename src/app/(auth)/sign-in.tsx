@@ -3,10 +3,11 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
 
 import { Button, Card, Input, Screen, Text } from '@/components/ui';
-import { mapAuthError, signIn, signInSchema } from '@/features/auth';
+import { mapAuthError, signIn, signInSchema, useSession } from '@/features/auth';
 import { isSupabaseConfigured } from '@/lib/env';
 
 export default function SignInScreen() {
+  const { enterDemoMode } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
@@ -58,14 +59,22 @@ export default function SignInScreen() {
         </View>
 
         {!isSupabaseConfigured ? (
-          <Card className="border-primary/40 bg-primary-muted/40 dark:bg-surface-elevated-dark">
-            <Text variant="label" className="text-primary-dark dark:text-primary-light">
-              Supabase Not Connected Yet
-            </Text>
-            <Text variant="caption" className="mt-1">
-              Run `npx eas-cli@latest integrations:supabase:connect` or add your credentials to
-              `.env.local` to enable live sign-in.
-            </Text>
+          <Card className="gap-3 border-primary/40 bg-primary-muted/40 dark:bg-surface-elevated-dark">
+            <View>
+              <Text variant="label" className="text-primary-dark dark:text-primary-light">
+                ✨ Interactive Preview Mode Available
+              </Text>
+              <Text variant="caption" className="mt-1">
+                Explore the full StrayCat Walk app with sample walks, cat cards, card themes,
+                cosmetics, challenges, and friends leaderboards—or connect `.env.local` for live
+                Supabase auth.
+              </Text>
+            </View>
+            <Button
+              label="✨ Enter Interactive Demo"
+              size="sm"
+              onPress={enterDemoMode}
+            />
           </Card>
         ) : null}
 
