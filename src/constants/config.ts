@@ -21,4 +21,8 @@ export const AppConfig = {
     jpegQuality: 0.8,
     geohashPrecision: 5,
   },
+  legal: {
+    privacyPolicyUrl: 'https://walkingcat.app/privacy',
+    termsUrl: 'https://walkingcat.app/terms',
+  },
 } as const;

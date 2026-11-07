@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import * as Linking from 'expo-linking';
 import * as Location from 'expo-location';
@@ -8,6 +9,7 @@ import { useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Button, Card, Screen, Text } from '@/components/ui';
+import { track } from '@/lib/analytics';
 import {
   COLLECTION_QUERY_KEYS,
   NewCatAcceptedSheet,
@@ -201,6 +203,11 @@ export default function SightingCaptureScreen() {
           walkId,
           areaGeohash,
         });
+
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        track('sighting_submitted', {
+          has_coarse_area: Boolean(areaGeohash),
+        }).catch(() => {});
 
         await queryClient.invalidateQueries({
           queryKey: SIGHTINGS_QUERY_KEYS.all,

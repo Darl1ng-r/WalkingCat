@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -25,6 +26,11 @@ import {
   useWalkStore,
   WALK_QUERY_KEYS,
 } from '@/features/walk';
+import {
+  getDistanceBucket,
+  getStepsBucket,
+  track,
+} from '@/lib/analytics';
 import { formatDistance, formatDuration, formatNumber, formatPace } from '@/lib/format';
 
 export default function WalkScreen() {
@@ -109,6 +115,8 @@ export default function WalkScreen() {
       setShowPermissionExplainer(true);
       return;
     }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    track('walk_started', { source: 'tab' }).catch(() => {});
     await startWalk();
   };
 
@@ -118,6 +126,8 @@ export default function WalkScreen() {
 
     const outcome = await requestWalkLocationPermissions();
     if (outcome.status === 'granted') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      track('walk_started', { source: 'tab' }).catch(() => {});
       await startWalk();
       return;
     }
@@ -148,7 +158,15 @@ export default function WalkScreen() {
   };
 
   const completeAndRefreshWalk = async () => {
-    await finishWalk(profile?.weight_kg);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    const finishedSummary = await finishWalk(profile?.weight_kg);
+    if (finishedSummary) {
+      track('walk_completed', {
+        duration_s: finishedSummary.movingTimeSeconds,
+        distance_bucket: getDistanceBucket(finishedSummary.distanceMeters),
+        steps_bucket: getStepsBucket(finishedSummary.steps ?? 0),
+      }).catch(() => {});
+    }
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: WALK_QUERY_KEYS.all }),
       queryClient.invalidateQueries({ queryKey: SIGHTINGS_QUERY_KEYS.all }),
@@ -174,6 +192,7 @@ export default function WalkScreen() {
             text: 'Discard Walk',
             style: 'destructive',
             onPress: () => {
+              track('walk_discarded', { reason: 'short_walk' }).catch(() => {});
               discardWalk().catch(() => {});
             },
           },
@@ -209,6 +228,7 @@ export default function WalkScreen() {
           text: 'Discard',
           style: 'destructive',
           onPress: () => {
+            track('walk_discarded', { reason: 'user_cancelled' }).catch(() => {});
             discardWalk().catch(() => {});
           },
         },

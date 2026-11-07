@@ -43,16 +43,30 @@ const SETTINGS_ITEMS = [
   {
     emoji: '🔒',
     title: 'Privacy',
-    subtitle: 'Route trimming, leaderboard & sharing defaults (Phase 11)',
-    href: null,
-    enabled: false,
+    subtitle: 'Route trimming, leaderboard & sharing defaults',
+    href: '/settings/privacy' as const,
+    enabled: true,
   },
   {
     emoji: '⚙️',
     title: 'Account & Data',
-    subtitle: 'Export or delete walks, sightings, and account data (Phase 11)',
-    href: null,
-    enabled: false,
+    subtitle: 'Export or delete walks, sightings, and account data',
+    href: '/settings/account' as const,
+    enabled: true,
+  },
+  {
+    emoji: '🐾',
+    title: 'Cat Welfare Guide',
+    subtitle: 'Respectful cat spotting and distance photography ethics',
+    href: '/settings/welfare' as const,
+    enabled: true,
+  },
+  {
+    emoji: '💌',
+    title: 'Send Beta Feedback',
+    subtitle: 'Report a bug, suggest features, or share thoughts',
+    href: '/settings/feedback' as const,
+    enabled: true,
   },
 ] as const;
 
@@ -130,7 +144,7 @@ export default function ProfileScreen() {
             disabled={!item.enabled}
             onPress={() => {
               if (item.href) {
-                router.push(item.href);
+                router.push(item.href as never);
               }
             }}
             className={item.enabled ? 'active:opacity-80' : 'opacity-70'}>

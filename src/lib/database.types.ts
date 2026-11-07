@@ -56,6 +56,7 @@ export interface Database {
           save_sighting_area: boolean;
           hide_route_ends: boolean;
           hide_route_ends_m: number;
+          analytics_opt_out: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -69,6 +70,7 @@ export interface Database {
           save_sighting_area?: boolean;
           hide_route_ends?: boolean;
           hide_route_ends_m?: number;
+          analytics_opt_out?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -82,6 +84,7 @@ export interface Database {
           save_sighting_area?: boolean;
           hide_route_ends?: boolean;
           hide_route_ends_m?: number;
+          analytics_opt_out?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -645,6 +648,93 @@ export interface Database {
         };
         Relationships: [];
       };
+      reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          target_type: 'sighting' | 'cat_card' | 'profile' | 'activity_event';
+          target_id: string;
+          reason: 'animal_harm' | 'inappropriate' | 'personal_info' | 'spam' | 'other';
+          details: string | null;
+          status: 'open' | 'actioned' | 'dismissed';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          reporter_id: string;
+          target_type: 'sighting' | 'cat_card' | 'profile' | 'activity_event';
+          target_id: string;
+          reason: 'animal_harm' | 'inappropriate' | 'personal_info' | 'spam' | 'other';
+          details?: string | null;
+          status?: 'open' | 'actioned' | 'dismissed';
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          reporter_id?: string;
+          target_type?: 'sighting' | 'cat_card' | 'profile' | 'activity_event';
+          target_id?: string;
+          reason?: 'animal_harm' | 'inappropriate' | 'personal_info' | 'spam' | 'other';
+          details?: string | null;
+          status?: 'open' | 'actioned' | 'dismissed';
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      analytics_events: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          event_name: string;
+          properties: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          event_name: string;
+          properties?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          event_name?: string;
+          properties?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      feedback: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          category: 'bug' | 'idea' | 'praise' | 'other';
+          message: string;
+          app_version: string | null;
+          platform: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          category: 'bug' | 'idea' | 'praise' | 'other';
+          message: string;
+          app_version?: string | null;
+          platform?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          category?: 'bug' | 'idea' | 'praise' | 'other';
+          message?: string;
+          app_version?: string | null;
+          platform?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       public_profiles: {
@@ -819,6 +909,30 @@ export interface Database {
           week_walks: number;
           week_challenge_points: number;
         }[];
+      };
+      submit_report: {
+        Args: {
+          p_target_type: string;
+          p_target_id: string;
+          p_reason: string;
+          p_details?: string | null;
+        };
+        Returns: Database['public']['Tables']['reports']['Row'];
+      };
+      delete_all_user_walks: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      delete_all_user_sightings: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          deleted_sightings_count: number;
+          deleted_cats_count: number;
+        }[];
+      };
+      export_user_account_data: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
       };
     };
     Enums: {

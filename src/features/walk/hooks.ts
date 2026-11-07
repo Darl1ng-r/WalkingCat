@@ -7,9 +7,12 @@ import {
 import { useCallback, useMemo, useState } from 'react';
 
 import {
+  getLocalHideRouteEndsMetersSetting,
   getLocalHideRouteEndsSetting,
+  setLocalHideRouteEndsMetersSetting,
   setLocalHideRouteEndsSetting,
 } from '@/lib/db';
+import { usePrivacySettings } from '@/features/privacy';
 import {
   deleteWalk,
   getActivityDashboardSummary,
@@ -114,17 +117,31 @@ export function useActivityDashboard(period: 'week' | 'month' = 'week') {
 }
 
 export function useRoutePrivacyTrim() {
-  const [hideRouteEnds, setHideRouteEndsState] = useState<boolean>(() =>
+  const { data: privacySettings } = usePrivacySettings();
+  const [localHide, setLocalHide] = useState<boolean>(() =>
     getLocalHideRouteEndsSetting()
   );
+  const [localMeters, setLocalMeters] = useState<number>(() =>
+    getLocalHideRouteEndsMetersSetting()
+  );
+
+  const hideRouteEnds = privacySettings?.hide_route_ends ?? localHide;
+  const trimMeters = privacySettings?.hide_route_ends_m ?? localMeters;
 
   const setHideRouteEnds = useCallback((enabled: boolean) => {
     setLocalHideRouteEndsSetting(enabled);
-    setHideRouteEndsState(enabled);
+    setLocalHide(enabled);
+  }, []);
+
+  const setTrimMeters = useCallback((meters: 100 | 150 | 300) => {
+    setLocalHideRouteEndsMetersSetting(meters);
+    setLocalMeters(meters);
   }, []);
 
   return {
     hideRouteEnds,
     setHideRouteEnds,
+    trimMeters,
+    setTrimMeters,
   };
 }

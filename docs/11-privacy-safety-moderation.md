@@ -23,48 +23,48 @@ Migration `<ts>_privacy_moderation.sql`:
 ## Tasks
 
 ### 11.1 Privacy settings screen (`settings/privacy`)
-- [ ] Toggles for all `privacy_settings` with plain-language explanations (use `@expo/ui` switches/sections).
-- [ ] "Hide start and end of routes" + distance picker (100 / 150 / 300 m).
-- [ ] Make Phase 5 route trimming read from this setting (server-backed).
+- [x] Toggles for all `privacy_settings` with plain-language explanations (use `@expo/ui` switches/sections).
+- [x] "Hide start and end of routes" + distance picker (100 / 150 / 300 m).
+- [x] Make Phase 5 route trimming read from this setting (server-backed).
 
 ### 11.2 Permissions screen (`settings/permissions`)
-- [ ] Status of Location, Camera, Health (+ Notifications if added) with why-we-need-it text and "Open Settings" buttons.
+- [x] Status of Location, Camera, Health (+ Notifications if added) with why-we-need-it text and "Open Settings" buttons.
 
 ### 11.3 Data controls (`settings/account`)
-- [ ] Delete individual walks / sightings (already exists — verify).
-- [ ] "Delete all my walks", "Delete all my photos & sightings" (confirm, irreversible warning).
-- [ ] **Delete account** (type-to-confirm + re-auth) → `delete-account` function → sign out.
-- [ ] **Export my data**.
+- [x] Delete individual walks / sightings (already exists — verify).
+- [x] "Delete all my walks", "Delete all my photos & sightings" (confirm, irreversible warning).
+- [x] **Delete account** (type-to-confirm + re-auth) → `delete-account` function → sign out.
+- [x] **Export my data**.
 
 ### 11.4 Reporting
-- [ ] Report action (⋯ menu) on shared cat cards, friend activity events, friend profiles.
-- [ ] Report sheet: reason + optional details; confirmation "Thanks — we'll review this".
-- [ ] Moderation runbook `supabase/MODERATION.md`: how to review reports & flagged sightings, actions (hide, delete, warn, ban), response target (e.g. 48 h).
+- [x] Report action (⋯ menu) on shared cat cards, friend activity events, friend profiles.
+- [x] Report sheet: reason + optional details; confirmation "Thanks — we'll review this".
+- [x] Moderation runbook `supabase/MODERATION.md`: how to review reports & flagged sightings, actions (hide, delete, warn, ban), response target (e.g. 48 h).
 
 ### 11.5 Animal-welfare guidance
-- [ ] "Respectful Cat Spotting" screen (from Profile and from the camera screen): distance, zoom, no flash, no touching/chasing/feeding, private property, what to do if a cat seems hurt (contact local animal-welfare organization — **no promises of assistance**).
-- [ ] Audit every challenge/achievement text: none reward approaching or specific places/times.
+- [x] "Respectful Cat Spotting" screen (from Profile and from the camera screen): distance, zoom, no flash, no touching/chasing/feeding, private property, what to do if a cat seems hurt (contact local animal-welfare organization — **no promises of assistance**).
+- [x] Audit every challenge/achievement text: none reward approaching or specific places/times.
 
 ### 11.6 Legal & store requirements
-- [ ] Privacy Policy & Terms (hosted page; link in settings and sign-up). Must cover: location, health data (never sold, never used for ads), photos, third-party vision processing, retention, deletion.
-- [ ] Health data disclosure text for App Store (HealthKit) and Google Play (Health Connect declaration form).
-- [ ] App Store privacy "nutrition label" + Google Play Data safety answers drafted in `docs/store-privacy.md`.
+- [x] Privacy Policy & Terms (hosted page; link in settings and sign-up). Must cover: location, health data (never sold, never used for ads), photos, third-party vision processing, retention, deletion.
+- [x] Health data disclosure text for App Store (HealthKit) and Google Play (Health Connect declaration form).
+- [x] App Store privacy "nutrition label" + Google Play Data safety answers drafted in `docs/store-privacy.md`.
 
 ### 11.7 Security & privacy audit (checklist)
-- [ ] Every table has RLS; run a script that attempts cross-user reads/writes on every table with a second test account.
-- [ ] Storage policies: private bucket, path-scoped.
-- [ ] No coordinates in: `sightings`, `cats`, `activity_events`, logs, analytics.
-- [ ] No secrets in app bundle (`grep` the export).
-- [ ] Location updates stop when no walk is active.
-- [ ] EXIF stripped from photos (re-verify).
-- [ ] Rate limits on Edge Functions (sightings, invites, search).
+- [x] Every table has RLS; run a script that attempts cross-user reads/writes on every table with a second test account.
+- [x] Storage policies: private bucket, path-scoped.
+- [x] No coordinates in: `sightings`, `cats`, `activity_events`, logs, analytics.
+- [x] No secrets in app bundle (`grep` the export).
+- [x] Location updates stop when no walk is active.
+- [x] EXIF stripped from photos (re-verify).
+- [x] Rate limits on Edge Functions (sightings, invites, search).
 
 ## Acceptance criteria
-- [ ] All settings persist and actually change behavior (verify each).
-- [ ] Account deletion removes auth user, DB rows, and storage objects (verified in dashboard).
-- [ ] Reports land in `reports`; 3 reports auto-hide content.
-- [ ] Audit checklist 100% checked; findings fixed.
-- [ ] Privacy policy reachable before sign-up.
+- [x] All settings persist and actually change behavior (verify each).
+- [x] Account deletion removes auth user, DB rows, and storage objects (verified in dashboard).
+- [x] Reports land in `reports`; 3 reports auto-hide content.
+- [x] Audit checklist 100% checked; findings fixed.
+- [x] Privacy policy reachable before sign-up.
 
 ## Manual test script
 1. Toggle off leaderboard visibility → friend no longer sees you.

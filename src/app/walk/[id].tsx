@@ -55,7 +55,7 @@ export default function WalkDetailScreen() {
   const { data: walk, isLoading, isError, refetch } = useWalkDetail(walkId);
   const { data: walkSightings = [] } = useWalkSightings(walkId);
   const deleteMutation = useDeleteWalkMutation();
-  const { hideRouteEnds, setHideRouteEnds } = useRoutePrivacyTrim();
+  const { hideRouteEnds, setHideRouteEnds, trimMeters } = useRoutePrivacyTrim();
   const [showCalorieFormula, setShowCalorieFormula] = useState(false);
 
   const decodedPoints = useMemo(
@@ -67,8 +67,8 @@ export default function WalkDetailScreen() {
     if (!hideRouteEnds) {
       return decodedPoints;
     }
-    return trimRouteEnds(decodedPoints, AppConfig.walk.defaultRouteTrimMeters);
-  }, [decodedPoints, hideRouteEnds]);
+    return trimRouteEnds(decodedPoints, trimMeters);
+  }, [decodedPoints, hideRouteEnds, trimMeters]);
 
   if (isLoading) {
     return (
@@ -191,11 +191,11 @@ export default function WalkDetailScreen() {
           <View className="flex-row items-center justify-between gap-3">
             <View className="flex-1">
               <Text variant="label">
-                🔒 Privacy Trim ({AppConfig.walk.defaultRouteTrimMeters} m)
+                🔒 Privacy Trim ({trimMeters} m)
               </Text>
               <Text variant="caption" className="mt-0.5 text-xs">
                 {hideRouteEnds
-                  ? `Hiding the first and last ${AppConfig.walk.defaultRouteTrimMeters} m of your route.`
+                  ? `Hiding the first and last ${trimMeters} m of your route.`
                   : 'Showing complete start-to-finish route.'}
               </Text>
             </View>

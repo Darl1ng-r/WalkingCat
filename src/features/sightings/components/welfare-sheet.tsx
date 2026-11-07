@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { View } from 'react-native';
 
 import { Button, Card, Text } from '@/components/ui';
@@ -61,6 +62,12 @@ export function WelfareSheet({ onAcknowledge, onCancel }: WelfareSheetProps) {
 
       <View className="gap-2 pt-2">
         <Button label="Got It — Open Camera" size="lg" onPress={onAcknowledge} />
+        <Button
+          label="Read Full Cat Welfare Guide"
+          variant="secondary"
+          size="sm"
+          onPress={() => router.push('/settings/welfare')}
+        />
         {onCancel ? (
           <Button label="Cancel" variant="ghost" onPress={onCancel} />
         ) : null}

@@ -1,8 +1,15 @@
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  Pressable,
+  View,
+} from 'react-native';
 
 import { Button, Card, Input, Screen, Text } from '@/components/ui';
+import { AppConfig } from '@/constants/config';
 import { mapAuthError, signUp, signUpSchema } from '@/features/auth';
 
 export default function SignUpScreen() {
@@ -112,6 +119,18 @@ export default function SignUpScreen() {
             hint="Use at least 8 characters."
             error={fieldErrors.password}
           />
+
+          <View className="py-1">
+            <Text variant="caption" className="text-center text-xs leading-4">
+              By creating an account, you agree to our{' '}
+              <Text
+                className="font-semibold text-primary"
+                onPress={() => Linking.openURL(AppConfig.legal.privacyPolicyUrl).catch(() => {})}>
+                Privacy Policy
+              </Text>{' '}
+              & Terms. Location and health data are never sold or used for ads.
+            </Text>
+          </View>
 
           <Button
             label="Create Account"

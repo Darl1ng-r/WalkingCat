@@ -75,6 +75,22 @@ function RootNavigator() {
         options={{ presentation: 'modal', headerShown: false }}
       />
       <Stack.Screen
+        name="settings/privacy"
+        options={{ presentation: 'card', headerShown: false }}
+      />
+      <Stack.Screen
+        name="settings/account"
+        options={{ presentation: 'card', headerShown: false }}
+      />
+      <Stack.Screen
+        name="settings/welfare"
+        options={{ presentation: 'card', headerShown: false }}
+      />
+      <Stack.Screen
+        name="settings/feedback"
+        options={{ presentation: 'modal', headerShown: false }}
+      />
+      <Stack.Screen
         name="sighting/capture"
         options={{ presentation: 'modal', headerShown: false }}
       />

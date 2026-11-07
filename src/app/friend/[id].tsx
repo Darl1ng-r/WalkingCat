@@ -11,6 +11,7 @@ import {
   StatTile,
   Text,
 } from '@/components/ui';
+import { ReportModal } from '@/features/privacy';
 import {
   useBlockUserMutation,
   useFriendProfileSummary,
@@ -52,6 +53,7 @@ export default function FriendProfileScreen() {
   const removeMutation = useRemoveFriendshipMutation();
   const blockMutation = useBlockUserMutation();
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isReportModalVisible, setIsReportModalVisible] = useState(false);
 
   if (isLoading) {
     return (
@@ -264,12 +266,25 @@ export default function FriendProfileScreen() {
           onPress={handleConfirmRemove}
         />
         <Button
+          label="Report User"
+          variant="ghost"
+          onPress={() => setIsReportModalVisible(true)}
+        />
+        <Button
           label="Block User"
           variant="danger"
           loading={blockMutation.isPending}
           onPress={handleConfirmBlock}
         />
       </View>
+
+      <ReportModal
+        visible={isReportModalVisible}
+        targetType="profile"
+        targetId={summary.userId}
+        targetTitle={`@${summary.username}`}
+        onClose={() => setIsReportModalVisible(false)}
+      />
     </Screen>
   );
 }

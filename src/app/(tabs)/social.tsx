@@ -12,6 +12,10 @@ import {
   Text,
 } from '@/components/ui';
 import {
+  ReportModal,
+  type ReportTargetType,
+} from '@/features/privacy';
+import {
   buildInviteDeepLink,
   formatLeaderboardValue,
   LEADERBOARD_METRICS,
@@ -66,6 +70,11 @@ export default function SocialScreen() {
   const [redeemInput, setRedeemInput] = useState('');
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [reportTarget, setReportTarget] = useState<{
+    type: ReportTargetType;
+    id: string;
+    title?: string;
+  } | null>(null);
 
   const { data: friendships } = useFriendshipsOverview();
   const { data: leaderboard = [], isLoading: isLoadingLeaderboard } =
@@ -438,6 +447,25 @@ export default function SocialScreen() {
                       {ev.copy.subtitle} · {formatRelativeDate(ev.createdAt)}
                     </Text>
                   </View>
+
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Report milestone"
+                    hitSlop={12}
+                    onPress={() =>
+                      setReportTarget({
+                        type: 'activity_event',
+                        id: ev.id,
+                        title: ev.copy.headline,
+                      })
+                    }
+                    className="p-1">
+                    <Text
+                      variant="caption"
+                      className="text-sm font-bold text-text-secondary dark:text-text-secondary-dark">
+                      ⋯
+                    </Text>
+                  </Pressable>
                 </View>
 
                 {ev.sharedCatPhotoUrl ? (
@@ -768,6 +796,14 @@ export default function SocialScreen() {
           ) : null}
         </View>
       ) : null}
+
+      <ReportModal
+        visible={Boolean(reportTarget)}
+        targetType={reportTarget?.type ?? 'activity_event'}
+        targetId={reportTarget?.id ?? ''}
+        targetTitle={reportTarget?.title}
+        onClose={() => setReportTarget(null)}
+      />
     </Screen>
   );
 }

@@ -338,6 +338,7 @@ export function removePendingWalkUpload(walkId: string): void {
 }
 
 const HIDE_ROUTE_ENDS_PREF_KEY = 'hide_route_ends';
+const HIDE_ROUTE_ENDS_METERS_PREF_KEY = 'hide_route_ends_m';
 
 export function getLocalHideRouteEndsSetting(): boolean {
   const db = getDb();
@@ -367,6 +368,38 @@ export function setLocalHideRouteEndsSetting(enabled: boolean): void {
   db.runSync(
     'INSERT OR REPLACE INTO local_prefs (pref_key, pref_value) VALUES (?, ?)',
     HIDE_ROUTE_ENDS_PREF_KEY,
+    strVal
+  );
+}
+
+export function getLocalHideRouteEndsMetersSetting(): 100 | 150 | 300 {
+  const db = getDb();
+  if (!db) {
+    const val = memLocalPrefs.get(HIDE_ROUTE_ENDS_METERS_PREF_KEY);
+    return val === '100' ? 100 : val === '300' ? 300 : 150;
+  }
+
+  const row = db.getFirstSync<{ pref_value: string }>(
+    'SELECT pref_value FROM local_prefs WHERE pref_key = ?',
+    HIDE_ROUTE_ENDS_METERS_PREF_KEY
+  );
+  if (!row) {
+    return 150;
+  }
+  return row.pref_value === '100' ? 100 : row.pref_value === '300' ? 300 : 150;
+}
+
+export function setLocalHideRouteEndsMetersSetting(meters: 100 | 150 | 300): void {
+  const strVal = String(meters);
+  const db = getDb();
+  if (!db) {
+    memLocalPrefs.set(HIDE_ROUTE_ENDS_METERS_PREF_KEY, strVal);
+    return;
+  }
+
+  db.runSync(
+    'INSERT OR REPLACE INTO local_prefs (pref_key, pref_value) VALUES (?, ?)',
+    HIDE_ROUTE_ENDS_METERS_PREF_KEY,
     strVal
   );
 }
@@ -422,6 +455,34 @@ export function setLocalSaveSightingAreaSetting(enabled: boolean): void {
   db.runSync(
     'INSERT OR REPLACE INTO local_prefs (pref_key, pref_value) VALUES (?, ?)',
     SAVE_SIGHTING_AREA_PREF_KEY,
+    strVal
+  );
+}
+
+const ANALYTICS_OPT_OUT_PREF_KEY = 'analytics_opt_out';
+
+export function getLocalAnalyticsOptOutSetting(): boolean {
+  const db = getDb();
+  if (!db) {
+    return memLocalPrefs.get(ANALYTICS_OPT_OUT_PREF_KEY) === 'true';
+  }
+  const row = db.getFirstSync<{ pref_value: string }>(
+    'SELECT pref_value FROM local_prefs WHERE pref_key = ?',
+    ANALYTICS_OPT_OUT_PREF_KEY
+  );
+  return row?.pref_value === 'true'; // Default FALSE (opt-in enabled)
+}
+
+export function setLocalAnalyticsOptOutSetting(optOut: boolean): void {
+  const strVal = optOut ? 'true' : 'false';
+  const db = getDb();
+  if (!db) {
+    memLocalPrefs.set(ANALYTICS_OPT_OUT_PREF_KEY, strVal);
+    return;
+  }
+  db.runSync(
+    'INSERT OR REPLACE INTO local_prefs (pref_key, pref_value) VALUES (?, ?)',
+    ANALYTICS_OPT_OUT_PREF_KEY,
     strVal
   );
 }

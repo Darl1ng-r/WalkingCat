@@ -28,6 +28,7 @@ import {
   type CatSightingTimelineItem,
 } from '@/features/collection';
 import { invalidateSignedSightingPhotoUrl } from '@/features/sightings';
+import { ReportModal } from '@/features/privacy';
 import { useShareCatCardMutation } from '@/features/social';
 import { formatNumber } from '@/lib/format';
 
@@ -82,6 +83,7 @@ export default function CatDetailScreen() {
   const [sharedSuccessNote, setSharedSuccessNote] = useState<string | null>(
     null
   );
+  const [showReportModal, setShowReportModal] = useState(false);
 
   if (isLoading) {
     return (
@@ -260,12 +262,20 @@ export default function CatDetailScreen() {
           ) : null}
         </View>
 
-        <Button
-          label="Back"
-          size="sm"
-          variant="ghost"
-          onPress={() => router.back()}
-        />
+        <View className="flex-row gap-2">
+          <Button
+            label="Report"
+            size="sm"
+            variant="ghost"
+            onPress={() => setShowReportModal(true)}
+          />
+          <Button
+            label="Back"
+            size="sm"
+            variant="ghost"
+            onPress={() => router.back()}
+          />
+        </View>
       </View>
 
       {/* Inline Nickname Editor */}
@@ -544,6 +554,14 @@ export default function CatDetailScreen() {
           </Card>
         ))}
       </View>
+
+      <ReportModal
+        visible={showReportModal}
+        targetType="cat_card"
+        targetId={cat.id}
+        targetTitle={displayName}
+        onClose={() => setShowReportModal(false)}
+      />
     </Screen>
   );
 }
