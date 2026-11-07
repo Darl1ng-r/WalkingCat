@@ -27,6 +27,13 @@ import {
   validateCatNickname,
   type CatSightingTimelineItem,
 } from '@/features/collection';
+import {
+  getCardThemeTokens,
+  getCosmeticsByCategory,
+  isCosmeticUnlocked,
+  useCosmeticsOverview,
+  useEquipCatThemeMutation,
+} from '@/features/cosmetics';
 import { invalidateSignedSightingPhotoUrl } from '@/features/sightings';
 import { ReportModal } from '@/features/privacy';
 import { useShareCatCardMutation } from '@/features/social';
@@ -68,12 +75,14 @@ export default function CatDetailScreen() {
 
   const { data: cat, isLoading, isError, refetch } = useCatDetail(catId);
   const { data: allCats = [] } = useCatCollection('newest');
+  const { data: cosmeticsOverview } = useCosmeticsOverview();
 
   const renameMutation = useRenameCatMutation();
   const linkMutation = useLinkSightingMutation();
   const unlinkMutation = useUnlinkSightingMutation();
   const deleteSightingMutation = useDeleteSightingMutation();
   const shareCardMutation = useShareCatCardMutation();
+  const equipThemeMutation = useEquipCatThemeMutation();
 
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [nicknameDraft, setNicknameDraft] = useState('');
@@ -124,6 +133,12 @@ export default function CatDetailScreen() {
   const displayName = getCatDisplayName(cat.nickname, cat.card_number);
   const coarseAreaLabel = formatCoarseAreaLabel(cat.area_geohash);
   const otherCats = allCats.filter((c) => c.id !== cat.id);
+  const equippedTheme = getCardThemeTokens(cat.theme_id);
+  const cardThemes = getCosmeticsByCategory(
+    'card_theme',
+    cosmeticsOverview?.catalog
+  );
+  const unlockedSet = new Set(cosmeticsOverview?.unlockedIds ?? ['theme_classic_amber']);
 
   const handleStartEditNickname = () => {
     setNicknameDraft(cat.nickname ?? '');
@@ -320,7 +335,8 @@ export default function CatDetailScreen() {
       ) : null}
 
       {/* Hero Photo Card */}
-      <Card className="overflow-hidden p-2.5">
+      <Card
+        className={`overflow-hidden p-2.5 ${equippedTheme.surfaceClass} ${equippedTheme.borderClass}`}>
         <View className="relative overflow-hidden rounded-lg bg-primary-muted dark:bg-surface-elevated-dark">
           {cat.coverUrl ? (
             <Image
@@ -350,12 +366,21 @@ export default function CatDetailScreen() {
             </Text>
           </View>
 
-          <View className="absolute right-3 top-3 rounded-pill bg-primary px-3 py-1">
+          <View
+            className={`absolute right-3 top-3 rounded-pill px-3 py-1 ${equippedTheme.badgeClass}`}>
             <Text variant="caption" className="font-bold text-white">
               🐾 {cat.sighting_count}{' '}
               {cat.sighting_count === 1 ? 'sighting' : 'sightings'}
             </Text>
           </View>
+
+          {equippedTheme.accentLabel ? (
+            <View className="absolute bottom-3 left-3 rounded-pill bg-black/70 px-3 py-1">
+              <Text variant="caption" className="font-semibold text-white">
+                {equippedTheme.accentLabel}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         {coarseAreaLabel ? (
@@ -366,6 +391,75 @@ export default function CatDetailScreen() {
             </Text>
           </View>
         ) : null}
+      </Card>
+
+      {/* Card Theme Selector */}
+      <Card className="gap-3">
+        <View className="flex-row items-center justify-between gap-2">
+          <View className="flex-1">
+            <Text variant="label">🎨 Card Theme</Text>
+            <Text variant="caption" className="text-xs">
+              Equipped: {equippedTheme.icon} {equippedTheme.name}
+            </Text>
+          </View>
+          <Button
+            label="Boutique"
+            size="sm"
+            variant="ghost"
+            onPress={() => router.push('/cosmetics' as never)}
+          />
+        </View>
+
+        <View className="flex-row flex-wrap gap-2">
+          {cardThemes.map((item) => {
+            const unlocked = isCosmeticUnlocked(item, unlockedSet);
+            const isEquipped = equippedTheme.id === item.id;
+            return (
+              <Pressable
+                key={item.id}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.name} theme${
+                  isEquipped ? ', equipped' : unlocked ? '' : ', locked'
+                }`}
+                disabled={equipThemeMutation.isPending}
+                onPress={() => {
+                  if (!unlocked) {
+                    router.push('/cosmetics' as never);
+                    return;
+                  }
+                  if (isEquipped) return;
+                  setActionError(null);
+                  equipThemeMutation
+                    .mutateAsync({ catId: cat.id, themeId: item.id })
+                    .catch((err) => {
+                      setActionError(
+                        err instanceof Error
+                          ? err.message
+                          : 'Could not equip card theme.'
+                      );
+                    });
+                }}
+                className={`flex-row items-center gap-1.5 rounded-pill border px-3 py-1.5 ${
+                  isEquipped
+                    ? 'border-primary bg-primary/15'
+                    : unlocked
+                      ? 'border-border bg-surface-elevated dark:border-border-dark dark:bg-surface-elevated-dark'
+                      : 'border-border/60 bg-surface/50 opacity-65 dark:border-border-dark/60 dark:bg-surface-dark/50'
+                }`}>
+                <Text className="text-sm">{unlocked ? item.icon : '🔒'}</Text>
+                <Text
+                  variant="caption"
+                  className={`text-xs font-semibold ${
+                    isEquipped
+                      ? 'text-primary'
+                      : 'text-text-primary dark:text-text-primary-dark'
+                  }`}>
+                  {item.name}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </Card>
 
       {/* Stats Grid */}

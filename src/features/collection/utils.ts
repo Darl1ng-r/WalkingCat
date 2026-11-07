@@ -14,6 +14,7 @@ export interface CatCardItem {
   first_seen_at: string;
   last_seen_at: string;
   area_geohash: string | null;
+  theme_id?: string;
   created_at: string;
 }
 

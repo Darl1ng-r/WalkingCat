@@ -11,6 +11,7 @@ import {
   Screen,
   Text,
 } from '@/components/ui';
+import { getCardThemeTokens } from '@/features/cosmetics';
 import {
   ReportModal,
   type ReportTargetType,
@@ -469,15 +470,32 @@ export default function SocialScreen() {
                 </View>
 
                 {ev.sharedCatPhotoUrl ? (
-                  <View className="overflow-hidden rounded-lg bg-primary-muted dark:bg-surface-elevated-dark">
-                    <Image
-                      source={{ uri: ev.sharedCatPhotoUrl }}
-                      style={{ width: '100%', height: 200 }}
-                      contentFit="cover"
-                      cachePolicy="memory-disk"
-                      accessibilityLabel="Shared cat card photo"
-                    />
-                  </View>
+                  (() => {
+                    const sharedTheme = getCardThemeTokens(
+                      ev.copy.sharedCatCard?.themeId
+                    );
+                    return (
+                      <View
+                        className={`relative overflow-hidden rounded-xl border p-1.5 ${sharedTheme.surfaceClass} ${sharedTheme.borderClass}`}>
+                        <Image
+                          source={{ uri: ev.sharedCatPhotoUrl }}
+                          style={{ width: '100%', height: 200, borderRadius: 10 }}
+                          contentFit="cover"
+                          cachePolicy="memory-disk"
+                          accessibilityLabel="Shared cat card photo"
+                        />
+                        {sharedTheme.accentLabel ? (
+                          <View className="absolute bottom-3 left-3 rounded-pill bg-black/70 px-2.5 py-0.5">
+                            <Text
+                              variant="caption"
+                              className="text-[10px] font-semibold text-white">
+                              {sharedTheme.accentLabel}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    );
+                  })()
                 ) : null}
 
                 {/* Reactions Row (👏 🐾 ❤️ 🔥) */}

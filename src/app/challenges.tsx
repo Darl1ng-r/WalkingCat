@@ -84,12 +84,20 @@ export default function ChallengesScreen() {
             progress.
           </Text>
         </View>
-        <Button
-          label="Back"
-          size="sm"
-          variant="ghost"
-          onPress={() => router.back()}
-        />
+        <View className="flex-row gap-2">
+          <Button
+            label="🎨 Boutique"
+            size="sm"
+            variant="secondary"
+            onPress={() => router.push('/cosmetics' as never)}
+          />
+          <Button
+            label="Back"
+            size="sm"
+            variant="ghost"
+            onPress={() => router.back()}
+          />
+        </View>
       </View>
 
       {/* Points Summary */}

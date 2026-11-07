@@ -11,6 +11,10 @@ import {
   StatTile,
   Text,
 } from '@/components/ui';
+import {
+  getProfileBannerTokens,
+  getProfileTitleLabel,
+} from '@/features/cosmetics';
 import { ReportModal } from '@/features/privacy';
 import {
   useBlockUserMutation,
@@ -92,6 +96,8 @@ export default function FriendProfileScreen() {
 
   const displayName = summary.displayName || summary.username;
   const initials = getInitials(summary.displayName, summary.username);
+  const banner = getProfileBannerTokens(summary.equippedBannerId);
+  const titleLabel = getProfileTitleLabel(summary.equippedTitleId);
 
   const performRemove = async () => {
     setActionError(null);
@@ -190,26 +196,35 @@ export default function FriendProfileScreen() {
         />
       </View>
 
-      <Card className="flex-row items-center gap-4">
-        <View className="h-16 w-16 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
-          <Text
-            variant="heading"
-            className="text-primary-dark dark:text-primary-light">
-            {initials}
-          </Text>
+      <Card className={`gap-3 border ${banner.bannerClass}`}>
+        <View className="flex-row items-center gap-4">
+          <View className="h-16 w-16 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
+            <Text
+              variant="heading"
+              className="text-primary-dark dark:text-primary-light">
+              {initials}
+            </Text>
+          </View>
+          <View className="flex-1">
+            <Text variant="heading">{displayName}</Text>
+            <Text variant="caption">@{summary.username}</Text>
+            <Text variant="caption" className="mt-0.5 text-xs">
+              {formatMemberSince(summary.memberSince)}
+            </Text>
+          </View>
+          <View className="items-center rounded-card bg-primary/15 px-3 py-2">
+            <Text variant="heading">🏅 {summary.achievementsCount}</Text>
+            <Text variant="caption" className="text-[11px]">
+              Badges
+            </Text>
+          </View>
         </View>
-        <View className="flex-1">
-          <Text variant="heading">{displayName}</Text>
-          <Text variant="caption">@{summary.username}</Text>
-          <Text variant="caption" className="mt-0.5 text-xs">
-            {formatMemberSince(summary.memberSince)}
-          </Text>
-        </View>
-        <View className="items-center rounded-card bg-primary/15 px-3 py-2">
-          <Text variant="heading">🏅 {summary.achievementsCount}</Text>
-          <Text variant="caption" className="text-[11px]">
-            Badges
-          </Text>
+        <View className="flex-row items-center border-t border-border/60 pt-2.5 dark:border-border-dark/60">
+          <View className="rounded-pill bg-primary/15 px-3 py-1">
+            <Text variant="caption" className="text-xs font-bold text-primary">
+              {titleLabel}
+            </Text>
+          </View>
         </View>
       </Card>
 

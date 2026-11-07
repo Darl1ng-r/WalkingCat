@@ -167,6 +167,7 @@ export interface FormattedActivityEventCopy {
     displayName: string;
     sightingCount: number;
     coverPhotoPath: string | null;
+    themeId: string | null;
   };
 }
 
@@ -239,6 +240,8 @@ export function formatActivityEventCopy(
           ? payload.cover_photo_path
           : null;
       const catId = typeof payload.cat_id === 'string' ? payload.cat_id : null;
+      const themeId =
+        typeof payload.theme_id === 'string' ? payload.theme_id : null;
       const displayName = getCardName(nickname, cardNumber);
       const cardNumberLabel = formatCardNum(cardNumber);
 
@@ -254,6 +257,7 @@ export function formatActivityEventCopy(
           displayName,
           sightingCount,
           coverPhotoPath,
+          themeId,
         },
       };
     }

@@ -85,6 +85,8 @@ export interface FriendProfileSummary {
   weekDistanceM: number;
   weekWalks: number;
   weekChallengePoints: number;
+  equippedBannerId: string;
+  equippedTitleId: string;
 }
 
 const sharedCatSignedUrlCache = new Map<
@@ -643,6 +645,8 @@ export async function getFriendProfileSummary(
     weekDistanceM: Number(row.week_distance_m ?? 0),
     weekWalks: Number(row.week_walks ?? 0),
     weekChallengePoints: Number(row.week_challenge_points ?? 0),
+    equippedBannerId: row.equipped_banner_id ?? 'banner_meadow',
+    equippedTitleId: row.equipped_title_id ?? 'title_stroller',
   };
 }
 

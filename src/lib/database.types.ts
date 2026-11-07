@@ -17,6 +17,8 @@ export interface Database {
           avatar_url: string | null;
           weight_kg: number | null;
           challenge_difficulty: 'easy' | 'standard';
+          equipped_banner_id: string;
+          equipped_title_id: string;
           onboarded_at: string | null;
           created_at: string;
           updated_at: string;
@@ -28,6 +30,8 @@ export interface Database {
           avatar_url?: string | null;
           weight_kg?: number | null;
           challenge_difficulty?: 'easy' | 'standard';
+          equipped_banner_id?: string;
+          equipped_title_id?: string;
           onboarded_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -39,6 +43,8 @@ export interface Database {
           avatar_url?: string | null;
           weight_kg?: number | null;
           challenge_difficulty?: 'easy' | 'standard';
+          equipped_banner_id?: string;
+          equipped_title_id?: string;
           onboarded_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -273,6 +279,7 @@ export interface Database {
           first_seen_at: string;
           last_seen_at: string;
           area_geohash: string | null;
+          theme_id: string;
           created_at: string;
           updated_at: string;
         };
@@ -287,6 +294,7 @@ export interface Database {
           first_seen_at?: string;
           last_seen_at?: string;
           area_geohash?: string | null;
+          theme_id?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -301,6 +309,7 @@ export interface Database {
           first_seen_at?: string;
           last_seen_at?: string;
           area_geohash?: string | null;
+          theme_id?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -735,6 +744,66 @@ export interface Database {
         };
         Relationships: [];
       };
+      cosmetic_items: {
+        Row: {
+          id: string;
+          category: 'card_theme' | 'profile_banner' | 'profile_title';
+          name: string;
+          description: string;
+          icon: string;
+          cost_points: number;
+          rarity: 'starter' | 'common' | 'rare' | 'epic' | 'legendary';
+          metadata: Json;
+          sort_order: number;
+        };
+        Insert: {
+          id: string;
+          category: 'card_theme' | 'profile_banner' | 'profile_title';
+          name: string;
+          description: string;
+          icon: string;
+          cost_points: number;
+          rarity: 'starter' | 'common' | 'rare' | 'epic' | 'legendary';
+          metadata?: Json;
+          sort_order?: number;
+        };
+        Update: {
+          id?: string;
+          category?: 'card_theme' | 'profile_banner' | 'profile_title';
+          name?: string;
+          description?: string;
+          icon?: string;
+          cost_points?: number;
+          rarity?: 'starter' | 'common' | 'rare' | 'epic' | 'legendary';
+          metadata?: Json;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      user_cosmetics: {
+        Row: {
+          id: string;
+          user_id: string;
+          cosmetic_id: string;
+          points_spent: number;
+          unlocked_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          cosmetic_id: string;
+          points_spent?: number;
+          unlocked_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          cosmetic_id?: string;
+          points_spent?: number;
+          unlocked_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       public_profiles: {
@@ -744,6 +813,8 @@ export interface Database {
           display_name: string | null;
           avatar_url: string | null;
           created_at: string;
+          equipped_banner_id: string;
+          equipped_title_id: string;
         };
         Relationships: [];
       };
@@ -908,7 +979,42 @@ export interface Database {
           week_distance_m: number;
           week_walks: number;
           week_challenge_points: number;
+          equipped_banner_id: string;
+          equipped_title_id: string;
         }[];
+      };
+      get_cosmetics_wallet: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          total_earned_points: number;
+          total_spent_points: number;
+          available_points: number;
+        }[];
+      };
+      unlock_cosmetic: {
+        Args: {
+          p_cosmetic_id: string;
+        };
+        Returns: {
+          cosmetic_id: string;
+          points_spent: number;
+          available_points: number;
+          already_unlocked: boolean;
+        }[];
+      };
+      equip_cat_card_theme: {
+        Args: {
+          p_cat_id: string;
+          p_theme_id: string;
+        };
+        Returns: string;
+      };
+      equip_profile_cosmetic: {
+        Args: {
+          p_slot: string;
+          p_cosmetic_id: string;
+        };
+        Returns: string;
       };
       submit_report: {
         Args: {

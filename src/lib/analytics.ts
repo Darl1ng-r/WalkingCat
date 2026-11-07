@@ -58,6 +58,9 @@ export interface AnalyticsEventMap {
   cat_linked: { same_card: boolean };
   challenge_completed: { period: 'daily' | 'weekly'; metric: string };
   friend_invite_sent: { channel?: 'share_sheet' | 'copy' };
+  cosmetic_unlocked: { cosmetic_id: string; points_spent: number };
+  cat_theme_equipped: { theme_id: string };
+  profile_cosmetic_equipped: { slot: 'banner' | 'title'; cosmetic_id: string };
   friend_added: { method: 'invite_code' | 'username_search' };
   leaderboard_viewed: { metric: string; period: 'this_week' | 'last_week' };
 }

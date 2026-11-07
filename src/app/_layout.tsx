@@ -91,6 +91,10 @@ function RootNavigator() {
         options={{ presentation: 'modal', headerShown: false }}
       />
       <Stack.Screen
+        name="cosmetics"
+        options={{ presentation: 'card', headerShown: false }}
+      />
+      <Stack.Screen
         name="sighting/capture"
         options={{ presentation: 'modal', headerShown: false }}
       />

@@ -6,6 +6,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Text } from '@/components/ui';
+import { getCardThemeTokens } from '@/features/cosmetics';
 import { invalidateSignedSightingPhotoUrl } from '@/features/sightings';
 import {
   formatCatCardNumber,
@@ -42,6 +43,7 @@ export function CatCard({
   const cardNumber = formatCatCardNumber(cat.card_number);
   const displayName = getCatDisplayName(cat.nickname, cat.card_number);
   const firstSeenStr = formatShortDate(cat.first_seen_at);
+  const theme = getCardThemeTokens(cat.theme_id);
 
   return (
     <Animated.View
@@ -57,10 +59,8 @@ export function CatCard({
           cat.sighting_count === 1 ? 'sighting' : 'sightings'
         }`}
         onPress={() => onPress?.(cat)}
-        className={`overflow-hidden rounded-card border bg-surface p-2.5 dark:bg-surface-dark ${
-          selected
-            ? 'border-2 border-primary'
-            : 'border-border dark:border-border-dark'
+        className={`overflow-hidden rounded-card border p-2.5 ${theme.surfaceClass} ${
+          selected ? 'border-2 border-primary' : theme.borderClass
         }`}>
         <View className="relative overflow-hidden rounded-lg bg-primary-muted dark:bg-surface-elevated-dark">
           {cat.coverUrl ? (
@@ -96,13 +96,25 @@ export function CatCard({
           </View>
 
           {/* Sighting count badge */}
-          <View className="absolute right-2 top-2 rounded-pill bg-primary px-2.5 py-0.5">
+          <View
+            className={`absolute right-2 top-2 rounded-pill px-2.5 py-0.5 ${theme.badgeClass}`}>
             <Text
               variant="caption"
               className="text-[11px] font-bold text-white">
               🐾 {cat.sighting_count}×
             </Text>
           </View>
+
+          {/* Optional Edition / Foil pill */}
+          {theme.accentLabel ? (
+            <View className="absolute bottom-2 left-2 rounded-pill bg-black/70 px-2 py-0.5">
+              <Text
+                variant="caption"
+                className="text-[10px] font-semibold text-white">
+                {theme.accentLabel}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         <View className="mt-2.5 gap-0.5 px-0.5">

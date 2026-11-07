@@ -52,7 +52,7 @@ export async function listCats(
   const { data: catRows, error } = await supabase
     .from('cats')
     .select(
-      'id, user_id, card_number, nickname, cover_sighting_id, sighting_count, first_seen_at, last_seen_at, area_geohash, created_at'
+      'id, user_id, card_number, nickname, cover_sighting_id, sighting_count, first_seen_at, last_seen_at, area_geohash, theme_id, created_at'
     )
     .order('created_at', { ascending: false });
 
@@ -107,6 +107,7 @@ export async function listCats(
         first_seen_at: cat.first_seen_at,
         last_seen_at: cat.last_seen_at,
         area_geohash: cat.area_geohash,
+        theme_id: cat.theme_id,
         created_at: cat.created_at,
       };
     })
@@ -126,7 +127,7 @@ export async function getCat(catId: string): Promise<CatDetailItem | null> {
   const { data: cat, error: catError } = await supabase
     .from('cats')
     .select(
-      'id, user_id, card_number, nickname, cover_sighting_id, sighting_count, first_seen_at, last_seen_at, area_geohash, created_at'
+      'id, user_id, card_number, nickname, cover_sighting_id, sighting_count, first_seen_at, last_seen_at, area_geohash, theme_id, created_at'
     )
     .eq('id', catId)
     .maybeSingle();
@@ -174,6 +175,7 @@ export async function getCat(catId: string): Promise<CatDetailItem | null> {
     first_seen_at: cat.first_seen_at,
     last_seen_at: cat.last_seen_at,
     area_geohash: cat.area_geohash,
+    theme_id: cat.theme_id,
     created_at: cat.created_at,
     sightings,
   };

@@ -3,8 +3,20 @@ import { Pressable, View } from 'react-native';
 
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { useSession } from '@/features/auth';
+import {
+  getProfileBannerTokens,
+  getProfileTitleLabel,
+  useCosmeticsOverview,
+} from '@/features/cosmetics';
 
 const SETTINGS_ITEMS = [
+  {
+    emoji: '🎨',
+    title: 'Themes & Cosmetics',
+    subtitle: 'Unlock collectible cat card frames, profile banners, and walker titles',
+    href: '/cosmetics' as const,
+    enabled: true,
+  },
   {
     emoji: '🏅',
     title: 'Achievements',
@@ -91,10 +103,17 @@ function formatMemberSince(isoDate?: string | null): string {
 
 export default function ProfileScreen() {
   const { user, profile, signOut } = useSession();
+  const { data: cosmeticsOverview } = useCosmeticsOverview();
 
   const displayName = profile?.display_name || profile?.username || 'Walker';
   const username = profile?.username ? `@${profile.username}` : user?.email ?? '';
   const initials = getInitials(profile?.display_name, profile?.username);
+  const banner = getProfileBannerTokens(
+    cosmeticsOverview?.equippedBannerId ?? profile?.equipped_banner_id
+  );
+  const titleLabel = getProfileTitleLabel(
+    cosmeticsOverview?.equippedTitleId ?? profile?.equipped_title_id
+  );
 
   return (
     <Screen scroll contentContainerClassName="gap-6 pb-10">
@@ -105,33 +124,51 @@ export default function ProfileScreen() {
         </Text>
       </View>
 
-      <Card className="flex-row items-center gap-4">
-        <View
-          accessibilityLabel={`Avatar for ${displayName}`}
-          className="h-16 w-16 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
-          <Text variant="heading" className="text-primary-dark dark:text-primary-light">
-            {initials}
-          </Text>
+      <Card className={`gap-3 border ${banner.bannerClass}`}>
+        <View className="flex-row items-center gap-4">
+          <View
+            accessibilityLabel={`Avatar for ${displayName}`}
+            className="h-16 w-16 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
+            <Text variant="heading" className="text-primary-dark dark:text-primary-light">
+              {initials}
+            </Text>
+          </View>
+
+          <View className="flex-1">
+            <Text variant="heading" numberOfLines={1}>
+              {displayName}
+            </Text>
+            <Text variant="caption" numberOfLines={1}>
+              {username}
+            </Text>
+            <Text variant="caption" className="mt-0.5 text-xs">
+              {formatMemberSince(profile?.created_at)}
+            </Text>
+          </View>
+
+          <Button
+            label="Edit"
+            size="sm"
+            variant="ghost"
+            onPress={() => router.push('/settings/edit-profile')}
+          />
         </View>
 
-        <View className="flex-1">
-          <Text variant="heading" numberOfLines={1}>
-            {displayName}
-          </Text>
-          <Text variant="caption" numberOfLines={1}>
-            {username}
-          </Text>
-          <Text variant="caption" className="mt-0.5 text-xs">
-            {formatMemberSince(profile?.created_at)}
-          </Text>
+        <View className="flex-row items-center justify-between border-t border-border/60 pt-2.5 dark:border-border-dark/60">
+          <View className="rounded-pill bg-primary/15 px-3 py-1">
+            <Text variant="caption" className="text-xs font-bold text-primary">
+              {titleLabel}
+            </Text>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Customize banner and title"
+            onPress={() => router.push('/cosmetics' as never)}>
+            <Text variant="caption" className="text-xs font-semibold text-primary">
+              🎨 Customize →
+            </Text>
+          </Pressable>
         </View>
-
-        <Button
-          label="Edit"
-          size="sm"
-          variant="ghost"
-          onPress={() => router.push('/settings/edit-profile')}
-        />
       </Card>
 
       <View className="gap-3">
