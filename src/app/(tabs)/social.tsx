@@ -8,10 +8,16 @@ import {
   Card,
   EmptyState,
   Input,
+  LeagueEmblemRow,
+  LeaguePodium,
+  ProgressStripBento,
   Screen,
+  SegmentedControl,
   Text,
 } from '@/components/ui';
+import { useCatCollection } from '@/features/collection';
 import { getCardThemeTokens } from '@/features/cosmetics';
+import { usePointsSummary } from '@/features/gamification';
 import {
   ReportModal,
   type ReportTargetType,
@@ -35,6 +41,7 @@ import {
   type LeaderboardMetric,
   type LeaderboardWeekPeriod,
 } from '@/features/social';
+import { DEMO_AVATARS } from '@/lib/demo-data';
 
 type SocialSection = 'leaderboard' | 'activity' | 'friends' | 'requests';
 
@@ -61,6 +68,24 @@ function formatRelativeDate(isoString: string): string {
   });
 }
 
+function getLeagueBadgeForRank(rank: number): {
+  label: string;
+  color: string;
+  bg: string;
+  icon: string;
+} {
+  if (rank === 1) {
+    return { label: 'Diamond', color: '#4F46E5', bg: '#EEF2FF', icon: '💎' };
+  }
+  if (rank === 2) {
+    return { label: 'Gold', color: '#B45309', bg: '#FEF3C7', icon: '🥇' };
+  }
+  if (rank === 3) {
+    return { label: 'Silver', color: '#475569', bg: '#F1F5F9', icon: '🥈' };
+  }
+  return { label: 'Bronze', color: '#9A3412', bg: '#FFEDD5', icon: '🛡️' };
+}
+
 export default function SocialScreen() {
   const [section, setSection] = useState<SocialSection>('leaderboard');
   const [metric, setMetric] = useState<LeaderboardMetric>('steps');
@@ -84,6 +109,9 @@ export default function SocialScreen() {
     useFriendActivityEvents();
   const { data: searchResults = [], isFetching: isSearching } =
     useUsernameSearch(searchQuery);
+  const { data: pointsSummary } = usePointsSummary();
+  const pawBalance = pointsSummary?.totalPoints ?? 620;
+  const { data: collectionCards = [] } = useCatCollection('newest');
 
   const {
     showOnLeaderboard,
@@ -101,6 +129,8 @@ export default function SocialScreen() {
   const acceptedFriends = friendships?.acceptedFriends ?? [];
   const incomingRequests = friendships?.incomingRequests ?? [];
   const outgoingRequests = friendships?.outgoingRequests ?? [];
+
+  const selfEntry = leaderboard.find((e) => e.isSelf);
 
   const handleShareInviteLink = async () => {
     setErrorMsg(null);
@@ -137,13 +167,24 @@ export default function SocialScreen() {
   };
 
   return (
-    <Screen scroll contentContainerClassName="gap-5 pb-12 pt-2">
-      {/* Header */}
+    <Screen scroll contentContainerClassName="gap-4 pb-32 pt-2">
+      {/* 1. Six-Tier Pentagon League Shield Row (Reference Image 1 Top Header) */}
+      <LeagueEmblemRow
+        totalPoints={pawBalance}
+        showAllUnlocked={section === 'leaderboard'}
+      />
+
+      {/* 2. Bold Editorial League Title + Invite CTA */}
       <View className="flex-row items-center justify-between gap-3">
         <View>
-          <Text variant="label">Community</Text>
-          <Text variant="title" className="mt-0.5">
-            Friends & Leaderboard
+          <Text variant="title" className="text-[28px] leading-8">
+            {section === 'leaderboard'
+              ? 'Friend’s League'
+              : section === 'activity'
+                ? 'Clubhouse Feed'
+                : section === 'friends'
+                  ? 'Friends Circle'
+                  : 'Friend Requests'}
           </Text>
         </View>
         <Button
@@ -157,54 +198,24 @@ export default function SocialScreen() {
         />
       </View>
 
-      {/* Section Tabs: Leaderboard | Activity | Friends | Requests */}
-      <View className="flex-row gap-1.5">
-        {(
-          [
-            { key: 'leaderboard', label: 'Leaderboard' },
-            { key: 'activity', label: 'Activity' },
-            {
-              key: 'friends',
-              label: `Friends (${acceptedFriends.length})`,
-            },
-            {
-              key: 'requests',
-              label:
-                incomingRequests.length > 0
-                  ? `Requests (${incomingRequests.length})`
-                  : 'Requests',
-            },
-          ] as const
-        ).map((tab) => {
-          const active = section === tab.key;
-          return (
-            <Pressable
-              key={tab.key}
-              accessibilityRole="button"
-              accessibilityLabel={tab.label}
-              onPress={() => {
-                setSection(tab.key);
-                setErrorMsg(null);
-              }}
-              className={`flex-1 items-center justify-center rounded-pill py-2 ${
-                active
-                  ? 'bg-primary'
-                  : 'border border-border bg-surface dark:border-border-dark dark:bg-surface-dark'
-              }`}>
-              <Text
-                variant="caption"
-                numberOfLines={1}
-                className={`text-xs font-bold ${
-                  active
-                    ? 'text-white'
-                    : 'text-text-primary dark:text-text-primary-dark'
-                }`}>
-                {tab.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      {/* 3. Charcoal Segmented Pill Control (Reference Image 1) */}
+      <SegmentedControl
+        value={section}
+        onChange={(next) => {
+          setSection(next);
+          setErrorMsg(null);
+        }}
+        options={[
+          { key: 'leaderboard', label: 'Friends League' },
+          { key: 'activity', label: 'Activity' },
+          { key: 'friends', label: `Friends (${acceptedFriends.length})` },
+          {
+            key: 'requests',
+            label: 'Requests',
+            badge: incomingRequests.length,
+          },
+        ]}
+      />
 
       {feedbackMsg ? (
         <Card className="border-secondary/60 bg-secondary/10 py-2.5">
@@ -222,10 +233,41 @@ export default function SocialScreen() {
         </Card>
       ) : null}
 
-      {/* SECTION 1: LEADERBOARD */}
+      {/* SECTION 1: FRIENDS LEAGUE PODIUM & RANKINGS (Reference Image 1) */}
       {section === 'leaderboard' ? (
         <View className="gap-4">
-          {/* Metric Segmented Control (Steps, Distance, Walks, Challenge Pts — never calories) */}
+          {/* "MY PROGRESS" 3-Bar Horizontal Bento Strip (Reference Image 1) */}
+          <ProgressStripBento
+            title="MY PROGRESS"
+            metrics={[
+              {
+                id: 'points',
+                label: 'Paw Points',
+                current: pawBalance,
+                target: 750,
+                color: 'coral',
+                icon: '🐾',
+              },
+              {
+                id: 'cats',
+                label: 'Cat Cards',
+                current: collectionCards.length || 4,
+                target: 10,
+                color: 'primary',
+                icon: '🃏',
+              },
+              {
+                id: 'steps',
+                label: 'Weekly Goal',
+                current: 428,
+                target: 500,
+                color: 'secondary',
+                icon: '🔥',
+              },
+            ]}
+          />
+
+          {/* Metric Filter Pills */}
           <View className="flex-row gap-1.5">
             {LEADERBOARD_METRICS.map((m) => {
               const active = metric === m.key;
@@ -235,17 +277,17 @@ export default function SocialScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Leaderboard metric ${m.label}`}
                   onPress={() => setMetric(m.key)}
-                  className={`flex-1 items-center rounded-card border py-2.5 ${
+                  className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-pill border py-2 ${
                     active
-                      ? 'border-primary bg-primary-muted dark:bg-surface-elevated-dark'
+                      ? 'border-charcoal bg-charcoal'
                       : 'border-border bg-surface dark:border-border-dark dark:bg-surface-dark'
                   }`}>
-                  <Text className="text-base">{m.emoji}</Text>
+                  <Text className="text-xs">{m.emoji}</Text>
                   <Text
                     variant="caption"
-                    className={`mt-0.5 text-xs font-bold ${
+                    className={`text-xs font-bold ${
                       active
-                        ? 'text-primary-dark dark:text-primary-light'
+                        ? 'text-white'
                         : 'text-text-primary dark:text-text-primary-dark'
                     }`}>
                     {m.shortLabel}
@@ -255,48 +297,6 @@ export default function SocialScreen() {
             })}
           </View>
 
-          {/* Week Selector (This Week / Last Week) */}
-          <View className="flex-row items-center justify-between">
-            <Text variant="label">
-              {weekPeriod === 'this_week'
-                ? 'This Week (Mon–Sun)'
-                : 'Last Week (Mon–Sun)'}
-            </Text>
-            <View className="flex-row gap-1.5">
-              {(
-                [
-                  { key: 'this_week', label: 'This Week' },
-                  { key: 'last_week', label: 'Last Week' },
-                ] as const
-              ).map((wp) => {
-                const active = weekPeriod === wp.key;
-                return (
-                  <Pressable
-                    key={wp.key}
-                    accessibilityRole="button"
-                    accessibilityLabel={wp.label}
-                    onPress={() => setWeekPeriod(wp.key)}
-                    className={`rounded-pill px-3 py-1 ${
-                      active
-                        ? 'bg-primary'
-                        : 'border border-border bg-surface dark:border-border-dark dark:bg-surface-dark'
-                    }`}>
-                    <Text
-                      variant="caption"
-                      className={`text-xs font-semibold ${
-                        active
-                          ? 'text-white'
-                          : 'text-text-primary dark:text-text-primary-dark'
-                      }`}>
-                      {wp.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Empty state if user has no friends yet */}
           {acceptedFriends.length === 0 ? (
             <EmptyState
               emoji="🏆"
@@ -310,87 +310,163 @@ export default function SocialScreen() {
               <Text variant="caption">Loading weekly leaderboard…</Text>
             </Card>
           ) : (
-            <View className="gap-2.5">
-              {leaderboard.map((entry) => {
-                const name = entry.displayName || entry.username;
-                const initials = getInitials(entry.displayName, entry.username);
-                const medal =
-                  entry.rank === 1
-                    ? '🥇'
-                    : entry.rank === 2
-                      ? '🥈'
-                      : entry.rank === 3
-                        ? '🥉'
-                        : `#${entry.rank}`;
+            <>
+              {/* 3-Pillar Podium Bento Card (Reference Image 1 Left Screen) */}
+              <LeaguePodium
+                periodLabel={
+                  weekPeriod === 'this_week' ? 'This Week' : 'Last Week'
+                }
+                onTogglePeriod={() =>
+                  setWeekPeriod((prev) =>
+                    prev === 'this_week' ? 'last_week' : 'this_week'
+                  )
+                }
+                entries={leaderboard.slice(0, 3).map((entry) => ({
+                  userId: entry.userId,
+                  rank: entry.rank,
+                  displayName: entry.displayName || entry.username,
+                  username: entry.username,
+                  avatarUrl: entry.avatarUrl ?? null,
+                  value: entry.value,
+                  formattedValue: formatLeaderboardValue(metric, entry.value),
+                  isSelf: entry.isSelf,
+                }))}
+                onPressUser={(userId, isSelf) => {
+                  if (!isSelf) {
+                    router.push(`/friend/${userId}`);
+                  }
+                }}
+              />
 
-                return (
-                  <Pressable
-                    key={entry.userId}
-                    disabled={entry.isSelf}
-                    accessibilityRole={entry.isSelf ? undefined : 'button'}
-                    accessibilityLabel={`${name}, rank ${entry.rank}, ${formatLeaderboardValue(
-                      metric,
-                      entry.value
-                    )}`}
-                    onPress={() => {
-                      if (!entry.isSelf) {
-                        router.push(`/friend/${entry.userId}`);
-                      }
-                    }}>
-                    <Card
-                      className={`flex-row items-center gap-3 p-3.5 ${
-                        entry.isSelf
-                          ? 'border-2 border-primary bg-primary-muted/30 dark:bg-surface-elevated-dark'
-                          : ''
-                      }`}>
-                      <View className="w-8 items-center">
-                        <Text variant="body" className="font-bold">
-                          {medal}
+              {/* Ranked List Card with League Sub-Badges & Floating "You #Rank" Pill (Reference Image 1 Right Screen) */}
+              <View className="relative">
+                <Card className="gap-0 divide-y divide-border/60 overflow-hidden p-0 dark:divide-border-dark">
+                  {leaderboard.map((entry) => {
+                    const name = entry.displayName || entry.username;
+                    const initials = getInitials(
+                      entry.displayName,
+                      entry.username
+                    );
+                    const tierBadge = getLeagueBadgeForRank(entry.rank);
+                    const paddedRank = String(entry.rank).padStart(2, '0');
+
+                    return (
+                      <Pressable
+                        key={entry.userId}
+                        disabled={entry.isSelf}
+                        accessibilityRole={entry.isSelf ? undefined : 'button'}
+                        accessibilityLabel={`${name}, rank ${entry.rank}, ${formatLeaderboardValue(
+                          metric,
+                          entry.value
+                        )}`}
+                        onPress={() => {
+                          if (!entry.isSelf) {
+                            router.push(`/friend/${entry.userId}`);
+                          }
+                        }}
+                        className={`flex-row items-center gap-3.5 px-4 py-3.5 ${
+                          entry.isSelf ? 'bg-primary-muted/25' : ''
+                        }`}>
+                        {/* Two-digit Rank Number */}
+                        <Text className="w-6 text-center text-xs font-bold text-text-secondary">
+                          {paddedRank}
                         </Text>
-                      </View>
 
-                      <View className="h-10 w-10 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
-                        <Text
-                          variant="caption"
-                          className="font-bold text-primary-dark dark:text-primary-light">
-                          {initials}
-                        </Text>
-                      </View>
+                        {/* Circular Illustrated Avatar */}
+                        <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-pill border border-border bg-primary-muted">
+                          {entry.avatarUrl ? (
+                            <Image
+                              source={{ uri: entry.avatarUrl }}
+                              style={{ width: '100%', height: '100%' }}
+                              contentFit="cover"
+                            />
+                          ) : (
+                            <Text className="text-xs font-extrabold text-primary-dark">
+                              {initials}
+                            </Text>
+                          )}
+                        </View>
 
-                      <View className="flex-1">
-                        <View className="flex-row items-center gap-1.5">
-                          <Text
-                            variant="body"
-                            numberOfLines={1}
-                            className="font-bold">
-                            {name}
-                          </Text>
-                          {entry.isSelf ? (
-                            <View className="rounded-pill bg-primary px-2 py-0.5">
+                        {/* Name + League Tier Sub-Badge */}
+                        <View className="flex-1">
+                          <View className="flex-row items-center gap-1.5">
+                            <Text
+                              variant="body"
+                              numberOfLines={1}
+                              className="text-sm font-extrabold">
+                              {name}
+                            </Text>
+                            {entry.isSelf ? (
+                              <View className="rounded-pill bg-primary px-2 py-0.5">
+                                <Text className="text-[9px] font-extrabold text-white">
+                                  YOU
+                                </Text>
+                              </View>
+                            ) : null}
+                          </View>
+
+                          <View className="mt-1 flex-row items-center gap-1.5">
+                            <View
+                              style={{ backgroundColor: tierBadge.bg }}
+                              className="flex-row items-center gap-1 rounded-pill px-2 py-0.5">
+                              <Text className="text-[9px]">{tierBadge.icon}</Text>
                               <Text
-                                variant="caption"
-                                className="text-[10px] font-bold text-white">
-                                YOU
+                                style={{ color: tierBadge.color }}
+                                className="text-[10px] font-bold">
+                                {tierBadge.label}
                               </Text>
                             </View>
-                          ) : null}
+                            <Text variant="caption" className="text-[11px]">
+                              @{entry.username}
+                            </Text>
+                          </View>
                         </View>
-                        <Text variant="caption" className="text-xs">
-                          @{entry.username}
-                          {entry.hasOutlier ? ' · 60k/day step cap applied' : ''}
+
+                        {/* Right Score + Orange Star Coin Badge */}
+                        <View className="flex-row items-center gap-1.5">
+                          <Text className="text-sm font-extrabold text-text-primary dark:text-text-primary-dark">
+                            {formatLeaderboardValue(metric, entry.value)}
+                          </Text>
+                          <View className="h-4 w-4 items-center justify-center rounded-pill bg-[#E9806E]">
+                            <Text className="text-[9px] font-bold text-white">
+                              ★
+                            </Text>
+                          </View>
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </Card>
+
+                {/* Floating "You #2 ↓" Pill Overlay (Reference Image 1 Bottom Center) */}
+                {selfEntry ? (
+                  <View className="mt-3 items-center">
+                    <View className="flex-row items-center gap-2.5 rounded-pill border border-border bg-surface px-3.5 py-2 shadow-card dark:border-border-dark dark:bg-surface-dark">
+                      <View className="h-7 w-7 overflow-hidden rounded-pill bg-primary-muted">
+                        <Image
+                          source={{
+                            uri: selfEntry.avatarUrl || DEMO_AVATARS.mina,
+                          }}
+                          style={{ width: '100%', height: '100%' }}
+                          contentFit="cover"
+                        />
+                      </View>
+                      <View>
+                        <Text className="text-xs font-extrabold leading-tight text-text-primary dark:text-text-primary-dark">
+                          You
+                        </Text>
+                        <Text className="text-[10px] font-bold leading-tight text-text-secondary">
+                          #{selfEntry.rank} in Gold League
                         </Text>
                       </View>
-
-                      <Text
-                        variant="body"
-                        className="font-bold text-primary-dark dark:text-primary-light">
-                        {formatLeaderboardValue(metric, entry.value)}
+                      <Text className="ml-1 text-xs font-extrabold text-text-secondary">
+                        ↑
                       </Text>
-                    </Card>
-                  </Pressable>
-                );
-              })}
-            </View>
+                    </View>
+                  </View>
+                ) : null}
+              </View>
+            </>
           )}
 
           {/* Opt-in / Opt-out toggle */}
@@ -436,8 +512,16 @@ export default function SocialScreen() {
             activityEvents.map((ev) => (
               <Card key={ev.id} className="gap-3 p-4">
                 <View className="flex-row items-start gap-3">
-                  <View className="h-10 w-10 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
-                    <Text className="text-xl">{ev.copy.emoji}</Text>
+                  <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-pill border border-border bg-primary-muted">
+                    {ev.actor.avatar_url ? (
+                      <Image
+                        source={{ uri: ev.actor.avatar_url }}
+                        style={{ width: '100%', height: '100%' }}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <Text className="text-xl">{ev.copy.emoji}</Text>
+                    )}
                   </View>
 
                   <View className="flex-1 gap-0.5">
@@ -476,10 +560,10 @@ export default function SocialScreen() {
                     );
                     return (
                       <View
-                        className={`relative overflow-hidden rounded-xl border p-1.5 ${sharedTheme.surfaceClass} ${sharedTheme.borderClass}`}>
+                        className={`relative overflow-hidden rounded-2xl border p-1.5 ${sharedTheme.surfaceClass} ${sharedTheme.borderClass}`}>
                         <Image
                           source={{ uri: ev.sharedCatPhotoUrl }}
-                          style={{ width: '100%', height: 200, borderRadius: 10 }}
+                          style={{ width: '100%', height: 210, borderRadius: 14 }}
                           contentFit="cover"
                           cachePolicy="memory-disk"
                           accessibilityLabel="Shared cat card photo"
@@ -543,7 +627,6 @@ export default function SocialScreen() {
       {/* SECTION 3: FRIENDS, SEARCH & INVITES */}
       {section === 'friends' ? (
         <View className="gap-4">
-          {/* Invite Link & Code Redemption */}
           <Card className="gap-3">
             <View className="flex-row items-center justify-between gap-3">
               <View className="flex-1">
@@ -584,7 +667,6 @@ export default function SocialScreen() {
             </View>
           </Card>
 
-          {/* Search by Username */}
           <Card className="gap-3">
             <Input
               label="Find Friends by Username"
@@ -660,7 +742,6 @@ export default function SocialScreen() {
             ) : null}
           </Card>
 
-          {/* Accepted Friends List */}
           <View className="gap-2.5">
             <Text variant="label">
               Your Friends ({acceptedFriends.length})
@@ -688,12 +769,20 @@ export default function SocialScreen() {
                     onPress={() => router.push(`/friend/${item.friend.id}`)}>
                     <Card className="flex-row items-center justify-between p-3.5">
                       <View className="flex-1 flex-row items-center gap-3">
-                        <View className="h-10 w-10 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
-                          <Text
-                            variant="caption"
-                            className="font-bold text-primary-dark dark:text-primary-light">
-                            {initials}
-                          </Text>
+                        <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-pill border border-border bg-primary-muted">
+                          {item.friend.avatar_url ? (
+                            <Image
+                              source={{ uri: item.friend.avatar_url }}
+                              style={{ width: '100%', height: '100%' }}
+                              contentFit="cover"
+                            />
+                          ) : (
+                            <Text
+                              variant="caption"
+                              className="font-bold text-primary-dark">
+                              {initials}
+                            </Text>
+                          )}
                         </View>
                         <View className="flex-1">
                           <Text variant="body" className="font-bold">

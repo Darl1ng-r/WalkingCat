@@ -1,13 +1,23 @@
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
-import { Button, Card, Screen, Text } from '@/components/ui';
+import {
+  Button,
+  Card,
+  getActiveLeagueTier,
+  LeagueEmblemRow,
+  Screen,
+  Text,
+} from '@/components/ui';
 import { useSession } from '@/features/auth';
 import {
   getProfileBannerTokens,
   getProfileTitleLabel,
   useCosmeticsOverview,
 } from '@/features/cosmetics';
+import { PointsChip, usePointsSummary } from '@/features/gamification';
+import { DEMO_AVATARS } from '@/lib/demo-data';
 
 const SETTINGS_ITEMS = [
   {
@@ -104,41 +114,57 @@ function formatMemberSince(isoDate?: string | null): string {
 export default function ProfileScreen() {
   const { user, profile, signOut } = useSession();
   const { data: cosmeticsOverview } = useCosmeticsOverview();
+  const { data: pointsSummary } = usePointsSummary();
+  const pawBalance = pointsSummary?.totalPoints ?? 620;
 
   const displayName = profile?.display_name || profile?.username || 'Walker';
   const username = profile?.username ? `@${profile.username}` : user?.email ?? '';
   const initials = getInitials(profile?.display_name, profile?.username);
+  const avatarUri = profile?.avatar_url || DEMO_AVATARS.mina;
   const banner = getProfileBannerTokens(
     cosmeticsOverview?.equippedBannerId ?? profile?.equipped_banner_id
   );
   const titleLabel = getProfileTitleLabel(
     cosmeticsOverview?.equippedTitleId ?? profile?.equipped_title_id
   );
+  const activeTier = getActiveLeagueTier(pawBalance);
 
   return (
-    <Screen scroll contentContainerClassName="gap-6 pb-10">
-      <View className="mt-2">
-        <Text variant="label">Account</Text>
-        <Text variant="title" className="mt-1">
-          Profile
-        </Text>
+    <Screen scroll contentContainerClassName="gap-5 pb-32">
+      <View className="mt-2 flex-row items-center justify-between">
+        <View>
+          <Text variant="label">Walker Identity</Text>
+          <Text variant="title" className="mt-0.5 text-[28px] leading-8">
+            Profile
+          </Text>
+        </View>
+        <PointsChip />
       </View>
 
-      <Card className={`gap-3 border ${banner.bannerClass}`}>
+      {/* Bento Hero Identity Card */}
+      <Card className={`gap-4 border ${banner.bannerClass}`}>
         <View className="flex-row items-center gap-4">
           <View
             accessibilityLabel={`Avatar for ${displayName}`}
-            className="h-16 w-16 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
-            <Text variant="heading" className="text-primary-dark dark:text-primary-light">
-              {initials}
-            </Text>
+            className="h-16 w-16 items-center justify-center overflow-hidden rounded-pill border-2 border-white bg-primary-muted shadow-sm dark:bg-surface-elevated-dark">
+            {avatarUri ? (
+              <Image
+                source={{ uri: avatarUri }}
+                style={{ width: '100%', height: '100%' }}
+                contentFit="cover"
+              />
+            ) : (
+              <Text variant="heading" className="text-primary-dark dark:text-primary-light">
+                {initials}
+              </Text>
+            )}
           </View>
 
           <View className="flex-1">
-            <Text variant="heading" numberOfLines={1}>
+            <Text variant="heading" numberOfLines={1} className="text-xl font-extrabold">
               {displayName}
             </Text>
-            <Text variant="caption" numberOfLines={1}>
+            <Text variant="caption" numberOfLines={1} className="font-semibold">
               {username}
             </Text>
             <Text variant="caption" className="mt-0.5 text-xs">
@@ -149,14 +175,14 @@ export default function ProfileScreen() {
           <Button
             label="Edit"
             size="sm"
-            variant="ghost"
+            variant="secondary"
             onPress={() => router.push('/settings/edit-profile')}
           />
         </View>
 
-        <View className="flex-row items-center justify-between border-t border-border/60 pt-2.5 dark:border-border-dark/60">
+        <View className="flex-row items-center justify-between border-t border-border/60 pt-3 dark:border-border-dark/60">
           <View className="rounded-pill bg-primary/15 px-3 py-1">
-            <Text variant="caption" className="text-xs font-bold text-primary">
+            <Text variant="caption" className="text-xs font-extrabold text-primary">
               {titleLabel}
             </Text>
           </View>
@@ -164,15 +190,26 @@ export default function ProfileScreen() {
             accessibilityRole="button"
             accessibilityLabel="Customize banner and title"
             onPress={() => router.push('/cosmetics' as never)}>
-            <Text variant="caption" className="text-xs font-semibold text-primary">
+            <Text variant="caption" className="text-xs font-extrabold text-primary">
               🎨 Customize →
             </Text>
           </Pressable>
         </View>
       </Card>
 
+      {/* League Tier Progression Showcase */}
+      <Card className="gap-2">
+        <View className="flex-row items-center justify-between">
+          <Text variant="label">Current League Tier</Text>
+          <Text className="text-xs font-extrabold uppercase text-primary">
+            {activeTier.name}
+          </Text>
+        </View>
+        <LeagueEmblemRow totalPoints={pawBalance} />
+      </Card>
+
       <View className="gap-3">
-        <Text variant="label">Settings</Text>
+        <Text variant="label">Settings & Tools</Text>
         {SETTINGS_ITEMS.map((item) => (
           <Pressable
             key={item.title}
@@ -185,16 +222,19 @@ export default function ProfileScreen() {
               }
             }}
             className={item.enabled ? 'active:opacity-80' : 'opacity-70'}>
-            <Card className="flex-row items-center gap-3">
-              <Text className="text-2xl">{item.emoji}</Text>
+            <Card className="flex-row items-center gap-3.5 py-4">
+              <View className="h-11 w-11 items-center justify-center rounded-2xl bg-background dark:bg-surface-elevated-dark">
+                <Text className="text-xl">{item.emoji}</Text>
+              </View>
               <View className="flex-1">
-                <Text variant="body" className="font-semibold">
+                <Text variant="body" className="font-extrabold">
                   {item.title}
                 </Text>
                 <Text variant="caption" className="text-xs">
                   {item.subtitle}
                 </Text>
               </View>
+              <Text className="text-sm font-bold text-text-muted">›</Text>
             </Card>
           </Pressable>
         ))}

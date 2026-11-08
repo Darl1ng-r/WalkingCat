@@ -10,7 +10,7 @@ import {
 
 import { Text } from './text';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'action' | 'charcoal' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends Omit<PressableProps, 'children'> {
@@ -23,23 +23,28 @@ export interface ButtonProps extends Omit<PressableProps, 'children'> {
 }
 
 const variantContainerClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-primary active:bg-primary-dark',
-  secondary: 'bg-secondary active:bg-secondary-dark',
-  ghost: 'bg-transparent border border-border dark:border-border-dark active:bg-surface-elevated dark:active:bg-surface-elevated-dark',
-  danger: 'bg-danger active:opacity-90',
+  primary: 'bg-primary active:bg-primary-dark shadow-sm',
+  secondary: 'bg-secondary active:bg-secondary-dark shadow-sm',
+  action: 'bg-secondary active:bg-secondary-dark shadow-sm',
+  charcoal: 'bg-charcoal active:bg-charcoal-light dark:bg-white dark:active:bg-white/90 shadow-sm',
+  ghost:
+    'bg-surface-elevated/80 dark:bg-surface-elevated-dark border border-border dark:border-border-dark active:opacity-80',
+  danger: 'bg-danger active:opacity-90 shadow-sm',
 };
 
 const variantTextClasses: Record<ButtonVariant, string> = {
-  primary: 'text-white font-semibold',
-  secondary: 'text-white font-semibold',
+  primary: 'text-white font-bold tracking-tight',
+  secondary: 'text-white font-bold tracking-tight',
+  action: 'text-white font-bold tracking-tight',
+  charcoal: 'text-white dark:text-charcoal font-bold tracking-tight',
   ghost: 'text-foreground dark:text-foreground-dark font-semibold',
-  danger: 'text-white font-semibold',
+  danger: 'text-white font-bold tracking-tight',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'min-h-[44px] px-3 py-2 rounded-button',
-  md: 'min-h-[48px] px-5 py-3 rounded-button',
-  lg: 'min-h-[54px] px-6 py-4 rounded-card',
+  sm: 'min-h-[40px] px-4 py-2 rounded-pill',
+  md: 'min-h-[48px] px-5 py-3 rounded-pill',
+  lg: 'min-h-[56px] px-6 py-4 rounded-pill',
 };
 
 const sizeTextClasses: Record<ButtonSize, string> = {

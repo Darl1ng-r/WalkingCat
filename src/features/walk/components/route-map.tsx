@@ -3,6 +3,7 @@ import { Platform, View } from 'react-native';
 
 import { Card, Text } from '@/components/ui';
 import { BrandColors } from '@/constants/theme';
+import { DEMO_WALK_ROUTE } from '@/lib/demo-data';
 import { getRouteBounds } from '../geo';
 
 export interface RouteMapProps {
@@ -10,16 +11,21 @@ export interface RouteMapProps {
   showUserLocation?: boolean;
   fitToBounds?: boolean;
   height?: number;
+  mapStyle?: 'satellite' | 'street';
+  borderless?: boolean;
+  showSightingPins?: boolean;
 }
 
 export function RouteMap({
   coordinates,
   showUserLocation = false,
   fitToBounds = false,
-  height = 240,
+  height = 260,
+  borderless = false,
 }: RouteMapProps) {
-  const latest = coordinates[coordinates.length - 1];
-  const bounds = fitToBounds ? getRouteBounds(coordinates) : null;
+  const activeCoords = coordinates.length >= 2 ? coordinates : DEMO_WALK_ROUTE;
+  const latest = activeCoords[activeCoords.length - 1];
+  const bounds = fitToBounds ? getRouteBounds(activeCoords) : null;
   const cameraPosition = bounds
     ? {
         coordinates: bounds.center,
@@ -35,16 +41,18 @@ export function RouteMap({
         }
       : undefined;
 
-  const polylineCoords = coordinates.map((pt) => ({
+  const polylineCoords = activeCoords.map((pt) => ({
     latitude: pt.latitude,
     longitude: pt.longitude,
   }));
 
+  const wrapperClassName = borderless
+    ? 'w-full overflow-hidden'
+    : 'w-full overflow-hidden rounded-bento border border-border dark:border-border-dark';
+
   if (Platform.OS === 'ios') {
     return (
-      <View
-        style={{ height }}
-        className="w-full overflow-hidden rounded-card border border-border dark:border-border-dark">
+      <View style={{ height }} className={wrapperClassName}>
         <AppleMaps.View
           style={{ flex: 1 }}
           cameraPosition={cameraPosition}
@@ -57,8 +65,8 @@ export function RouteMap({
                   {
                     id: 'walk-route',
                     coordinates: polylineCoords,
-                    color: BrandColors.primary,
-                    width: 5,
+                    color: BrandColors.secondary,
+                    width: 6,
                   },
                 ]
               : []
@@ -70,9 +78,7 @@ export function RouteMap({
 
   if (Platform.OS === 'android') {
     return (
-      <View
-        style={{ height }}
-        className="w-full overflow-hidden rounded-card border border-border dark:border-border-dark">
+      <View style={{ height }} className={wrapperClassName}>
         <GoogleMaps.View
           style={{ flex: 1 }}
           cameraPosition={cameraPosition}
@@ -85,7 +91,7 @@ export function RouteMap({
                   {
                     id: 'walk-route',
                     coordinates: polylineCoords,
-                    color: BrandColors.primary,
+                    color: BrandColors.secondary,
                     width: 6,
                   },
                 ]
@@ -102,7 +108,7 @@ export function RouteMap({
       className="items-center justify-center bg-surface-elevated dark:bg-surface-elevated-dark">
       <Text variant="heading">🗺️ Route Map</Text>
       <Text variant="caption" className="mt-1 text-center">
-        {coordinates.length} GPS points recorded ({Platform.OS} preview)
+        {activeCoords.length} GPS points recorded ({Platform.OS} preview)
       </Text>
     </Card>
   );

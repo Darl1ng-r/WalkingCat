@@ -59,14 +59,14 @@ export function CatCard({
           cat.sighting_count === 1 ? 'sighting' : 'sightings'
         }`}
         onPress={() => onPress?.(cat)}
-        className={`overflow-hidden rounded-card border p-2.5 ${theme.surfaceClass} ${
+        className={`overflow-hidden rounded-bento border p-2.5 shadow-card transition-all active:scale-[0.98] ${theme.surfaceClass} ${
           selected ? 'border-2 border-primary' : theme.borderClass
         }`}>
-        <View className="relative overflow-hidden rounded-lg bg-primary-muted dark:bg-surface-elevated-dark">
+        <View className="relative overflow-hidden rounded-[20px] bg-primary-muted dark:bg-surface-elevated-dark">
           {cat.coverUrl ? (
             <Image
               source={{ uri: cat.coverUrl }}
-              style={{ width: '100%', height: 144 }}
+              style={{ width: '100%', height: 176 }}
               contentFit="cover"
               cachePolicy="memory-disk"
               transition={reducedMotion ? 0 : 180}
@@ -80,52 +80,56 @@ export function CatCard({
             />
           ) : (
             <View
-              style={{ height: 144 }}
+              style={{ height: 176 }}
               className="items-center justify-center">
               <Text className="text-4xl">🐱</Text>
             </View>
           )}
 
-          {/* Card number badge (#012) */}
-          <View className="absolute left-2 top-2 rounded-pill bg-black/65 px-2.5 py-0.5">
+          {/* Frosted Dark-Glass Card Number Badge (#001) */}
+          <View
+            style={{ backgroundColor: 'rgba(24, 26, 34, 0.76)' }}
+            className="absolute left-2.5 top-2.5 rounded-pill border border-white/25 px-2.5 py-0.5">
             <Text
               variant="caption"
-              className="text-[11px] font-bold text-white">
+              className="text-[11px] font-extrabold text-white">
               {cardNumber}
             </Text>
           </View>
 
-          {/* Sighting count badge */}
+          {/* Sighting Count Badge */}
           <View
-            className={`absolute right-2 top-2 rounded-pill px-2.5 py-0.5 ${theme.badgeClass}`}>
+            className={`absolute right-2.5 top-2.5 rounded-pill px-2.5 py-0.5 shadow-sm ${theme.badgeClass}`}>
             <Text
               variant="caption"
-              className="text-[11px] font-bold text-white">
+              className="text-[11px] font-extrabold text-white">
               🐾 {cat.sighting_count}×
             </Text>
           </View>
 
-          {/* Optional Edition / Foil pill */}
+          {/* Optional Edition / Foil Pill */}
           {theme.accentLabel ? (
-            <View className="absolute bottom-2 left-2 rounded-pill bg-black/70 px-2 py-0.5">
+            <View
+              style={{ backgroundColor: 'rgba(24, 26, 34, 0.78)' }}
+              className="absolute bottom-2.5 left-2.5 rounded-pill border border-white/25 px-2.5 py-0.5">
               <Text
                 variant="caption"
-                className="text-[10px] font-semibold text-white">
+                className="text-[10px] font-bold text-white">
                 {theme.accentLabel}
               </Text>
             </View>
           ) : null}
         </View>
 
-        <View className="mt-2.5 gap-0.5 px-0.5">
+        <View className="mt-3 gap-0.5 px-1 pb-1">
           <Text
             variant="body"
             numberOfLines={1}
-            className="font-bold text-text-primary dark:text-text-primary-dark">
+            className="text-base font-extrabold tracking-tight text-text-primary dark:text-text-primary-dark">
             {displayName}
           </Text>
-          <Text variant="caption" numberOfLines={1} className="text-xs">
-            First spotted {firstSeenStr}
+          <Text variant="caption" numberOfLines={1} className="text-[11px] font-medium">
+            Spotted {firstSeenStr}
           </Text>
         </View>
       </Pressable>

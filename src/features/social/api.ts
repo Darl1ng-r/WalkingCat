@@ -1,5 +1,5 @@
 import { getSignedSightingPhotoUrl } from '@/features/sightings';
-import { demoState, isDemoMode } from '@/lib/demo-data';
+import { DEMO_AVATARS, demoState, isDemoMode } from '@/lib/demo-data';
 import { isSupabaseConfigured } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
@@ -272,7 +272,7 @@ export async function listFriendshipsOverview(
               id: 'demo-friend-1',
               username: 'tariq_strolls',
               display_name: 'Tariq Hassan',
-              avatar_url: null,
+              avatar_url: DEMO_AVATARS.tariq,
             },
             createdAt: '2026-10-12T10:00:00.000Z',
             respondedAt: '2026-10-12T10:05:00.000Z',
@@ -283,7 +283,7 @@ export async function listFriendshipsOverview(
               id: 'demo-friend-2',
               username: 'layla_paws',
               display_name: 'Layla Haddad',
-              avatar_url: null,
+              avatar_url: DEMO_AVATARS.layla,
             },
             createdAt: '2026-10-15T14:00:00.000Z',
             respondedAt: '2026-10-15T14:15:00.000Z',
@@ -294,7 +294,7 @@ export async function listFriendshipsOverview(
               id: 'demo-friend-3',
               username: 'omar_runner',
               display_name: 'Omar Nabil',
-              avatar_url: null,
+              avatar_url: DEMO_AVATARS.omar,
             },
             createdAt: '2026-10-20T09:00:00.000Z',
             respondedAt: '2026-10-20T09:30:00.000Z',
@@ -307,7 +307,7 @@ export async function listFriendshipsOverview(
               id: 'demo-friend-4',
               username: 'nadia_garden',
               display_name: 'Nadia Karim',
-              avatar_url: null,
+              avatar_url: DEMO_AVATARS.nadia,
             },
             createdAt: new Date(Date.now() - 3600_000).toISOString(),
             respondedAt: null,
@@ -422,7 +422,7 @@ export async function getFriendsLeaderboard(
           userId: 'demo-friend-2',
           username: 'layla_paws',
           displayName: 'Layla Haddad',
-          avatarUrl: null,
+          avatarUrl: DEMO_AVATARS.layla,
           value: Math.round(vals[0] * mult),
           isSelf: false,
           hasOutlier: false,
@@ -432,7 +432,7 @@ export async function getFriendsLeaderboard(
           userId: demoState.userId,
           username: demoState.username,
           displayName: demoState.displayName,
-          avatarUrl: null,
+          avatarUrl: DEMO_AVATARS.mina,
           value: Math.round(vals[1] * mult),
           isSelf: true,
           hasOutlier: false,
@@ -442,7 +442,7 @@ export async function getFriendsLeaderboard(
           userId: 'demo-friend-1',
           username: 'tariq_strolls',
           displayName: 'Tariq Hassan',
-          avatarUrl: null,
+          avatarUrl: DEMO_AVATARS.tariq,
           value: Math.round(vals[2] * mult),
           isSelf: false,
           hasOutlier: false,
@@ -452,7 +452,7 @@ export async function getFriendsLeaderboard(
           userId: 'demo-friend-3',
           username: 'omar_runner',
           displayName: 'Omar Nabil',
-          avatarUrl: null,
+          avatarUrl: DEMO_AVATARS.omar,
           value: Math.round(vals[3] * mult),
           isSelf: false,
           hasOutlier: false,
@@ -816,7 +816,8 @@ export async function getFriendProfileSummary(
         username: friendId === 'demo-friend-2' ? 'layla_paws' : 'tariq_strolls',
         displayName:
           friendId === 'demo-friend-2' ? 'Layla Haddad' : 'Tariq Hassan',
-        avatarUrl: null,
+        avatarUrl:
+          friendId === 'demo-friend-2' ? DEMO_AVATARS.layla : DEMO_AVATARS.tariq,
         memberSince: '2026-09-20T10:00:00.000Z',
         achievementsCount: 6,
         showOnLeaderboard: true,

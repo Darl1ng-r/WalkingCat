@@ -2,14 +2,16 @@ import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import {
   Button,
   Card,
   EmptyState,
   ErrorState,
+  ProgressStripBento,
   Screen,
+  SegmentedControl,
   StatTile,
   Text,
 } from '@/components/ui';
@@ -25,10 +27,10 @@ import {
 import { getSightingStatusCopy } from '@/features/sightings';
 import { formatNumber } from '@/lib/format';
 
-const SORT_OPTIONS: { label: string; value: CatCollectionSort }[] = [
-  { label: 'Newest', value: 'newest' },
-  { label: 'Most Seen', value: 'most_seen' },
-  { label: 'A–Z', value: 'a_z' },
+const SORT_OPTIONS: { label: string; key: CatCollectionSort }[] = [
+  { label: 'Newest', key: 'newest' },
+  { label: 'Most Seen', key: 'most_seen' },
+  { label: 'A–Z', key: 'a_z' },
 ];
 
 export default function CollectionScreen() {
@@ -48,37 +50,79 @@ export default function CollectionScreen() {
   );
 
   const renderHeader = () => (
-    <View className="gap-5 pb-4 pt-2">
+    <View className="gap-4 pb-4 pt-2">
       <View className="flex-row items-center justify-between">
         <View>
-          <Text variant="label">Discoveries</Text>
-          <Text variant="title" className="mt-0.5">
+          <Text variant="label">Collector Album</Text>
+          <Text variant="title" className="mt-0.5 text-[28px] leading-8">
             Cat Collection
           </Text>
         </View>
-        <Button
-          label="📷 Spot a Cat"
-          size="sm"
-          variant="secondary"
-          onPress={() => router.push('/sighting/capture')}
-        />
+        <View className="flex-row items-center gap-2">
+          <Button
+            label="✨ Themes"
+            size="sm"
+            variant="secondary"
+            onPress={() => router.push('/cosmetics')}
+          />
+          <Button
+            label="📷 Spot"
+            size="sm"
+            variant="action"
+            onPress={() => router.push('/sighting/capture')}
+          />
+        </View>
       </View>
+
+      {/* Collector Progress Strip Bento */}
+      <ProgressStripBento
+        title="ALBUM MILESTONES"
+        metrics={[
+          {
+            id: 'cards',
+            label: 'Cat Cards',
+            current: headerStats.totalCats,
+            target: 10,
+            color: 'primary',
+            icon: '🃏',
+          },
+          {
+            id: 'visits',
+            label: 'Total Sightings',
+            current: headerStats.totalSightings,
+            target: 25,
+            color: 'coral',
+            icon: '🐾',
+          },
+          {
+            id: 'days',
+            label: 'Discovery Days',
+            current: headerStats.discoveryDaysCount,
+            target: 14,
+            color: 'secondary',
+            icon: '☀️',
+          },
+        ]}
+      />
 
       {/* Header Stats */}
       <View className="flex-row gap-2.5">
         <StatTile
           label="Total Cats"
           value={formatNumber(headerStats.totalCats)}
+          accentColor="primary"
           unit={headerStats.totalCats === 1 ? 'card' : 'cards'}
         />
         <StatTile
           label="Total Sightings"
           value={formatNumber(headerStats.totalSightings)}
+          accentColor="coral"
           unit={headerStats.totalSightings === 1 ? 'visit' : 'visits'}
         />
         <StatTile
           label="Discovery Days"
           value={formatNumber(headerStats.discoveryDaysCount)}
+          accentColor="secondary"
           unit={headerStats.discoveryDaysCount === 1 ? 'day' : 'days'}
         />
       </View>
@@ -113,13 +157,13 @@ export default function CollectionScreen() {
                   {item.imageUri ? (
                     <Image
                       source={{ uri: item.imageUri }}
-                      style={{ width: 52, height: 52, borderRadius: 10 }}
+                      style={{ width: 52, height: 52, borderRadius: 12 }}
                       contentFit="cover"
                       cachePolicy="memory-disk"
                       accessibilityLabel="Recent submission photo"
                     />
                   ) : (
-                    <View className="h-[52px] w-[52px] items-center justify-center rounded-lg bg-primary-muted dark:bg-surface-elevated-dark">
+                    <View className="h-[52px] w-[52px] items-center justify-center rounded-xl bg-primary-muted dark:bg-surface-elevated-dark">
                       <Text className="text-xl">🐱</Text>
                     </View>
                   )}
@@ -160,37 +204,15 @@ export default function CollectionScreen() {
         </Card>
       ) : null}
 
-      {/* Sort Selector */}
+      {/* Charcoal Segmented Sort Control */}
       {cats.length > 0 ? (
-        <View className="flex-row items-center justify-between">
-          <Text variant="label">Your Cards ({cats.length})</Text>
-          <View className="flex-row gap-1.5">
-            {SORT_OPTIONS.map((option) => {
-              const active = sort === option.value;
-              return (
-                <Pressable
-                  key={option.value}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Sort by ${option.label}`}
-                  onPress={() => setSort(option.value)}
-                  className={`rounded-pill px-3 py-1.5 ${
-                    active
-                      ? 'bg-primary'
-                      : 'border border-border bg-surface dark:border-border-dark dark:bg-surface-dark'
-                  }`}>
-                  <Text
-                    variant="caption"
-                    className={`text-xs font-semibold ${
-                      active
-                        ? 'text-white'
-                        : 'text-text-primary dark:text-text-primary-dark'
-                    }`}>
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+        <View className="gap-2">
+          <Text variant="label">Your Collector Cards ({cats.length})</Text>
+          <SegmentedControl
+            options={SORT_OPTIONS}
+            value={sort}
+            onChange={setSort}
+          />
         </View>
       ) : null}
     </View>
@@ -224,10 +246,10 @@ export default function CollectionScreen() {
         numColumns={2}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
-        contentContainerStyle={{ paddingBottom: 36 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
         renderItem={({ item, index }) => (
           <View
-            className={`mb-3 flex-1 ${
+            className={`mb-3.5 flex-1 ${
               index % 2 === 0 ? 'pr-1.5' : 'pl-1.5'
             }`}>
             <CatCard

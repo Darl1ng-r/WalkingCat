@@ -7,51 +7,60 @@ import { isSupabaseConfigured } from './env';
 export const isDemoMode =
   !isSupabaseConfigured && process.env.NODE_ENV !== 'test';
 
-function makeCatSvgDataUri(
-  bgHex: string,
-  catHex: string,
-  collarHex: string,
-  label: string
+export function makeWalkerAvatarDataUri(
+  bgStart: string,
+  bgEnd: string,
+  hairHex: string,
+  shirtHex: string,
+  skinHex: string
 ): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="${bgHex}" />
-        <stop offset="100%" stop-color="#1C1917" stop-opacity="0.35" />
+        <stop offset="0%" stop-color="${bgStart}" />
+        <stop offset="100%" stop-color="${bgEnd}" />
       </linearGradient>
     </defs>
-    <rect width="600" height="450" fill="${bgHex}" />
-    <circle cx="490" cy="90" r="55" fill="#FFFFFF" fill-opacity="0.18" />
-    <ellipse cx="300" cy="410" rx="220" ry="45" fill="#000000" fill-opacity="0.14" />
-    <!-- Cat body -->
-    <ellipse cx="300" cy="320" rx="95" ry="75" fill="${catHex}" />
-    <!-- Tail -->
-    <path d="M 380 340 Q 455 310 445 245" stroke="${catHex}" stroke-width="24" stroke-linecap="round" fill="none" />
-    <!-- Ears -->
-    <polygon points="220,185 200,105 268,150" fill="${catHex}" />
-    <polygon points="380,185 400,105 332,150" fill="${catHex}" />
-    <polygon points="225,175 212,122 258,152" fill="#F9A8D4" fill-opacity="0.7" />
-    <polygon points="375,175 388,122 342,152" fill="#F9A8D4" fill-opacity="0.7" />
-    <!-- Head -->
-    <circle cx="300" cy="205" r="76" fill="${catHex}" />
-    <!-- Eyes -->
-    <circle cx="272" cy="195" r="10" fill="#1C1917" />
-    <circle cx="328" cy="195" r="10" fill="#1C1917" />
-    <circle cx="275" cy="192" r="3.5" fill="#FFFFFF" />
-    <circle cx="331" cy="192" r="3.5" fill="#FFFFFF" />
-    <!-- Nose & Whiskers -->
-    <polygon points="293,212 307,212 300,221" fill="#F472B6" />
-    <line x1="210" y1="210" x2="260" y2="216" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-opacity="0.8" />
-    <line x1="210" y1="226" x2="260" y2="224" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-opacity="0.8" />
-    <line x1="390" y1="210" x2="340" y2="216" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-opacity="0.8" />
-    <line x1="390" y1="226" x2="340" y2="224" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-opacity="0.8" />
-    <!-- Collar -->
-    <rect x="242" y="264" width="116" height="14" rx="7" fill="${collarHex}" />
-    <circle cx="300" cy="282" r="9" fill="#FBBF24" />
-    <text x="300" y="428" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" fill-opacity="0.9">${label}</text>
+    <circle cx="80" cy="80" r="80" fill="url(#bg)" />
+    <!-- Hair back -->
+    <circle cx="80" cy="68" r="36" fill="${hairHex}" />
+    <!-- Shoulders / Shirt -->
+    <path d="M 28 160 C 28 118 132 118 132 160 Z" fill="${shirtHex}" />
+    <!-- Neck -->
+    <rect x="69" y="88" width="22" height="24" rx="10" fill="${skinHex}" />
+    <!-- Face -->
+    <circle cx="80" cy="72" r="27" fill="${skinHex}" />
+    <!-- Hair bangs -->
+    <path d="M 52 66 Q 66 42 92 48 Q 106 52 108 68 Q 92 54 74 58 Q 58 60 52 66 Z" fill="${hairHex}" />
+    <!-- Eyes & Smile -->
+    <circle cx="70" cy="72" r="3" fill="#1E2029" />
+    <circle cx="90" cy="72" r="3" fill="#1E2029" />
+    <circle cx="63" cy="79" r="4" fill="#F43F5E" fill-opacity="0.28" />
+    <circle cx="97" cy="79" r="4" fill="#F43F5E" fill-opacity="0.28" />
+    <path d="M 73 83 Q 80 89 87 83" stroke="#1E2029" stroke-width="2.6" stroke-linecap="round" fill="none" />
   </svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
+
+export const DEMO_AVATARS = {
+  mina: makeWalkerAvatarDataUri('#EDE9FE', '#C4B5FD', '#312E81', '#7C66DC', '#F5CBA7'),
+  layla: makeWalkerAvatarDataUri('#FCE7F3', '#FBCFE8', '#4C1D95', '#EC4899', '#FDEBD0'),
+  tariq: makeWalkerAvatarDataUri('#DCFCE7', '#A7F3D0', '#1E293B', '#10B981', '#E59866'),
+  omar: makeWalkerAvatarDataUri('#FEF3C7', '#FDE68A', '#292524', '#F59E0B', '#D35400'),
+  nadia: makeWalkerAvatarDataUri('#E0F2FE', '#BAE6FD', '#3B0764', '#0284C7', '#F5CBA7'),
+} as const;
+
+export const DEMO_WALK_ROUTE: readonly { latitude: number; longitude: number }[] = [
+  { latitude: 34.0132, longitude: -118.4988 },
+  { latitude: 34.0141, longitude: -118.4979 },
+  { latitude: 34.0153, longitude: -118.4966 },
+  { latitude: 34.0164, longitude: -118.4951 },
+  { latitude: 34.0172, longitude: -118.4938 },
+  { latitude: 34.0168, longitude: -118.4922 },
+  { latitude: 34.0156, longitude: -118.4912 },
+  { latitude: 34.0144, longitude: -118.4924 },
+  { latitude: 34.0136, longitude: -118.4941 },
+] as const;
 
 export interface DemoCatRecord {
   id: string;
@@ -76,6 +85,7 @@ export const demoState = {
   userId: 'demo-user-001',
   username: 'mina_walks',
   displayName: 'Mina Al-Mansoor',
+  avatarUrl: DEMO_AVATARS.mina,
   equippedBannerId: 'banner_aurora_sky',
   equippedTitleId: 'title_feline_chronicler',
   totalEarnedPoints: 620,
@@ -100,13 +110,8 @@ export const demoState = {
       card_number: 1,
       nickname: 'Marmalade',
       cover_sighting_id: 'demo-sighting-1a',
-      cover_photo_path: 'demo/marmalade.svg',
-      coverUrl: makeCatSvgDataUri(
-        '#FEF3C7',
-        '#EA580C',
-        '#059669',
-        'Sunny garden wall · Respectful distance'
-      ),
+      cover_photo_path: 'demo/marmalade.jpg',
+      coverUrl: '/demo/marmalade.jpg',
       sighting_count: 4,
       first_seen_at: new Date(nowMs - 18 * dayMs).toISOString(),
       last_seen_at: new Date(nowMs - 1 * dayMs).toISOString(),
@@ -120,13 +125,8 @@ export const demoState = {
       card_number: 2,
       nickname: 'Professor Whiskers',
       cover_sighting_id: 'demo-sighting-2a',
-      cover_photo_path: 'demo/whiskers.svg',
-      coverUrl: makeCatSvgDataUri(
-        '#E0E7FF',
-        '#475569',
-        '#4F46E5',
-        'Library courtyard · Evening stroll'
-      ),
+      cover_photo_path: 'demo/whiskers.jpg',
+      coverUrl: '/demo/whiskers.jpg',
       sighting_count: 3,
       first_seen_at: new Date(nowMs - 12 * dayMs).toISOString(),
       last_seen_at: new Date(nowMs - 2 * dayMs).toISOString(),
@@ -140,13 +140,8 @@ export const demoState = {
       card_number: 3,
       nickname: 'Mochi',
       cover_sighting_id: 'demo-sighting-3a',
-      cover_photo_path: 'demo/mochi.svg',
-      coverUrl: makeCatSvgDataUri(
-        '#FCE7F3',
-        '#F59E0B',
-        '#EC4899',
-        'Blossom lane · Morning walk'
-      ),
+      cover_photo_path: 'demo/mochi.jpg',
+      coverUrl: '/demo/mochi.jpg',
       sighting_count: 2,
       first_seen_at: new Date(nowMs - 7 * dayMs).toISOString(),
       last_seen_at: new Date(nowMs - 3 * dayMs).toISOString(),
@@ -160,13 +155,8 @@ export const demoState = {
       card_number: 4,
       nickname: 'Captain Boots',
       cover_sighting_id: 'demo-sighting-4a',
-      cover_photo_path: 'demo/boots.svg',
-      coverUrl: makeCatSvgDataUri(
-        '#D1FAE5',
-        '#292524',
-        '#10B981',
-        'Olive tree park · Afternoon breeze'
-      ),
+      cover_photo_path: 'demo/boots.jpg',
+      coverUrl: '/demo/boots.jpg',
       sighting_count: 1,
       first_seen_at: new Date(nowMs - 2 * dayMs).toISOString(),
       last_seen_at: new Date(nowMs - 2 * dayMs).toISOString(),
