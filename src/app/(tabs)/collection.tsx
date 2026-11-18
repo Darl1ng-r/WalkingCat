@@ -54,7 +54,7 @@ export default function CollectionScreen() {
   const renderHeader = () => (
     <View className="gap-4 pb-4">
       {/* Midnight-Ink Top Header */}
-      <View className="-mx-4 bg-[#191A26] px-5 pb-12 pt-3">
+      <View className="bg-[#191A26] px-5 pb-12 pt-3">
         <View className="flex-row items-center justify-between">
           <Text className="text-lg font-extrabold text-white">
             Cat Collection
@@ -137,7 +137,7 @@ export default function CollectionScreen() {
 
       {/* Filter / Sort Pill Row with Warm Peach Camera Circle */}
       {cats.length > 0 ? (
-        <View className="flex-row items-center gap-2 pt-1">
+        <View className="flex-row items-center gap-2 px-4 pt-1">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Spot new cat"
@@ -157,38 +157,40 @@ export default function CollectionScreen() {
       ) : null}
 
       {/* Collector Progress Strip */}
-      <ProgressStripBento
-        title="Album Milestones"
-        metrics={[
-          {
-            id: 'cards',
-            label: 'Cat Cards',
-            current: headerStats.totalCats,
-            target: 10,
-            color: 'primary',
-            icon: 'cards',
-          },
-          {
-            id: 'visits',
-            label: 'Total Sightings',
-            current: headerStats.totalSightings,
-            target: 25,
-            color: 'coral',
-            icon: 'paw',
-          },
-          {
-            id: 'days',
-            label: 'Discovery Days',
-            current: headerStats.discoveryDaysCount,
-            target: 14,
-            color: 'secondary',
-            icon: 'sun',
-          },
-        ]}
-      />
+      <View className="px-4">
+        <ProgressStripBento
+          title="Album Milestones"
+          metrics={[
+            {
+              id: 'cards',
+              label: 'Cat Cards',
+              current: headerStats.totalCats,
+              target: 10,
+              color: 'primary',
+              icon: 'cards',
+            },
+            {
+              id: 'visits',
+              label: 'Total Sightings',
+              current: headerStats.totalSightings,
+              target: 25,
+              color: 'coral',
+              icon: 'paw',
+            },
+            {
+              id: 'days',
+              label: 'Discovery Days',
+              current: headerStats.discoveryDaysCount,
+              target: 14,
+              color: 'secondary',
+              icon: 'sun',
+            },
+          ]}
+        />
+      </View>
 
       {/* Header Stat Tiles */}
-      <View className="flex-row gap-2.5">
+      <View className="flex-row gap-2.5 px-4">
         <StatTile
           label="Total Cats"
           value={formatNumber(headerStats.totalCats)}
@@ -211,7 +213,8 @@ export default function CollectionScreen() {
 
       {/* Recent Submissions (pending / flagged / rejected) */}
       {recentSubmissions.length > 0 ? (
-        <Card className="gap-3">
+        <View className="px-4">
+          <Card className="gap-3">
           <View className="flex-row items-center justify-between">
             <Text variant="label">Recent Submissions</Text>
             <Text variant="caption" className="text-xs">
@@ -283,11 +286,12 @@ export default function CollectionScreen() {
               );
             })}
           </View>
-        </Card>
+          </Card>
+        </View>
       ) : null}
 
       {cats.length > 0 ? (
-        <Text variant="label" className="pt-1 text-[#191A26] dark:text-white">
+        <Text variant="label" className="px-4 pt-1 text-[#191A26] dark:text-white">
           Your Collector Cards ({cats.length})
         </Text>
       ) : null}
@@ -316,7 +320,7 @@ export default function CollectionScreen() {
   }
 
   return (
-    <Screen edges={['top']}>
+    <Screen edges={['top']} padded={false}>
       <FlashList<CatCardItem>
         data={cats}
         numColumns={2}
@@ -326,7 +330,7 @@ export default function CollectionScreen() {
         renderItem={({ item, index }) => (
           <View
             className={`mb-3.5 flex-1 ${
-              index % 2 === 0 ? 'pr-1.5' : 'pl-1.5'
+              index % 2 === 0 ? 'pl-4 pr-1.5' : 'pl-1.5 pr-4'
             }`}>
             <CatCard
               cat={item}
@@ -340,9 +344,9 @@ export default function CollectionScreen() {
           </View>
         )}
         ListEmptyComponent={
-          <View className="py-8">
+          <View className="px-4 py-8">
             <EmptyState
-              emoji="🥾"
+              emoji="walk"
               title="Ready for a stroll?"
               message="Head out for a relaxing walk! Any respectful cat sightings you photograph along the way will appear here as collectible cards."
               actionLabel="Start a Walk"

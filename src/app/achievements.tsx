@@ -118,13 +118,13 @@ export default function AchievementsScreen() {
                   {item.title}
                 </Text>
                 <View
-                  className={`rounded-pill px-2.5 py-0.5 ${
-                    item.unlocked ? 'bg-secondary/20' : 'bg-primary/15'
+                  className={`rounded-pill border border-[#191A26] px-2.5 py-0.5 ${
+                    item.unlocked ? 'bg-[#FCE8D5]' : 'bg-white'
                   }`}>
                   <Text
                     variant="caption"
-                    className="text-xs font-bold text-text-primary dark:text-text-primary-dark">
-                    {item.unlocked ? `✓ +${item.points} pts` : `+${item.points} pts`}
+                    className="text-xs font-bold text-[#191A26]">
+                    +{item.points} pts
                   </Text>
                 </View>
               </View>

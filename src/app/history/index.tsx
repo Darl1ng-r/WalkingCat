@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
 import {
+  AppIcon,
   Button,
   Card,
   EmptyState,
@@ -166,25 +167,27 @@ export default function WalkHistoryScreen() {
                   }
                   className="active:opacity-80">
                   <Card className="flex-row items-center gap-3.5">
-                    <View className="h-12 w-12 items-center justify-center rounded-card bg-primary-muted dark:bg-surface-elevated-dark">
-                      <Text className="text-xl">
-                        {item.isPendingUpload ? '⏳' : '🗺️'}
-                      </Text>
+                    <View className="h-12 w-12 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#FCE8D5]">
+                      <AppIcon
+                        name={item.isPendingUpload ? 'clock' : 'pin'}
+                        size={20}
+                        color="#191A26"
+                      />
                     </View>
 
                     <View className="flex-1 gap-1">
                       <View className="flex-row items-center justify-between gap-2">
                         <Text
                           variant="body"
-                          className="font-semibold"
+                          className="font-bold"
                           numberOfLines={1}>
                           {formatWalkRowDate(item.started_at)}
                         </Text>
                         {item.isPendingUpload ? (
-                          <View className="rounded-pill bg-primary/15 px-2.5 py-0.5">
+                          <View className="rounded-pill border border-[#191A26] bg-[#FCE8D5] px-2.5 py-0.5">
                             <Text
                               variant="caption"
-                              className="text-[11px] font-semibold text-primary-dark dark:text-primary-light">
+                              className="text-[11px] font-bold text-[#191A26]">
                               Waiting to upload
                             </Text>
                           </View>
@@ -192,16 +195,25 @@ export default function WalkHistoryScreen() {
                       </View>
 
                       <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
-                        <Text variant="caption" className="font-medium">
-                          📏 {formatDistance(item.distance_m)}
-                        </Text>
-                        <Text variant="caption">
-                          ⏱️ {formatDuration(item.duration_s)}
-                        </Text>
-                        {item.steps !== null && item.steps > 0 ? (
-                          <Text variant="caption">
-                            👣 {formatNumber(item.steps)} steps
+                        <View className="flex-row items-center gap-1">
+                          <AppIcon name="walk" size={12} color="#6E7085" />
+                          <Text variant="caption" className="font-semibold">
+                            {formatDistance(item.distance_m)}
                           </Text>
+                        </View>
+                        <View className="flex-row items-center gap-1">
+                          <AppIcon name="clock" size={12} color="#6E7085" />
+                          <Text variant="caption">
+                            {formatDuration(item.duration_s)}
+                          </Text>
+                        </View>
+                        {item.steps !== null && item.steps > 0 ? (
+                          <View className="flex-row items-center gap-1">
+                            <AppIcon name="flame" size={12} color="#6E7085" />
+                            <Text variant="caption">
+                              {formatNumber(item.steps)} steps
+                            </Text>
+                          </View>
                         ) : null}
                       </View>
                     </View>

@@ -332,11 +332,11 @@ export default function CosmeticsScreen() {
 
                 <View className="items-end">
                   {unlocked ? (
-                    <View className="rounded-pill bg-emerald-500/15 px-2.5 py-1">
+                    <View className="rounded-pill border border-[#191A26] bg-[#FCE8D5] px-2.5 py-1">
                       <Text
                         variant="caption"
-                        className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                        Unlocked ✓
+                        className="text-xs font-bold text-[#191A26]">
+                        Unlocked
                       </Text>
                     </View>
                   ) : (
@@ -379,11 +379,12 @@ export default function CosmeticsScreen() {
                       </View>
                     ) : null}
                     <View
-                      className={`rounded-pill px-2.5 py-0.5 ${themePreview.badgeClass}`}>
+                      className={`flex-row items-center gap-1 rounded-pill px-2.5 py-0.5 ${themePreview.badgeClass}`}>
+                      <AppIcon name="paw" size={10} color="#FFFFFF" />
                       <Text
                         variant="caption"
                         className="text-[11px] font-bold text-white">
-                        🐾 3×
+                        3×
                       </Text>
                     </View>
                   </View>
@@ -393,14 +394,17 @@ export default function CosmeticsScreen() {
               {bannerPreview ? (
                 <View
                   className={`flex-row items-center justify-between rounded-xl border p-3 ${bannerPreview.bannerClass}`}>
-                  <Text variant="caption" className="text-xs font-semibold">
-                    {item.icon} Profile Banner Backdrop Preview
-                  </Text>
+                  <View className="flex-row items-center gap-2">
+                    <AppIcon name={item.icon} size={14} color="#191A26" />
+                    <Text variant="caption" className="text-xs font-semibold">
+                      Profile Banner Backdrop Preview
+                    </Text>
+                  </View>
                   {isEquippedProfileBanner ? (
                     <Text
                       variant="caption"
                       className="text-xs font-bold text-primary">
-                      Equipped ✓
+                      Equipped
                     </Text>
                   ) : null}
                 </View>
@@ -419,7 +423,7 @@ export default function CosmeticsScreen() {
                     <Text
                       variant="caption"
                       className="text-xs font-bold text-primary">
-                      Equipped ✓
+                      Equipped
                     </Text>
                   ) : null}
                 </View>

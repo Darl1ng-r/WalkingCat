@@ -118,8 +118,8 @@ export default function ProgressScreen() {
               ) : null}
             </View>
             <Text variant="heading" className="mt-0.5">
-              {summary?.encouragingTitle ??
-                (isLoading ? 'Loading your activity…' : 'Your walking journey 🌿')}
+              {summary?.encouragingTitle?.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim() ??
+                (isLoading ? 'Loading your activity…' : 'Your walking journey')}
             </Text>
             <Text variant="caption" className="leading-5">
               {summary?.encouragingSubtitle ??

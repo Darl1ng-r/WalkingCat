@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
-import { Card, Text } from '@/components/ui';
+import { AppIcon, Card, Text } from '@/components/ui';
 import type { SightingSummaryItem } from '../api';
 import { getSightingStatusCopy } from '../validation-rules';
 
@@ -36,7 +36,10 @@ export function WalkSightingsList({
     }
     return (
       <Card className="gap-1.5">
-        <Text variant="heading">🐱 Cats spotted on this walk</Text>
+        <View className="flex-row items-center gap-2">
+          <AppIcon name="cat" size={18} color="#191A26" />
+          <Text variant="heading">Cats spotted on this walk</Text>
+        </View>
         <Text variant="caption">
           No cat sightings were photographed during this walk.
         </Text>
@@ -47,9 +50,12 @@ export function WalkSightingsList({
   return (
     <Card className="gap-3">
       <View className="flex-row items-center justify-between">
-        <Text variant="heading">
-          🐱 Cats spotted on this walk ({sightings.length})
-        </Text>
+        <View className="flex-row items-center gap-2">
+          <AppIcon name="cat" size={18} color="#191A26" />
+          <Text variant="heading">
+            Cats spotted ({sightings.length})
+          </Text>
+        </View>
         <Text variant="caption" className="text-xs">
           No-flash photos
         </Text>
@@ -91,8 +97,8 @@ export function WalkSightingsList({
                   accessibilityLabel="Submitted cat sighting photo"
                 />
               ) : (
-                <View className="h-14 w-14 items-center justify-center rounded-lg bg-primary-muted dark:bg-surface-elevated-dark">
-                  <Text className="text-xl">🐱</Text>
+                <View className="h-14 w-14 items-center justify-center rounded-lg bg-[#FCE8D5]">
+                  <AppIcon name="cat" size={22} color="#191A26" />
                 </View>
               )}
 
@@ -121,9 +127,12 @@ export function WalkSightingsList({
                   </View>
 
                   {item.area_geohash ? (
-                    <Text variant="caption" className="text-xs">
-                      📍 Seen around your neighborhood
-                    </Text>
+                    <View className="flex-row items-center gap-1">
+                      <AppIcon name="pin" size={11} color="#6E7085" />
+                      <Text variant="caption" className="text-xs">
+                        Seen around your neighborhood
+                      </Text>
+                    </View>
                   ) : null}
                 </View>
 
