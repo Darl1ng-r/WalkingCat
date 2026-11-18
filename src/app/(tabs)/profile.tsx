@@ -12,7 +12,6 @@ import {
 } from '@/components/ui';
 import { useSession } from '@/features/auth';
 import {
-  getProfileBannerTokens,
   getProfileTitleLabel,
   useCosmeticsOverview,
 } from '@/features/cosmetics';
@@ -121,132 +120,160 @@ export default function ProfileScreen() {
   const username = profile?.username ? `@${profile.username}` : user?.email ?? '';
   const initials = getInitials(profile?.display_name, profile?.username);
   const avatarUri = profile?.avatar_url || DEMO_AVATARS.mina;
-  const banner = getProfileBannerTokens(
-    cosmeticsOverview?.equippedBannerId ?? profile?.equipped_banner_id
-  );
   const titleLabel = getProfileTitleLabel(
     cosmeticsOverview?.equippedTitleId ?? profile?.equipped_title_id
   );
   const activeTier = getActiveLeagueTier(pawBalance);
 
+  // Styled directly after the Reference Image's "Огурец" Profile Screen (Midnight-Ink Header + White Arched Dome + 3 Outlined Attribute Pills + Dark Midnight-Ink Action Rows)
   return (
-    <Screen scroll contentContainerClassName="gap-5 pb-32">
-      <View className="mt-2 flex-row items-center justify-between">
-        <View>
-          <Text variant="label">Walker Identity</Text>
-          <Text variant="title" className="mt-0.5 text-[28px] leading-8">
-            Profile
+    <Screen scroll padded={false} contentContainerClassName="bg-white dark:bg-[#12131C] pb-32">
+      {/* 1. Deep Midnight-Ink Top Header with Large White Arched Dome */}
+      <View className="bg-[#191A26] pt-3">
+        <View className="flex-row items-center justify-between px-5 pb-4">
+          <PointsChip />
+          <Text className="text-lg font-extrabold text-white">
+            {displayName}
           </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Edit profile"
+            onPress={() => router.push('/settings/edit-profile')}
+            className="rounded-pill border border-white/30 bg-[#252738] px-3 py-1">
+            <Text className="text-xs font-bold text-[#F4A97B]">Edit</Text>
+          </Pressable>
         </View>
-        <PointsChip />
+
+        <View className="items-center pt-2">
+          <View className="w-full items-center rounded-t-[180px] bg-white pt-6 dark:bg-[#12131C]">
+            <View
+              accessibilityLabel={`Avatar for ${displayName}`}
+              className="h-36 w-36 items-center justify-center overflow-hidden rounded-pill border-[3px] border-[#191A26] bg-[#FAF8F5]">
+              {avatarUri ? (
+                <Image
+                  source={{ uri: avatarUri }}
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit="cover"
+                />
+              ) : (
+                <Text variant="heading" className="text-3xl font-extrabold text-[#191A26]">
+                  {initials}
+                </Text>
+              )}
+            </View>
+          </View>
+        </View>
       </View>
 
-      {/* Bento Hero Identity Card */}
-      <Card className={`gap-4 border ${banner.bannerClass}`}>
-        <View className="flex-row items-center gap-4">
-          <View
-            accessibilityLabel={`Avatar for ${displayName}`}
-            className="h-16 w-16 items-center justify-center overflow-hidden rounded-pill border-2 border-white bg-primary-muted shadow-sm dark:bg-surface-elevated-dark">
-            {avatarUri ? (
-              <Image
-                source={{ uri: avatarUri }}
-                style={{ width: '100%', height: '100%' }}
-                contentFit="cover"
-              />
-            ) : (
-              <Text variant="heading" className="text-primary-dark dark:text-primary-light">
-                {initials}
-              </Text>
-            )}
-          </View>
-
-          <View className="flex-1">
-            <Text variant="heading" numberOfLines={1} className="text-xl font-extrabold">
-              {displayName}
-            </Text>
-            <Text variant="caption" numberOfLines={1} className="font-semibold">
-              {username}
-            </Text>
-            <Text variant="caption" className="mt-0.5 text-xs">
-              {formatMemberSince(profile?.created_at)}
-            </Text>
-          </View>
-
-          <Button
-            label="Edit"
-            size="sm"
-            variant="secondary"
-            onPress={() => router.push('/settings/edit-profile')}
-          />
-        </View>
-
-        <View className="flex-row items-center justify-between border-t border-border/60 pt-3 dark:border-border-dark/60">
-          <View className="rounded-pill bg-primary/15 px-3 py-1">
-            <Text variant="caption" className="text-xs font-extrabold text-primary">
-              {titleLabel}
-            </Text>
-          </View>
+      {/* Main Content */}
+      <View className="gap-5 px-5 pt-3">
+        {/* 2. Centered Midnight-Ink Title Badge & Username */}
+        <View className="items-center gap-1">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Customize banner and title"
-            onPress={() => router.push('/cosmetics' as never)}>
-            <Text variant="caption" className="text-xs font-extrabold text-primary">
-              🎨 Customize →
+            onPress={() => router.push('/cosmetics' as never)}
+            className="rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] px-6 py-2">
+            <Text className="text-xs font-extrabold text-white">
+              {titleLabel} · 🎨
             </Text>
           </Pressable>
-        </View>
-      </Card>
-
-      {/* League Tier Progression Showcase */}
-      <Card className="gap-2">
-        <View className="flex-row items-center justify-between">
-          <Text variant="label">Current League Tier</Text>
-          <Text className="text-xs font-extrabold uppercase text-primary">
-            {activeTier.name}
+          <Text className="mt-1 text-base font-extrabold text-[#191A26] dark:text-white">
+            {username}
+          </Text>
+          <Text variant="caption" className="text-xs text-[#6E7085]">
+            {formatMemberSince(profile?.created_at)}
           </Text>
         </View>
-        <LeagueEmblemRow totalPoints={pawBalance} />
-      </Card>
 
-      <View className="gap-3">
-        <Text variant="label">Settings & Tools</Text>
-        {SETTINGS_ITEMS.map((item) => (
-          <Pressable
-            key={item.title}
-            accessibilityRole="button"
-            accessibilityLabel={item.title}
-            disabled={!item.enabled}
-            onPress={() => {
-              if (item.href) {
-                router.push(item.href as never);
-              }
-            }}
-            className={item.enabled ? 'active:opacity-80' : 'opacity-70'}>
-            <Card className="flex-row items-center gap-3.5 py-4">
-              <View className="h-11 w-11 items-center justify-center rounded-2xl bg-background dark:bg-surface-elevated-dark">
-                <Text className="text-xl">{item.emoji}</Text>
+        {/* 3. Three Outlined Pill Attribute Chips ("Черный | 10 месяцев | 14 кг" in Reference) */}
+        <View className="flex-row items-center justify-between gap-2.5">
+          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:bg-[#191A26]">
+            <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
+              {activeTier.name}
+            </Text>
+            <Text className="text-[10px] font-semibold text-[#6E7085]">
+              League
+            </Text>
+          </View>
+
+          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:bg-[#191A26]">
+            <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
+              {pawBalance} pts
+            </Text>
+            <Text className="text-[10px] font-semibold text-[#6E7085]">
+              Balance
+            </Text>
+          </View>
+
+          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:bg-[#191A26]">
+            <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
+              {profile?.weight_kg ? `${profile.weight_kg} kg` : 'Standard'}
+            </Text>
+            <Text className="text-[10px] font-semibold text-[#6E7085]">
+              Pace Mode
+            </Text>
+          </View>
+        </View>
+
+        {/* 4. Circular Blob-Cat League Progression */}
+        <Card className="gap-2">
+          <View className="flex-row items-center justify-between">
+            <Text variant="label">League Progression</Text>
+            <Text className="text-xs font-extrabold uppercase text-[#F4A97B]">
+              {activeTier.name} League
+            </Text>
+          </View>
+          <LeagueEmblemRow totalPoints={pawBalance} />
+        </Card>
+
+        {/* 5. Deep Midnight-Ink Settings Section ("Прививки 2 > / Посещение врача 3 >" in Reference Middle-Left Screen) */}
+        <View className="gap-2.5 rounded-[28px] bg-[#191A26] p-4">
+          <Text className="px-1 text-xs font-extrabold uppercase tracking-wider text-[#F4A97B]">
+            Settings & Tools
+          </Text>
+          {SETTINGS_ITEMS.map((item) => (
+            <Pressable
+              key={item.title}
+              accessibilityRole="button"
+              accessibilityLabel={item.title}
+              disabled={!item.enabled}
+              onPress={() => {
+                if (item.href) {
+                  router.push(item.href as never);
+                }
+              }}
+              className={item.enabled ? 'active:opacity-80' : 'opacity-70'}>
+              <View className="flex-row items-center gap-3 rounded-pill border border-white/25 bg-[#232536] px-4 py-3">
+                <View className="h-9 w-9 items-center justify-center rounded-pill bg-[#191A26]">
+                  <Text className="text-base">{item.emoji}</Text>
+                </View>
+                <View className="flex-1">
+                  <Text
+                    numberOfLines={1}
+                    className="text-xs font-extrabold text-white">
+                    {item.title}
+                  </Text>
+                  <Text
+                    numberOfLines={1}
+                    className="text-[10px] text-white/65">
+                    {item.subtitle}
+                  </Text>
+                </View>
+                <Text className="text-sm font-black text-[#F4A97B]">›</Text>
               </View>
-              <View className="flex-1">
-                <Text variant="body" className="font-extrabold">
-                  {item.title}
-                </Text>
-                <Text variant="caption" className="text-xs">
-                  {item.subtitle}
-                </Text>
-              </View>
-              <Text className="text-sm font-bold text-text-muted">›</Text>
-            </Card>
-          </Pressable>
-        ))}
+            </Pressable>
+          ))}
+        </View>
+
+        <Button
+          label="Sign Out"
+          variant="danger"
+          onPress={() => {
+            signOut().catch(() => {});
+          }}
+        />
       </View>
-
-      <Button
-        label="Sign Out"
-        variant="danger"
-        onPress={() => {
-          signOut().catch(() => {});
-        }}
-      />
     </Screen>
   );
 }

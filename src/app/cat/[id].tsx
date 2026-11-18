@@ -34,8 +34,8 @@ import {
   useCosmeticsOverview,
   useEquipCatThemeMutation,
 } from '@/features/cosmetics';
-import { invalidateSignedSightingPhotoUrl } from '@/features/sightings';
 import { ReportModal } from '@/features/privacy';
+import { invalidateSignedSightingPhotoUrl } from '@/features/sightings';
 import { useShareCatCardMutation } from '@/features/social';
 import { formatNumber } from '@/lib/format';
 
@@ -251,402 +251,412 @@ export default function CatDetailScreen() {
     ]);
   };
 
+  // Styled directly after the Reference Image's "Огурец" Cat Profile Screen (Middle-Left & Bottom-Left Mockups)
   return (
-    <Screen scroll contentContainerClassName="gap-5 pb-12 pt-2">
-      {/* Top Header */}
-      <View className="flex-row items-start justify-between gap-3">
-        <View className="flex-1">
-          <View className="flex-row items-center gap-2">
-            <View className="rounded-pill bg-primary/15 px-2.5 py-0.5">
-              <Text variant="label">{cardNumber}</Text>
-            </View>
-            <Text variant="label">Collectible Cat Card</Text>
-          </View>
-
-          {!isEditingNickname ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Rename ${displayName}`}
-              onPress={handleStartEditNickname}
-              className="mt-1 flex-row items-center gap-2">
-              <Text variant="title">{displayName}</Text>
-              <Text variant="caption" className="text-xs font-semibold text-primary">
-                ✏️ Edit
-              </Text>
-            </Pressable>
-          ) : null}
-        </View>
-
-        <View className="flex-row gap-2">
-          <Button
-            label="Report"
-            size="sm"
-            variant="ghost"
-            onPress={() => setShowReportModal(true)}
-          />
-          <Button
-            label="Back"
-            size="sm"
-            variant="ghost"
+    <Screen scroll padded={false} contentContainerClassName="bg-white dark:bg-[#12131C] pb-16">
+      {/* 1. Deep Midnight-Ink Header ("< Огурец ⋮") with Large White Arched Dome Cutout Framing the Cat Portrait */}
+      <View className="bg-[#191A26] pt-3">
+        <View className="flex-row items-center justify-between px-5 pb-4">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back"
             onPress={() => router.back()}
-          />
-        </View>
-      </View>
+            className="h-9 w-9 items-center justify-center rounded-pill">
+            <Text className="text-xl font-bold text-white">‹</Text>
+          </Pressable>
 
-      {/* Inline Nickname Editor */}
-      {isEditingNickname ? (
-        <Card className="gap-3">
-          <Input
-            label="Cat Nickname"
-            placeholder={`Unnamed cat #${cat.card_number}`}
-            value={nicknameDraft}
-            onChangeText={(text) => {
-              setNicknameDraft(text);
-              setNicknameError(null);
-            }}
-            maxLength={30}
-            autoFocus
-            error={nicknameError ?? undefined}
-            hint="Up to 30 characters. Leave blank to reset."
-          />
-          <View className="flex-row gap-2.5">
-            <Button
-              label="Cancel"
-              size="sm"
-              variant="ghost"
-              className="flex-1"
-              disabled={renameMutation.isPending}
-              onPress={() => {
-                setIsEditingNickname(false);
-                setNicknameError(null);
-              }}
-            />
-            <Button
-              label="Save"
-              size="sm"
-              className="flex-1"
-              loading={renameMutation.isPending}
-              onPress={() => {
-                handleSaveNickname().catch(() => {});
-              }}
-            />
-          </View>
-        </Card>
-      ) : null}
-
-      {/* Hero Photo Card */}
-      <Card
-        className={`overflow-hidden p-2.5 ${equippedTheme.surfaceClass} ${equippedTheme.borderClass}`}>
-        <View className="relative overflow-hidden rounded-lg bg-primary-muted dark:bg-surface-elevated-dark">
-          {cat.coverUrl ? (
-            <Image
-              source={{ uri: cat.coverUrl }}
-              style={{ width: '100%', height: 280 }}
-              contentFit="cover"
-              cachePolicy="memory-disk"
-              accessibilityLabel={`Hero photo of ${displayName}`}
-              onError={() => {
-                if (cat.cover_photo_path) {
-                  invalidateSignedSightingPhotoUrl(cat.cover_photo_path);
-                  refetch().catch(() => {});
-                }
-              }}
-            />
-          ) : (
-            <View
-              style={{ height: 240 }}
-              className="items-center justify-center">
-              <Text className="text-6xl">🐱</Text>
-            </View>
-          )}
-
-          <View className="absolute left-3 top-3 rounded-pill bg-black/65 px-3 py-1">
-            <Text variant="caption" className="font-bold text-white">
-              {cardNumber}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Rename ${displayName}`}
+            onPress={handleStartEditNickname}
+            className="flex-row items-center gap-1.5">
+            <Text className="text-lg font-extrabold text-white">
+              {displayName}
             </Text>
-          </View>
+            <Text className="text-xs text-[#F4A97B]">✏️</Text>
+          </Pressable>
 
-          <View
-            className={`absolute right-3 top-3 rounded-pill px-3 py-1 ${equippedTheme.badgeClass}`}>
-            <Text variant="caption" className="font-bold text-white">
-              🐾 {cat.sighting_count}{' '}
-              {cat.sighting_count === 1 ? 'sighting' : 'sightings'}
-            </Text>
-          </View>
-
-          {equippedTheme.accentLabel ? (
-            <View className="absolute bottom-3 left-3 rounded-pill bg-black/70 px-3 py-1">
-              <Text variant="caption" className="font-semibold text-white">
-                {equippedTheme.accentLabel}
-              </Text>
-            </View>
-          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Report"
+            onPress={() => setShowReportModal(true)}
+            className="h-9 w-9 items-center justify-center rounded-pill">
+            <Text className="text-base font-extrabold text-white">⋮</Text>
+          </Pressable>
         </View>
 
-        {coarseAreaLabel ? (
-          <View className="mt-2.5 flex-row items-center gap-2 px-1">
-            <Text className="text-sm">📍</Text>
-            <Text variant="caption" className="text-xs font-medium">
-              {coarseAreaLabel} · Exact location is never saved
-            </Text>
-          </View>
-        ) : null}
-      </Card>
-
-      {/* Card Theme Selector */}
-      <Card className="gap-3">
-        <View className="flex-row items-center justify-between gap-2">
-          <View className="flex-1">
-            <Text variant="label">🎨 Card Theme</Text>
-            <Text variant="caption" className="text-xs">
-              Equipped: {equippedTheme.icon} {equippedTheme.name}
-            </Text>
-          </View>
-          <Button
-            label="Boutique"
-            size="sm"
-            variant="ghost"
-            onPress={() => router.push('/cosmetics' as never)}
-          />
-        </View>
-
-        <View className="flex-row flex-wrap gap-2">
-          {cardThemes.map((item) => {
-            const unlocked = isCosmeticUnlocked(item, unlockedSet);
-            const isEquipped = equippedTheme.id === item.id;
-            return (
-              <Pressable
-                key={item.id}
-                accessibilityRole="button"
-                accessibilityLabel={`${item.name} theme${
-                  isEquipped ? ', equipped' : unlocked ? '' : ', locked'
-                }`}
-                disabled={equipThemeMutation.isPending}
-                onPress={() => {
-                  if (!unlocked) {
-                    router.push('/cosmetics' as never);
-                    return;
-                  }
-                  if (isEquipped) return;
-                  setActionError(null);
-                  equipThemeMutation
-                    .mutateAsync({ catId: cat.id, themeId: item.id })
-                    .catch((err) => {
-                      setActionError(
-                        err instanceof Error
-                          ? err.message
-                          : 'Could not equip card theme.'
-                      );
-                    });
-                }}
-                className={`flex-row items-center gap-1.5 rounded-pill border px-3 py-1.5 ${
-                  isEquipped
-                    ? 'border-primary bg-primary/15'
-                    : unlocked
-                      ? 'border-border bg-surface-elevated dark:border-border-dark dark:bg-surface-elevated-dark'
-                      : 'border-border/60 bg-surface/50 opacity-65 dark:border-border-dark/60 dark:bg-surface-dark/50'
-                }`}>
-                <Text className="text-sm">{unlocked ? item.icon : '🔒'}</Text>
-                <Text
-                  variant="caption"
-                  className={`text-xs font-semibold ${
-                    isEquipped
-                      ? 'text-primary'
-                      : 'text-text-primary dark:text-text-primary-dark'
-                  }`}>
-                  {item.name}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </Card>
-
-      {/* Stats Grid */}
-      <View className="gap-3">
-        <Text variant="label">Discovery Stats</Text>
-        <View className="flex-row gap-3">
-          <StatTile
-            label="Sightings"
-            value={formatNumber(cat.sighting_count)}
-            unit={cat.sighting_count === 1 ? 'visit' : 'visits'}
-          />
-          <StatTile
-            label="First Seen"
-            value={formatShortLocalDate(cat.first_seen_at)}
-          />
-        </View>
-        <View className="flex-row gap-3">
-          <StatTile
-            label="Last Seen"
-            value={formatShortLocalDate(cat.last_seen_at)}
-          />
-          <StatTile
-            label="Card Number"
-            value={cardNumber}
-            unit="in collection"
-          />
-        </View>
-      </View>
-
-      {/* Opt-In Per-Card Share to Friends */}
-      <Card className="gap-2.5">
-        <View className="flex-row items-center justify-between gap-3">
-          <View className="flex-1">
-            <Text variant="label">🤝 Share Card with Friends</Text>
-            <Text variant="caption" className="mt-0.5 text-xs leading-5">
-              {sharedSuccessNote ??
-                'Shares only this card’s photo and nickname to your friends’ Activity feed. Area and location are never shared.'}
-            </Text>
-          </View>
-          <Button
-            label={sharedSuccessNote ? 'Shared ✓' : 'Share Card'}
-            size="sm"
-            variant="secondary"
-            loading={shareCardMutation.isPending}
-            onPress={() => {
-              setActionError(null);
-              setSharedSuccessNote(null);
-              shareCardMutation
-                .mutateAsync(cat.id)
-                .then(() => {
-                  setSharedSuccessNote(
-                    'Shared with your friends! They can see the photo and nickname in Activity.'
-                  );
-                })
-                .catch((err) => {
-                  setActionError(
-                    err instanceof Error
-                      ? err.message
-                      : 'Could not share cat card.'
-                  );
-                });
-            }}
-          />
-        </View>
-      </Card>
-
-      {/* Link to another existing cat */}
-      {otherCats.length > 0 ? (
-        <Card className="gap-3">
-          <View className="flex-row items-center justify-between gap-3">
-            <View className="flex-1">
-              <Text variant="label">🐾 Same Cat as Another Card?</Text>
-              <Text variant="caption" className="mt-0.5 text-xs">
-                Manually link the latest sighting to one of your other cat cards.
-              </Text>
-            </View>
-            <Button
-              label={showLinkPicker ? 'Close' : "I've seen this cat before"}
-              size="sm"
-              variant="secondary"
-              onPress={() => setShowLinkPicker((prev) => !prev)}
-            />
-          </View>
-
-          {showLinkPicker ? (
-            <View className="gap-2.5 pt-1">
-              <Text variant="caption" className="text-xs font-semibold">
-                Tap an existing cat card to merge this sighting into it:
-              </Text>
-              {otherCats.map((other) => (
-                <CatCard
-                  key={other.id}
-                  cat={other}
-                  onPress={(picked) => {
-                    handleMergeIntoCat(picked.id).catch(() => {});
-                  }}
-                />
-              ))}
-            </View>
-          ) : null}
-        </Card>
-      ) : null}
-
-      {actionError ? (
-        <Card className="border-danger bg-danger-muted py-3">
-          <Text variant="caption" className="font-semibold text-danger">
-            {actionError}
-          </Text>
-        </Card>
-      ) : null}
-
-      {/* Sightings Timeline */}
-      <View className="gap-3">
-        <Text variant="label">
-          Sightings Timeline ({cat.sightings.length})
-        </Text>
-
-        {cat.sightings.map((sighting, index) => (
-          <Card key={sighting.id} className="gap-3 p-3">
-            <View className="flex-row items-center gap-3">
-              {sighting.imageUri ? (
+        {/* White Arched Dome Rising into Midnight-Ink Header ("Огурец" Portrait Arch) */}
+        <View className="items-center pt-2">
+          <View className="w-full items-center rounded-t-[180px] bg-white pt-6 dark:bg-[#12131C]">
+            <View className="relative h-40 w-40 items-center justify-center overflow-hidden rounded-pill border-[3px] border-[#191A26] bg-[#FAF8F5]">
+              {cat.coverUrl ? (
                 <Image
-                  source={{ uri: sighting.imageUri }}
-                  style={{ width: 72, height: 72, borderRadius: 12 }}
+                  source={{ uri: cat.coverUrl }}
+                  style={{ width: '100%', height: '100%' }}
                   contentFit="cover"
                   cachePolicy="memory-disk"
-                  accessibilityLabel={`Sighting ${cat.sightings.length - index} photo`}
+                  accessibilityLabel={`Hero photo of ${displayName}`}
                   onError={() => {
-                    invalidateSignedSightingPhotoUrl(sighting.photo_path);
-                    refetch().catch(() => {});
+                    if (cat.cover_photo_path) {
+                      invalidateSignedSightingPhotoUrl(cat.cover_photo_path);
+                      refetch().catch(() => {});
+                    }
                   }}
                 />
               ) : (
-                <View className="h-[72px] w-[72px] items-center justify-center rounded-xl bg-primary-muted dark:bg-surface-elevated-dark">
-                  <Text className="text-2xl">🐱</Text>
-                </View>
+                <Text className="text-6xl">🐱</Text>
               )}
-
-              <View className="flex-1 gap-1">
-                <Text variant="body" className="font-semibold">
-                  Sighting #{cat.sightings.length - index}
-                </Text>
-                <Text variant="caption" className="text-xs">
-                  {formatDateTime(sighting.taken_at)}
-                </Text>
-                {sighting.area_geohash ? (
-                  <Text variant="caption" className="text-xs">
-                    📍 {formatCoarseAreaLabel(sighting.area_geohash)}
-                  </Text>
-                ) : null}
-              </View>
             </View>
+          </View>
+        </View>
+      </View>
 
-            <View className="flex-row flex-wrap items-center justify-end gap-2 border-t border-border pt-2.5 dark:border-border-dark">
-              {sighting.walk_id ? (
-                <Button
-                  label="🥾 View Walk"
-                  size="sm"
-                  variant="ghost"
-                  onPress={() => {
-                    router.push(`/walk/${sighting.walk_id}`);
-                  }}
-                />
-              ) : null}
+      {/* Main Content Container */}
+      <View className="gap-5 px-5 pt-3">
+        {/* 2. Centered Midnight-Ink "Биография" Pill Badge & Subtitle */}
+        <View className="items-center gap-1.5">
+          <View className="rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] px-6 py-2">
+            <Text className="text-xs font-extrabold text-white">
+              {equippedTheme.icon} {equippedTheme.name}
+            </Text>
+          </View>
+          <Text className="mt-1 text-base font-bold text-[#191A26] dark:text-white">
+            Neighborhood Cat · {cardNumber}
+          </Text>
+          {coarseAreaLabel ? (
+            <Text variant="caption" className="text-xs text-[#6E7085]">
+              📍 {coarseAreaLabel} · Exact location is never saved
+            </Text>
+          ) : null}
+        </View>
 
-              {cat.sightings.length > 1 ? (
-                <Button
-                  label="Unlink to New Card"
-                  size="sm"
-                  variant="secondary"
-                  loading={unlinkMutation.isPending}
-                  onPress={() => {
-                    handleUnlinkSighting(sighting).catch(() => {});
-                  }}
-                />
-              ) : null}
+        {/* 3. Three Outlined Pill Attribute Chips ("Черный / 10 месяцев / 14 кг" in Reference) */}
+        <View className="flex-row items-center justify-between gap-2.5">
+          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:bg-[#191A26]">
+            <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
+              {cardNumber}
+            </Text>
+            <Text className="text-[10px] font-semibold text-[#6E7085]">
+              Card #
+            </Text>
+          </View>
 
+          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:bg-[#191A26]">
+            <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
+              {formatNumber(cat.sighting_count)}×
+            </Text>
+            <Text className="text-[10px] font-semibold text-[#6E7085]">
+              Sightings
+            </Text>
+          </View>
+
+          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:bg-[#191A26]">
+            <Text
+              numberOfLines={1}
+              className="px-1 text-xs font-extrabold text-[#191A26] dark:text-white">
+              {formatShortLocalDate(cat.first_seen_at)}
+            </Text>
+            <Text className="text-[10px] font-semibold text-[#6E7085]">
+              First Seen
+            </Text>
+          </View>
+        </View>
+
+        {/* Inline Nickname Editor */}
+        {isEditingNickname ? (
+          <Card className="gap-3">
+            <Input
+              label="Cat Nickname"
+              placeholder={`Unnamed cat #${cat.card_number}`}
+              value={nicknameDraft}
+              onChangeText={(text) => {
+                setNicknameDraft(text);
+                setNicknameError(null);
+              }}
+              maxLength={30}
+              autoFocus
+              error={nicknameError ?? undefined}
+              hint="Up to 30 characters. Leave blank to reset."
+            />
+            <View className="flex-row gap-2.5">
               <Button
-                label="Delete Sighting"
+                label="Cancel"
                 size="sm"
-                variant="danger"
-                loading={deleteSightingMutation.isPending}
-                onPress={() => handleConfirmDeleteSighting(sighting)}
+                variant="ghost"
+                className="flex-1"
+                disabled={renameMutation.isPending}
+                onPress={() => {
+                  setIsEditingNickname(false);
+                  setNicknameError(null);
+                }}
+              />
+              <Button
+                label="Save"
+                size="sm"
+                className="flex-1"
+                loading={renameMutation.isPending}
+                onPress={() => {
+                  handleSaveNickname().catch(() => {});
+                }}
               />
             </View>
           </Card>
-        ))}
+        ) : null}
+
+        {/* 4. Discovery Stats ("Динамика" Dark Midnight-Ink Stat Tiles from Reference Bottom-Left Screen) */}
+        <Card className="gap-3">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-extrabold text-[#191A26] dark:text-white">
+              Discovery Dynamics
+            </Text>
+            <Text className="text-xs font-bold text-[#191A26] dark:text-[#F4A97B]">⌄</Text>
+          </View>
+          <View className="flex-row gap-3">
+            <StatTile
+              label="Sightings"
+              value={formatNumber(cat.sighting_count)}
+              unit={cat.sighting_count === 1 ? 'visit' : 'visits'}
+            />
+            <StatTile
+              label="Last Seen"
+              value={formatShortLocalDate(cat.last_seen_at)}
+            />
+          </View>
+        </Card>
+
+        {/* 5. Card Theme Selector */}
+        <Card className="gap-3">
+          <View className="flex-row items-center justify-between gap-2">
+            <View className="flex-1">
+              <Text variant="label">🎨 Card Theme</Text>
+              <Text variant="caption" className="text-xs">
+                Equipped: {equippedTheme.icon} {equippedTheme.name}
+              </Text>
+            </View>
+            <Button
+              label="Boutique"
+              size="sm"
+              variant="ghost"
+              onPress={() => router.push('/cosmetics' as never)}
+            />
+          </View>
+
+          <View className="flex-row flex-wrap gap-2">
+            {cardThemes.map((item) => {
+              const unlocked = isCosmeticUnlocked(item, unlockedSet);
+              const isEquipped = equippedTheme.id === item.id;
+              return (
+                <Pressable
+                  key={item.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.name} theme${
+                    isEquipped ? ', equipped' : unlocked ? '' : ', locked'
+                  }`}
+                  disabled={equipThemeMutation.isPending}
+                  onPress={() => {
+                    if (!unlocked) {
+                      router.push('/cosmetics' as never);
+                      return;
+                    }
+                    if (isEquipped) return;
+                    setActionError(null);
+                    equipThemeMutation
+                      .mutateAsync({ catId: cat.id, themeId: item.id })
+                      .catch((err) => {
+                        setActionError(
+                          err instanceof Error
+                            ? err.message
+                            : 'Could not equip card theme.'
+                        );
+                      });
+                  }}
+                  className={`flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] px-3 py-1.5 ${
+                    isEquipped
+                      ? 'bg-[#191A26]'
+                      : unlocked
+                        ? 'bg-[#FCE8D5]'
+                        : 'bg-white opacity-60'
+                  }`}>
+                  <Text className="text-sm">{unlocked ? item.icon : '🔒'}</Text>
+                  <Text
+                    variant="caption"
+                    className={`text-xs font-extrabold ${
+                      isEquipped ? 'text-white' : 'text-[#191A26]'
+                    }`}>
+                    {item.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Card>
+
+        {/* 6. Deep Midnight-Ink Bottom Section ("Прививки | Посещение врача" style in Reference Middle-Left Screen) */}
+        <View className="gap-3 rounded-[28px] bg-[#191A26] p-4">
+          {/* Opt-In Per-Card Share to Friends */}
+          <View className="flex-row items-center justify-between gap-3 rounded-pill border border-white/25 bg-[#232536] px-4 py-3">
+            <View className="flex-1">
+              <Text className="text-xs font-extrabold text-white">
+                🤝 Share Card with Friends
+              </Text>
+              <Text
+                numberOfLines={2}
+                className="mt-0.5 text-[11px] text-white/70">
+                {sharedSuccessNote ??
+                  'Shares photo & nickname to Friends Activity feed'}
+              </Text>
+            </View>
+            <Button
+              label={sharedSuccessNote ? 'Shared ✓' : 'Share Card'}
+              size="sm"
+              variant="primary"
+              loading={shareCardMutation.isPending}
+              onPress={() => {
+                setActionError(null);
+                setSharedSuccessNote(null);
+                shareCardMutation
+                  .mutateAsync(cat.id)
+                  .then(() => {
+                    setSharedSuccessNote(
+                      'Shared with your friends! They can see the photo and nickname in Activity.'
+                    );
+                  })
+                  .catch((err) => {
+                    setActionError(
+                      err instanceof Error
+                        ? err.message
+                        : 'Could not share cat card.'
+                    );
+                  });
+              }}
+            />
+          </View>
+
+          {/* Link to another existing cat */}
+          {otherCats.length > 0 ? (
+            <View className="gap-3 rounded-[22px] border border-white/25 bg-[#232536] px-4 py-3">
+              <View className="flex-row items-center justify-between gap-3">
+                <View className="flex-1">
+                  <Text className="text-xs font-extrabold text-white">
+                    🐾 Same Cat as Another Card?
+                  </Text>
+                  <Text className="mt-0.5 text-[11px] text-white/70">
+                    Link latest sighting to another card
+                  </Text>
+                </View>
+                <Button
+                  label={showLinkPicker ? 'Close' : "I've seen this cat before"}
+                  size="sm"
+                  variant="ghost"
+                  onPress={() => setShowLinkPicker((prev) => !prev)}
+                />
+              </View>
+
+              {showLinkPicker ? (
+                <View className="gap-2.5 pt-1">
+                  <Text className="text-xs font-semibold text-white/80">
+                    Tap an existing cat card to merge this sighting into it:
+                  </Text>
+                  {otherCats.map((other) => (
+                    <CatCard
+                      key={other.id}
+                      cat={other}
+                      onPress={(picked) => {
+                        handleMergeIntoCat(picked.id).catch(() => {});
+                      }}
+                    />
+                  ))}
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+        </View>
+
+        {actionError ? (
+          <Card className="border-danger bg-danger-muted py-3">
+            <Text variant="caption" className="font-semibold text-danger">
+              {actionError}
+            </Text>
+          </Card>
+        ) : null}
+
+        {/* 7. Sightings Timeline */}
+        <View className="gap-3">
+          <Text variant="label">
+            Sightings Timeline ({cat.sightings.length})
+          </Text>
+
+          {cat.sightings.map((sighting, index) => (
+            <Card key={sighting.id} className="gap-3 p-3.5">
+              <View className="flex-row items-center gap-3">
+                {sighting.imageUri ? (
+                  <Image
+                    source={{ uri: sighting.imageUri }}
+                    style={{ width: 72, height: 72, borderRadius: 14 }}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    accessibilityLabel={`Sighting ${cat.sightings.length - index} photo`}
+                    onError={() => {
+                      invalidateSignedSightingPhotoUrl(sighting.photo_path);
+                      refetch().catch(() => {});
+                    }}
+                  />
+                ) : (
+                  <View className="h-[72px] w-[72px] items-center justify-center rounded-xl bg-[#FCE8D5]">
+                    <Text className="text-2xl">🐱</Text>
+                  </View>
+                )}
+
+                <View className="flex-1 gap-1">
+                  <Text variant="body" className="font-extrabold">
+                    Sighting #{cat.sightings.length - index}
+                  </Text>
+                  <Text variant="caption" className="text-xs">
+                    {formatDateTime(sighting.taken_at)}
+                  </Text>
+                  {sighting.area_geohash ? (
+                    <Text variant="caption" className="text-xs">
+                      📍 {formatCoarseAreaLabel(sighting.area_geohash)}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+
+              <View className="flex-row flex-wrap items-center justify-end gap-2 border-t border-[#191A26]/15 pt-2.5">
+                {sighting.walk_id ? (
+                  <Button
+                    label="🥾 View Walk"
+                    size="sm"
+                    variant="ghost"
+                    onPress={() => {
+                      router.push(`/walk/${sighting.walk_id}`);
+                    }}
+                  />
+                ) : null}
+
+                {cat.sightings.length > 1 ? (
+                  <Button
+                    label="Unlink to New Card"
+                    size="sm"
+                    variant="secondary"
+                    loading={unlinkMutation.isPending}
+                    onPress={() => {
+                      handleUnlinkSighting(sighting).catch(() => {});
+                    }}
+                  />
+                ) : null}
+
+                <Button
+                  label="Delete Sighting"
+                  size="sm"
+                  variant="danger"
+                  loading={deleteSightingMutation.isPending}
+                  onPress={() => handleConfirmDeleteSighting(sighting)}
+                />
+              </View>
+            </Card>
+          ))}
+        </View>
       </View>
 
       <ReportModal

@@ -2,16 +2,16 @@ import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import {
   Button,
   Card,
   EmptyState,
   ErrorState,
+  GlassPill,
   ProgressStripBento,
   Screen,
-  SegmentedControl,
   StatTile,
   Text,
 } from '@/components/ui';
@@ -49,32 +49,104 @@ export default function CollectionScreen() {
     [cats]
   );
 
+  // Styled after the reference image's "Статьи" / "События" screen (midnight-ink header + 3 large overlapping circular badges + filter pill row + 2-col ink-outlined cards)
   const renderHeader = () => (
-    <View className="gap-4 pb-4 pt-2">
-      <View className="flex-row items-center justify-between">
-        <View>
-          <Text variant="label">Collector Album</Text>
-          <Text variant="title" className="mt-0.5 text-[28px] leading-8">
+    <View className="gap-4 pb-4">
+      {/* Midnight-Ink Top Header */}
+      <View className="-mx-4 bg-[#191A26] px-5 pb-12 pt-3">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-lg font-extrabold text-white">
             Cat Collection
           </Text>
-        </View>
-        <View className="flex-row items-center gap-2">
-          <Button
-            label="✨ Themes"
-            size="sm"
-            variant="secondary"
-            onPress={() => router.push('/cosmetics')}
-          />
-          <Button
-            label="📷 Spot"
-            size="sm"
-            variant="action"
-            onPress={() => router.push('/sighting/capture')}
-          />
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open Card Themes Boutique"
+              onPress={() => router.push('/cosmetics')}
+              className="rounded-pill border border-white/30 bg-[#252738] px-3 py-1">
+              <Text className="text-xs font-bold text-[#F4A97B]">✨ Themes</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Spot a Cat"
+              onPress={() => router.push('/sighting/capture')}
+              className="h-8 w-8 items-center justify-center rounded-pill border border-white/30 bg-[#F4A97B]">
+              <Text className="text-base font-extrabold text-[#191A26]">+</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
 
-      {/* Collector Progress Strip Bento */}
+      {/* 3 Overlapping Circular Category/Stat Badges ("Все | Собаки | Коты" in Reference) */}
+      <View className="-mt-11 flex-row items-center justify-around px-2">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`All Cats: ${headerStats.totalCats}`}
+          onPress={() => setSort('newest')}
+          className="items-center">
+          <View className="h-[74px] w-[74px] items-center justify-center rounded-pill border-[2.5px] border-[#191A26] bg-[#191A26] shadow-sm">
+            <View className="h-[62px] w-[62px] items-center justify-center rounded-pill border border-white/40">
+              <Text className="text-base font-extrabold text-white">
+                {formatNumber(headerStats.totalCats)}
+              </Text>
+              <Text className="text-[10px] font-bold text-white/80">Cats</Text>
+            </View>
+          </View>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Total Sightings: ${headerStats.totalSightings}`}
+          onPress={() => setSort('most_seen')}
+          className="items-center">
+          <View className="h-[74px] w-[74px] items-center justify-center rounded-pill border-[2.5px] border-[#191A26] bg-white shadow-sm">
+            <View className="h-[62px] w-[62px] items-center justify-center rounded-pill border border-[#191A26]">
+              <Text className="text-base font-extrabold text-[#191A26]">
+                {formatNumber(headerStats.totalSightings)}
+              </Text>
+              <Text className="text-[10px] font-bold text-[#6E7085]">Visits</Text>
+            </View>
+          </View>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Discovery Days: ${headerStats.discoveryDaysCount}`}
+          onPress={() => setSort('a_z')}
+          className="items-center">
+          <View className="h-[74px] w-[74px] items-center justify-center rounded-pill border-[2.5px] border-[#191A26] bg-white shadow-sm">
+            <View className="h-[62px] w-[62px] items-center justify-center rounded-pill border border-[#191A26]">
+              <Text className="text-base font-extrabold text-[#191A26]">
+                {formatNumber(headerStats.discoveryDaysCount)}
+              </Text>
+              <Text className="text-[10px] font-bold text-[#6E7085]">Days</Text>
+            </View>
+          </View>
+        </Pressable>
+      </View>
+
+      {/* Filter / Sort Pill Row with Warm Peach Search Circle ("🔍 | Все | Популярные | Рядом" in Reference) */}
+      {cats.length > 0 ? (
+        <View className="flex-row items-center gap-2 pt-1">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Spot new cat"
+            onPress={() => router.push('/sighting/capture')}
+            className="h-9 w-9 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#F4A97B]">
+            <Text className="text-xs font-extrabold text-[#191A26]">📷</Text>
+          </Pressable>
+          {SORT_OPTIONS.map((opt) => (
+            <GlassPill
+              key={opt.key}
+              label={opt.label}
+              active={sort === opt.key}
+              onPress={() => setSort(opt.key)}
+            />
+          ))}
+        </View>
+      ) : null}
+
+      {/* Collector Progress Strip */}
       <ProgressStripBento
         title="ALBUM MILESTONES"
         metrics={[
@@ -105,7 +177,7 @@ export default function CollectionScreen() {
         ]}
       />
 
-      {/* Header Stats */}
+      {/* Header Stat Tiles */}
       <View className="flex-row gap-2.5">
         <StatTile
           label="Total Cats"
@@ -153,7 +225,7 @@ export default function CollectionScreen() {
               return (
                 <View
                   key={item.id}
-                  className="flex-row items-center gap-3 rounded-card border border-border p-2.5 dark:border-border-dark">
+                  className="flex-row items-center gap-3 rounded-card border-[1.5px] border-[#191A26] p-2.5">
                   {item.imageUri ? (
                     <Image
                       source={{ uri: item.imageUri }}
@@ -163,20 +235,20 @@ export default function CollectionScreen() {
                       accessibilityLabel="Recent submission photo"
                     />
                   ) : (
-                    <View className="h-[52px] w-[52px] items-center justify-center rounded-xl bg-primary-muted dark:bg-surface-elevated-dark">
+                    <View className="h-[52px] w-[52px] items-center justify-center rounded-xl bg-[#FCE8D5]">
                       <Text className="text-xl">🐱</Text>
                     </View>
                   )}
 
                   <View className="flex-1 gap-0.5">
                     <View className="flex-row items-center justify-between gap-2">
-                      <Text variant="caption" className="font-semibold">
+                      <Text variant="caption" className="font-bold text-[#191A26]">
                         Submitted at {timeStr}
                       </Text>
-                      <View className="rounded-pill bg-primary/15 px-2 py-0.5">
+                      <View className="rounded-pill border border-[#191A26] bg-[#FCE8D5] px-2 py-0.5">
                         <Text
                           variant="caption"
-                          className="text-[11px] font-semibold text-text-primary dark:text-text-primary-dark">
+                          className="text-[11px] font-extrabold text-[#191A26]">
                           {copy.badgeLabel}
                         </Text>
                       </View>
@@ -204,16 +276,10 @@ export default function CollectionScreen() {
         </Card>
       ) : null}
 
-      {/* Charcoal Segmented Sort Control */}
       {cats.length > 0 ? (
-        <View className="gap-2">
-          <Text variant="label">Your Collector Cards ({cats.length})</Text>
-          <SegmentedControl
-            options={SORT_OPTIONS}
-            value={sort}
-            onChange={setSort}
-          />
-        </View>
+        <Text variant="label" className="pt-1 text-[#191A26] dark:text-white">
+          Your Collector Cards ({cats.length})
+        </Text>
       ) : null}
     </View>
   );

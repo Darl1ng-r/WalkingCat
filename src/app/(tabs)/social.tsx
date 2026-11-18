@@ -75,15 +75,15 @@ function getLeagueBadgeForRank(rank: number): {
   icon: string;
 } {
   if (rank === 1) {
-    return { label: 'Diamond', color: '#4F46E5', bg: '#EEF2FF', icon: '💎' };
+    return { label: 'Diamond', color: '#FFFFFF', bg: '#191A26', icon: '💎' };
   }
   if (rank === 2) {
-    return { label: 'Gold', color: '#B45309', bg: '#FEF3C7', icon: '🥇' };
+    return { label: 'Gold', color: '#191A26', bg: '#F4A97B', icon: '🥇' };
   }
   if (rank === 3) {
-    return { label: 'Silver', color: '#475569', bg: '#F1F5F9', icon: '🥈' };
+    return { label: 'Silver', color: '#191A26', bg: '#FCE8D5', icon: '🥈' };
   }
-  return { label: 'Bronze', color: '#9A3412', bg: '#FFEDD5', icon: '🛡️' };
+  return { label: 'Bronze', color: '#191A26', bg: '#FAF8F5', icon: '🛡️' };
 }
 
 export default function SocialScreen() {
@@ -168,37 +168,7 @@ export default function SocialScreen() {
 
   return (
     <Screen scroll contentContainerClassName="gap-4 pb-32 pt-2">
-      {/* 1. Six-Tier Pentagon League Shield Row (Reference Image 1 Top Header) */}
-      <LeagueEmblemRow
-        totalPoints={pawBalance}
-        showAllUnlocked={section === 'leaderboard'}
-      />
-
-      {/* 2. Bold Editorial League Title + Invite CTA */}
-      <View className="flex-row items-center justify-between gap-3">
-        <View>
-          <Text variant="title" className="text-[28px] leading-8">
-            {section === 'leaderboard'
-              ? 'Friend’s League'
-              : section === 'activity'
-                ? 'Clubhouse Feed'
-                : section === 'friends'
-                  ? 'Friends Circle'
-                  : 'Friend Requests'}
-          </Text>
-        </View>
-        <Button
-          label="🔗 Invite"
-          size="sm"
-          variant="secondary"
-          loading={createInviteMutation.isPending}
-          onPress={() => {
-            handleShareInviteLink().catch(() => {});
-          }}
-        />
-      </View>
-
-      {/* 3. Charcoal Segmented Pill Control (Reference Image 1) */}
+      {/* 1. Top Segmented Switcher ("Календарь | Трекеры" style in Reference Right-Column Screens) */}
       <SegmentedControl
         value={section}
         onChange={(next) => {
@@ -206,8 +176,8 @@ export default function SocialScreen() {
           setErrorMsg(null);
         }}
         options={[
-          { key: 'leaderboard', label: 'Friends League' },
-          { key: 'activity', label: 'Activity' },
+          { key: 'leaderboard', label: 'League' },
+          { key: 'activity', label: 'Events' },
           { key: 'friends', label: `Friends (${acceptedFriends.length})` },
           {
             key: 'requests',
@@ -217,9 +187,43 @@ export default function SocialScreen() {
         ]}
       />
 
+      {/* 2. Dark Midnight-Ink Filter Pill Bar ("Кто: [ Все ]" in Reference Right-Column Screen) */}
+      <View className="flex-row items-center justify-between gap-2.5">
+        <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
+          Who:
+        </Text>
+        <View className="flex-1 flex-row items-center justify-between rounded-pill bg-[#191A26] px-4 py-2">
+          <Text className="text-xs font-extrabold text-white">
+            {section === 'leaderboard'
+              ? 'All Friends League'
+              : section === 'activity'
+                ? 'Clubhouse Milestones'
+                : section === 'friends'
+                  ? 'Connected Walkers'
+                  : 'Pending Invites'}
+          </Text>
+          <Text className="text-xs font-bold text-[#F4A97B]">▾</Text>
+        </View>
+        <Button
+          label="🔗 Invite"
+          size="sm"
+          variant="primary"
+          loading={createInviteMutation.isPending}
+          onPress={() => {
+            handleShareInviteLink().catch(() => {});
+          }}
+        />
+      </View>
+
+      {/* 3. Circular Blob-Cat League Emblem Row */}
+      <LeagueEmblemRow
+        totalPoints={pawBalance}
+        showAllUnlocked={section === 'leaderboard'}
+      />
+
       {feedbackMsg ? (
-        <Card className="border-secondary/60 bg-secondary/10 py-2.5">
-          <Text variant="caption" className="font-semibold">
+        <Card elevated className="py-2.5">
+          <Text variant="caption" className="font-bold text-[#191A26]">
             {feedbackMsg}
           </Text>
         </Card>
@@ -233,10 +237,10 @@ export default function SocialScreen() {
         </Card>
       ) : null}
 
-      {/* SECTION 1: FRIENDS LEAGUE PODIUM & RANKINGS (Reference Image 1) */}
+      {/* SECTION 1: FRIENDS LEAGUE PODIUM & RANKINGS */}
       {section === 'leaderboard' ? (
         <View className="gap-4">
-          {/* "MY PROGRESS" 3-Bar Horizontal Bento Strip (Reference Image 1) */}
+          {/* 3-Pill Progress Strip */}
           <ProgressStripBento
             title="MY PROGRESS"
             metrics={[
@@ -277,18 +281,14 @@ export default function SocialScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Leaderboard metric ${m.label}`}
                   onPress={() => setMetric(m.key)}
-                  className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-pill border py-2 ${
-                    active
-                      ? 'border-charcoal bg-charcoal'
-                      : 'border-border bg-surface dark:border-border-dark dark:bg-surface-dark'
+                  className={`flex-1 flex-row items-center justify-center gap-1 rounded-pill border-[1.5px] border-[#191A26] py-2 ${
+                    active ? 'bg-[#191A26]' : 'bg-white'
                   }`}>
                   <Text className="text-xs">{m.emoji}</Text>
                   <Text
                     variant="caption"
-                    className={`text-xs font-bold ${
-                      active
-                        ? 'text-white'
-                        : 'text-text-primary dark:text-text-primary-dark'
+                    className={`text-xs font-extrabold ${
+                      active ? 'text-white' : 'text-[#191A26]'
                     }`}>
                     {m.shortLabel}
                   </Text>
@@ -311,7 +311,6 @@ export default function SocialScreen() {
             </Card>
           ) : (
             <>
-              {/* 3-Pillar Podium Bento Card (Reference Image 1 Left Screen) */}
               <LeaguePodium
                 periodLabel={
                   weekPeriod === 'this_week' ? 'This Week' : 'Last Week'
@@ -338,9 +337,18 @@ export default function SocialScreen() {
                 }}
               />
 
-              {/* Ranked List Card with League Sub-Badges & Floating "You #Rank" Pill (Reference Image 1 Right Screen) */}
+              {/* Warm Peach/Cream Tracker-Style Ranked List Card (Matching Reference Right-Column Cards) */}
               <View className="relative">
-                <Card className="gap-0 divide-y divide-border/60 overflow-hidden p-0 dark:divide-border-dark">
+                <Card elevated className="gap-2.5 p-3.5">
+                  <View className="flex-row items-center justify-between px-1">
+                    <Text className="text-xs font-extrabold uppercase tracking-wider text-[#191A26]">
+                      Weekly Standings
+                    </Text>
+                    <Text className="text-xs font-bold text-[#191A26]/70">
+                      {leaderboard.length} walkers ⌄
+                    </Text>
+                  </View>
+
                   {leaderboard.map((entry) => {
                     const name = entry.displayName || entry.username;
                     const initials = getInitials(
@@ -364,16 +372,23 @@ export default function SocialScreen() {
                             router.push(`/friend/${entry.userId}`);
                           }
                         }}
-                        className={`flex-row items-center gap-3.5 px-4 py-3.5 ${
-                          entry.isSelf ? 'bg-primary-muted/25' : ''
+                        className={`flex-row items-center gap-3 rounded-pill border-[1.5px] border-[#191A26] px-3.5 py-2.5 ${
+                          entry.isSelf ? 'bg-[#191A26]' : 'bg-white'
                         }`}>
-                        {/* Two-digit Rank Number */}
-                        <Text className="w-6 text-center text-xs font-bold text-text-secondary">
-                          {paddedRank}
-                        </Text>
+                        <View
+                          className={`h-7 w-7 items-center justify-center rounded-pill border border-[#191A26] ${
+                            entry.rank === 1
+                              ? 'bg-[#F4A97B]'
+                              : entry.isSelf
+                                ? 'bg-white'
+                                : 'bg-[#FCE8D5]'
+                          }`}>
+                          <Text className="text-[11px] font-extrabold text-[#191A26]">
+                            {paddedRank}
+                          </Text>
+                        </View>
 
-                        {/* Circular Illustrated Avatar */}
-                        <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-pill border border-border bg-primary-muted">
+                        <View className="h-10 w-10 items-center justify-center overflow-hidden rounded-pill border-[1.5px] border-[#191A26] bg-white">
                           {entry.avatarUrl ? (
                             <Image
                               source={{ uri: entry.avatarUrl }}
@@ -381,68 +396,67 @@ export default function SocialScreen() {
                               contentFit="cover"
                             />
                           ) : (
-                            <Text className="text-xs font-extrabold text-primary-dark">
+                            <Text className="text-xs font-extrabold text-[#191A26]">
                               {initials}
                             </Text>
                           )}
                         </View>
 
-                        {/* Name + League Tier Sub-Badge */}
                         <View className="flex-1">
                           <View className="flex-row items-center gap-1.5">
                             <Text
-                              variant="body"
                               numberOfLines={1}
-                              className="text-sm font-extrabold">
+                              className={`text-sm font-extrabold ${
+                                entry.isSelf ? 'text-white' : 'text-[#191A26]'
+                              }`}>
                               {name}
                             </Text>
                             {entry.isSelf ? (
-                              <View className="rounded-pill bg-primary px-2 py-0.5">
-                                <Text className="text-[9px] font-extrabold text-white">
+                              <View className="rounded-pill bg-[#F4A97B] px-2 py-0.5">
+                                <Text className="text-[9px] font-extrabold text-[#191A26]">
                                   YOU
                                 </Text>
                               </View>
                             ) : null}
                           </View>
 
-                          <View className="mt-1 flex-row items-center gap-1.5">
+                          <View className="mt-0.5 flex-row items-center gap-1.5">
                             <View
                               style={{ backgroundColor: tierBadge.bg }}
-                              className="flex-row items-center gap-1 rounded-pill px-2 py-0.5">
+                              className="flex-row items-center gap-1 rounded-pill border border-[#191A26] px-2 py-0.5">
                               <Text className="text-[9px]">{tierBadge.icon}</Text>
                               <Text
                                 style={{ color: tierBadge.color }}
-                                className="text-[10px] font-bold">
+                                className="text-[9px] font-extrabold">
                                 {tierBadge.label}
                               </Text>
                             </View>
-                            <Text variant="caption" className="text-[11px]">
+                            <Text
+                              className={`text-[11px] font-semibold ${
+                                entry.isSelf ? 'text-white/75' : 'text-[#6E7085]'
+                              }`}>
                               @{entry.username}
                             </Text>
                           </View>
                         </View>
 
-                        {/* Right Score + Orange Star Coin Badge */}
                         <View className="flex-row items-center gap-1.5">
-                          <Text className="text-sm font-extrabold text-text-primary dark:text-text-primary-dark">
+                          <Text
+                            className={`text-xs font-extrabold ${
+                              entry.isSelf ? 'text-[#F4A97B]' : 'text-[#191A26]'
+                            }`}>
                             {formatLeaderboardValue(metric, entry.value)}
                           </Text>
-                          <View className="h-4 w-4 items-center justify-center rounded-pill bg-[#E9806E]">
-                            <Text className="text-[9px] font-bold text-white">
-                              ★
-                            </Text>
-                          </View>
                         </View>
                       </Pressable>
                     );
                   })}
                 </Card>
 
-                {/* Floating "You #2 ↓" Pill Overlay (Reference Image 1 Bottom Center) */}
                 {selfEntry ? (
                   <View className="mt-3 items-center">
-                    <View className="flex-row items-center gap-2.5 rounded-pill border border-border bg-surface px-3.5 py-2 shadow-card dark:border-border-dark dark:bg-surface-dark">
-                      <View className="h-7 w-7 overflow-hidden rounded-pill bg-primary-muted">
+                    <View className="flex-row items-center gap-2.5 rounded-pill border-[1.5px] border-[#191A26] bg-white px-4 py-2">
+                      <View className="h-7 w-7 overflow-hidden rounded-pill border border-[#191A26] bg-[#FCE8D5]">
                         <Image
                           source={{
                             uri: selfEntry.avatarUrl || DEMO_AVATARS.mina,
@@ -451,16 +465,8 @@ export default function SocialScreen() {
                           contentFit="cover"
                         />
                       </View>
-                      <View>
-                        <Text className="text-xs font-extrabold leading-tight text-text-primary dark:text-text-primary-dark">
-                          You
-                        </Text>
-                        <Text className="text-[10px] font-bold leading-tight text-text-secondary">
-                          #{selfEntry.rank} in Gold League
-                        </Text>
-                      </View>
-                      <Text className="ml-1 text-xs font-extrabold text-text-secondary">
-                        ↑
+                      <Text className="text-xs font-extrabold text-[#191A26]">
+                        You · #{selfEntry.rank} in Gold League ↑
                       </Text>
                     </View>
                   </View>
@@ -512,7 +518,7 @@ export default function SocialScreen() {
             activityEvents.map((ev) => (
               <Card key={ev.id} className="gap-3 p-4">
                 <View className="flex-row items-start gap-3">
-                  <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-pill border border-border bg-primary-muted">
+                  <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-pill border-[1.5px] border-[#191A26] bg-[#FCE8D5]">
                     {ev.actor.avatar_url ? (
                       <Image
                         source={{ uri: ev.actor.avatar_url }}
@@ -525,7 +531,7 @@ export default function SocialScreen() {
                   </View>
 
                   <View className="flex-1 gap-0.5">
-                    <Text variant="body" className="font-bold">
+                    <Text variant="body" className="font-extrabold">
                       {ev.copy.headline}
                     </Text>
                     <Text variant="caption" className="text-xs">
@@ -547,7 +553,7 @@ export default function SocialScreen() {
                     className="p-1">
                     <Text
                       variant="caption"
-                      className="text-sm font-bold text-text-secondary dark:text-text-secondary-dark">
+                      className="text-sm font-bold text-[#191A26]">
                       ⋯
                     </Text>
                   </Pressable>
@@ -559,20 +565,19 @@ export default function SocialScreen() {
                       ev.copy.sharedCatCard?.themeId
                     );
                     return (
-                      <View
-                        className={`relative overflow-hidden rounded-2xl border p-1.5 ${sharedTheme.surfaceClass} ${sharedTheme.borderClass}`}>
+                      <View className="relative overflow-hidden rounded-2xl border-[1.5px] border-[#191A26] bg-[#FAF8F5] p-1.5">
                         <Image
                           source={{ uri: ev.sharedCatPhotoUrl }}
-                          style={{ width: '100%', height: 210, borderRadius: 14 }}
+                          style={{ width: '100%', height: 210, borderRadius: 12 }}
                           contentFit="cover"
                           cachePolicy="memory-disk"
                           accessibilityLabel="Shared cat card photo"
                         />
                         {sharedTheme.accentLabel ? (
-                          <View className="absolute bottom-3 left-3 rounded-pill bg-black/70 px-2.5 py-0.5">
+                          <View className="absolute bottom-3 left-3 rounded-pill border border-[#191A26] bg-[#FCE8D5] px-2.5 py-0.5">
                             <Text
                               variant="caption"
-                              className="text-[10px] font-semibold text-white">
+                              className="text-[10px] font-extrabold text-[#191A26]">
                               {sharedTheme.accentLabel}
                             </Text>
                           </View>
@@ -583,7 +588,7 @@ export default function SocialScreen() {
                 ) : null}
 
                 {/* Reactions Row (👏 🐾 ❤️ 🔥) */}
-                <View className="flex-row items-center gap-2 border-t border-border pt-2.5 dark:border-border-dark">
+                <View className="flex-row items-center gap-2 border-t border-[#191A26]/15 pt-2.5">
                   {REACTION_EMOJIS.map((emoji) => {
                     const found = ev.reactions.find((r) => r.emoji === emoji);
                     const count = found?.count ?? 0;
@@ -601,16 +606,14 @@ export default function SocialScreen() {
                             currentMyReaction: ev.myReaction,
                           });
                         }}
-                        className={`flex-row items-center gap-1 rounded-pill border px-3 py-1 ${
-                          active
-                            ? 'border-primary bg-primary-muted dark:bg-surface-elevated-dark'
-                            : 'border-border bg-background dark:border-border-dark dark:bg-background-dark'
+                        className={`flex-row items-center gap-1 rounded-pill border-[1.5px] border-[#191A26] px-3 py-1 ${
+                          active ? 'bg-[#F4A97B]' : 'bg-white'
                         }`}>
                         <Text className="text-sm">{emoji}</Text>
                         {count > 0 ? (
                           <Text
                             variant="caption"
-                            className="text-xs font-bold">
+                            className="text-xs font-extrabold text-[#191A26]">
                             {count}
                           </Text>
                         ) : null}
@@ -627,7 +630,7 @@ export default function SocialScreen() {
       {/* SECTION 3: FRIENDS, SEARCH & INVITES */}
       {section === 'friends' ? (
         <View className="gap-4">
-          <Card className="gap-3">
+          <Card elevated className="gap-3">
             <View className="flex-row items-center justify-between gap-3">
               <View className="flex-1">
                 <Text variant="label">🔗 Invite by Link or Code</Text>
@@ -691,9 +694,9 @@ export default function SocialScreen() {
                   {searchResults.map((user) => (
                     <View
                       key={user.id}
-                      className="flex-row items-center justify-between rounded-card border border-border p-2.5 dark:border-border-dark">
+                      className="flex-row items-center justify-between rounded-pill border-[1.5px] border-[#191A26] px-4 py-2.5">
                       <View className="flex-1">
-                        <Text variant="body" className="font-semibold">
+                        <Text variant="body" className="font-bold">
                           {user.display_name || user.username}
                         </Text>
                         <Text variant="caption" className="text-xs">
@@ -769,7 +772,7 @@ export default function SocialScreen() {
                     onPress={() => router.push(`/friend/${item.friend.id}`)}>
                     <Card className="flex-row items-center justify-between p-3.5">
                       <View className="flex-1 flex-row items-center gap-3">
-                        <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-pill border border-border bg-primary-muted">
+                        <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-pill border-[1.5px] border-[#191A26] bg-[#FCE8D5]">
                           {item.friend.avatar_url ? (
                             <Image
                               source={{ uri: item.friend.avatar_url }}
@@ -779,13 +782,13 @@ export default function SocialScreen() {
                           ) : (
                             <Text
                               variant="caption"
-                              className="font-bold text-primary-dark">
+                              className="font-extrabold text-[#191A26]">
                               {initials}
                             </Text>
                           )}
                         </View>
                         <View className="flex-1">
-                          <Text variant="body" className="font-bold">
+                          <Text variant="body" className="font-extrabold">
                             {name}
                           </Text>
                           <Text variant="caption" className="text-xs">
@@ -795,8 +798,8 @@ export default function SocialScreen() {
                       </View>
                       <Text
                         variant="caption"
-                        className="text-xs font-semibold text-primary">
-                        Profile →
+                        className="text-xs font-extrabold text-[#191A26] dark:text-[#F4A97B]">
+                        Profile ›
                       </Text>
                     </Card>
                   </Pressable>

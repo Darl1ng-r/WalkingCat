@@ -1,6 +1,8 @@
 import { Image } from 'expo-image';
 import { ScrollView, View } from 'react-native';
 
+import { Text } from './text';
+
 export interface LeagueTierInfo {
   id: 'bronze' | 'silver' | 'gold' | 'diamond' | 'emerald' | 'ruby';
   name: string;
@@ -14,103 +16,87 @@ export interface LeagueTierInfo {
 export const LEAGUE_TIERS: readonly LeagueTierInfo[] = [
   {
     id: 'bronze',
-    name: 'Bronze League',
+    name: 'Bronze',
     minPoints: 0,
-    primaryHex: '#F3A678',
-    secondaryHex: '#C76D3A',
-    borderHex: '#FAD1B5',
+    primaryHex: '#FCE8D5',
+    secondaryHex: '#F4A97B',
+    borderHex: '#191A26',
     motif: 'star',
   },
   {
     id: 'silver',
-    name: 'Silver League',
+    name: 'Silver',
     minPoints: 150,
-    primaryHex: '#D8DEE9',
-    secondaryHex: '#8E99AD',
-    borderHex: '#F1F5F9',
+    primaryHex: '#FFFFFF',
+    secondaryHex: '#E5E7EB',
+    borderHex: '#191A26',
     motif: 'swords',
   },
   {
     id: 'gold',
-    name: 'Gold League',
+    name: 'Gold',
     minPoints: 350,
-    primaryHex: '#FDE047',
-    secondaryHex: '#D97706',
-    borderHex: '#FEF08A',
+    primaryHex: '#F4A97B',
+    secondaryHex: '#E08B57',
+    borderHex: '#191A26',
     motif: 'sun',
   },
   {
     id: 'diamond',
-    name: 'Diamond League',
+    name: 'Diamond',
     minPoints: 700,
-    primaryHex: '#CBD5E1',
-    secondaryHex: '#64748B',
-    borderHex: '#F8FAFC',
+    primaryHex: '#191A26',
+    secondaryHex: '#2A2C3E',
+    borderHex: '#191A26',
     motif: 'gem',
   },
   {
     id: 'emerald',
-    name: 'Emerald League',
+    name: 'Emerald',
     minPoints: 1200,
-    primaryHex: '#5EEAD4',
-    secondaryHex: '#0D9488',
-    borderHex: '#CCFBF1',
+    primaryHex: '#FCE8D5',
+    secondaryHex: '#F4A97B',
+    borderHex: '#191A26',
     motif: 'rosette',
   },
   {
     id: 'ruby',
-    name: 'Ruby League',
+    name: 'Ruby',
     minPoints: 2000,
-    primaryHex: '#FDA4AF',
-    secondaryHex: '#E11D48',
-    borderHex: '#FFE4E6',
+    primaryHex: '#191A26',
+    secondaryHex: '#191A26',
+    borderHex: '#F4A97B',
     motif: 'crown',
   },
 ] as const;
 
-function buildPentagonEmblemSvg(
+function buildBlobCatCircleSvg(
   tier: LeagueTierInfo,
   unlocked: boolean,
   isCurrent: boolean
 ): string {
-  const fillStart = unlocked ? tier.primaryHex : '#E8ECF8';
-  const fillEnd = unlocked ? tier.secondaryHex : '#CBD5E8';
-  const strokeColor = unlocked ? tier.borderHex : '#D8E0F0';
-  const innerColor = unlocked ? '#FFFFFF' : '#94A3B8';
+  // Styled after the reference's top circular pet/cat category badges ("Все | Коты | Собаки")
+  const bgFill = isCurrent
+    ? '#191A26'
+    : unlocked
+      ? tier.primaryHex
+      : '#FFFFFF';
+  const catFill = isCurrent ? '#FFFFFF' : '#191A26';
+  const eyeRing = isCurrent ? '#191A26' : '#FFFFFF';
+  const accentRing = isCurrent ? '#F4A97B' : '#191A26';
 
-  const motifPath = !unlocked
-    ? `<rect x="31" y="36" width="18" height="14" rx="3" fill="${innerColor}" fill-opacity="0.75" />
-       <path d="M 35 36 V 31 C 35 28 45 28 45 31 V 36" stroke="${innerColor}" stroke-width="3" fill="none" stroke-opacity="0.75" />`
-    : tier.motif === 'star'
-      ? `<polygon points="40,22 44,33 56,33 46,40 50,52 40,45 30,52 34,40 24,33 36,33" fill="${innerColor}" fill-opacity="0.92" />`
-      : tier.motif === 'swords'
-        ? `<path d="M 28 26 L 52 50 M 52 26 L 28 50" stroke="${innerColor}" stroke-width="4" stroke-linecap="round" />
-           <circle cx="40" cy="38" r="5" fill="${innerColor}" />`
-        : tier.motif === 'sun'
-          ? `<polygon points="40,20 45,33 58,38 45,43 40,56 35,43 22,38 35,33" fill="${innerColor}" fill-opacity="0.95" />
-             <circle cx="40" cy="38" r="6" fill="${fillEnd}" />`
-          : tier.motif === 'gem'
-            ? `<polygon points="32,27 48,27 55,35 40,53 25,35" fill="${innerColor}" fill-opacity="0.9" />`
-            : tier.motif === 'rosette'
-              ? `<circle cx="40" cy="38" r="13" stroke="${innerColor}" stroke-width="3.5" fill="none" />
-                 <circle cx="40" cy="38" r="6" fill="${innerColor}" />`
-              : `<polygon points="26,46 29,29 40,37 51,29 54,46" fill="${innerColor}" fill-opacity="0.95" />`;
-
-  const glowRing = isCurrent
-    ? `<polygon points="40,4 74,27 61,68 19,68 6,27" fill="none" stroke="#7C66DC" stroke-width="2.5" stroke-opacity="0.55" />`
-    : '';
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="76" viewBox="0 0 80 76">
-    <defs>
-      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="${fillStart}" />
-        <stop offset="100%" stop-color="${fillEnd}" />
-      </linearGradient>
-    </defs>
-    ${glowRing}
-    <polygon points="40,8 70,29 58,64 22,64 10,29" fill="url(#g)" stroke="${strokeColor}" stroke-width="3.5" stroke-linejoin="round" />
-    <polygon points="40,14 63,31 54,58 26,58 17,31" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.5" stroke-linejoin="round" />
-    ${motifPath}
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="76" height="76" viewBox="0 0 76 76">
+    <circle cx="38" cy="38" r="34" fill="${bgFill}" stroke="${accentRing}" stroke-width="${isCurrent ? '3.5' : '2.5'}" />
+    <!-- Cat Ears -->
+    <path d="M 22 40 L 25 18 L 36 29 Z" fill="${catFill}" />
+    <path d="M 54 40 L 51 18 L 40 29 Z" fill="${catFill}" />
+    <!-- Cat Blob Head -->
+    <ellipse cx="38" cy="43" rx="18" ry="15" fill="${catFill}" />
+    <!-- Big Expressive Eyes -->
+    <circle cx="31" cy="42" r="4.5" fill="${eyeRing}" />
+    <circle cx="32" cy="42" r="2" fill="${catFill}" />
+    <circle cx="45" cy="42" r="4.5" fill="${eyeRing}" />
+    <circle cx="44" cy="42" r="2" fill="${catFill}" />
   </svg>`;
 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
@@ -142,24 +128,35 @@ export function LeagueEmblemRow({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerClassName="flex-row items-center justify-between gap-2.5 py-1">
+        contentContainerClassName="flex-row items-center justify-between gap-3 py-1">
         {LEAGUE_TIERS.map((tier) => {
           const unlocked = showAllUnlocked || totalPoints >= tier.minPoints;
           const isCurrent = tier.id === activeTier.id;
-          const uri = buildPentagonEmblemSvg(tier, unlocked, isCurrent);
+          const uri = buildBlobCatCircleSvg(tier, unlocked, isCurrent);
 
           return (
             <View
               key={tier.id}
-              accessibilityLabel={`${tier.name}${
+              accessibilityLabel={`${tier.name} League${
                 isCurrent ? ', current league' : unlocked ? ', unlocked' : ', locked'
               }`}
-              className="items-center">
+              className="items-center gap-1">
               <Image
                 source={{ uri }}
-                style={{ width: 52, height: 50 }}
+                style={{ width: 58, height: 58 }}
                 contentFit="contain"
               />
+              <View
+                className={`rounded-pill border border-[#191A26] px-2.5 py-0.5 ${
+                  isCurrent ? 'bg-[#191A26]' : 'bg-[#FCE8D5]'
+                }`}>
+                <Text
+                  className={`text-[10px] font-extrabold ${
+                    isCurrent ? 'text-white' : 'text-[#191A26]'
+                  }`}>
+                  {tier.name}
+                </Text>
+              </View>
             </View>
           );
         })}

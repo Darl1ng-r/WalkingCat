@@ -13,14 +13,14 @@ export function Card({
   ...props
 }: CardProps) {
   const bgClass = glass
-    ? 'bg-white/80 dark:bg-surface-dark/80 backdrop-blur-xl border-white/50 dark:border-white/10 shadow-sm'
+    ? 'bg-white/95 dark:bg-[#191A26]/95 border-[#191A26] dark:border-[#35384F]'
     : elevated
-      ? 'bg-surface-elevated dark:bg-surface-elevated-dark border-border/80 dark:border-border-dark'
-      : 'bg-surface dark:bg-surface-dark border-border/80 dark:border-border-dark shadow-sm';
+      ? 'bg-[#FCE8D5] dark:bg-[#232536] border-[#191A26] dark:border-[#35384F]'
+      : 'bg-white dark:bg-[#191A26] border-[#191A26] dark:border-[#35384F]';
 
   return (
     <View
-      className={`rounded-bento border p-4.5 ${bgClass} ${className}`.trim()}
+      className={`rounded-card border-[1.5px] p-4 ${bgClass} ${className}`.trim()}
       {...props}
     />
   );

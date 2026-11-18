@@ -12,8 +12,9 @@ export function makeWalkerAvatarDataUri(
   bgEnd: string,
   hairHex: string,
   shirtHex: string,
-  skinHex: string
+  _skinHex: string
 ): string {
+  // Styled after the reference's signature "Blobs" black-ink cat character with expressive white-ringed eyes & whiskers
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -21,33 +22,32 @@ export function makeWalkerAvatarDataUri(
         <stop offset="100%" stop-color="${bgEnd}" />
       </linearGradient>
     </defs>
-    <circle cx="80" cy="80" r="80" fill="url(#bg)" />
-    <!-- Hair back -->
-    <circle cx="80" cy="68" r="36" fill="${hairHex}" />
-    <!-- Shoulders / Shirt -->
-    <path d="M 28 160 C 28 118 132 118 132 160 Z" fill="${shirtHex}" />
-    <!-- Neck -->
-    <rect x="69" y="88" width="22" height="24" rx="10" fill="${skinHex}" />
-    <!-- Face -->
-    <circle cx="80" cy="72" r="27" fill="${skinHex}" />
-    <!-- Hair bangs -->
-    <path d="M 52 66 Q 66 42 92 48 Q 106 52 108 68 Q 92 54 74 58 Q 58 60 52 66 Z" fill="${hairHex}" />
-    <!-- Eyes & Smile -->
-    <circle cx="70" cy="72" r="3" fill="#1E2029" />
-    <circle cx="90" cy="72" r="3" fill="#1E2029" />
-    <circle cx="63" cy="79" r="4" fill="#F43F5E" fill-opacity="0.28" />
-    <circle cx="97" cy="79" r="4" fill="#F43F5E" fill-opacity="0.28" />
-    <path d="M 73 83 Q 80 89 87 83" stroke="#1E2029" stroke-width="2.6" stroke-linecap="round" fill="none" />
+    <circle cx="80" cy="80" r="76" fill="url(#bg)" stroke="#191A26" stroke-width="5" />
+    <!-- Pointed Cat Ears -->
+    <path d="M 40 84 L 46 32 L 74 58 Z" fill="${hairHex}" stroke="#191A26" stroke-width="3" stroke-linejoin="round" />
+    <path d="M 120 84 L 114 32 L 86 58 Z" fill="${hairHex}" stroke="#191A26" stroke-width="3" stroke-linejoin="round" />
+    <!-- Blob Cat Head & Body -->
+    <ellipse cx="80" cy="92" rx="44" ry="38" fill="${hairHex}" />
+    <path d="M 38 148 C 40 114 120 114 122 148 Z" fill="${ hairHex }" />
+    <!-- Expressive Big White-Ringed Eyes (Reference "Огурец" style) -->
+    <ellipse cx="64" cy="88" rx="11" ry="13" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+    <ellipse cx="66" cy="88" rx="5.5" ry="7.5" fill="#FFFFFF" />
+    <ellipse cx="96" cy="88" rx="11" ry="13" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+    <ellipse cx="94" cy="88" rx="5.5" ry="7.5" fill="#FFFFFF" />
+    <!-- Cute Whiskers & Accent Collar -->
+    <path d="M 24 92 Q 36 90 46 94 M 22 100 Q 35 99 46 101" stroke="#191A26" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    <path d="M 136 92 Q 124 90 114 94 M 138 100 Q 125 99 114 101" stroke="#191A26" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    <rect x="64" y="122" width="32" height="7" rx="3.5" fill="${shirtHex}" />
   </svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 export const DEMO_AVATARS = {
-  mina: makeWalkerAvatarDataUri('#EDE9FE', '#C4B5FD', '#312E81', '#7C66DC', '#F5CBA7'),
-  layla: makeWalkerAvatarDataUri('#FCE7F3', '#FBCFE8', '#4C1D95', '#EC4899', '#FDEBD0'),
-  tariq: makeWalkerAvatarDataUri('#DCFCE7', '#A7F3D0', '#1E293B', '#10B981', '#E59866'),
-  omar: makeWalkerAvatarDataUri('#FEF3C7', '#FDE68A', '#292524', '#F59E0B', '#D35400'),
-  nadia: makeWalkerAvatarDataUri('#E0F2FE', '#BAE6FD', '#3B0764', '#0284C7', '#F5CBA7'),
+  mina: makeWalkerAvatarDataUri('#FFFFFF', '#FAF8F5', '#191A26', '#F4A97B', '#F4A97B'),
+  layla: makeWalkerAvatarDataUri('#FCE8D5', '#F8C29F', '#191A26', '#FFFFFF', '#F4A97B'),
+  tariq: makeWalkerAvatarDataUri('#FFFFFF', '#F3EFEA', '#252738', '#F4A97B', '#F4A97B'),
+  omar: makeWalkerAvatarDataUri('#FCE8D5', '#FAF8F5', '#191A26', '#F4A97B', '#F4A97B'),
+  nadia: makeWalkerAvatarDataUri('#FFFFFF', '#FCE8D5', '#191A26', '#F4A97B', '#F4A97B'),
 } as const;
 
 export const DEMO_WALK_ROUTE: readonly { latitude: number; longitude: number }[] = [

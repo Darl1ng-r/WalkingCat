@@ -21,27 +21,27 @@ export function Input({
 }: InputProps) {
   const borderClass = error
     ? 'border-danger dark:border-danger-light'
-    : 'border-border dark:border-border-dark focus:border-primary';
+    : 'border-[#191A26] dark:border-[#FAF8F5]/40 focus:border-[#F4A97B]';
 
   return (
     <View className={`w-full ${containerClassName}`.trim()}>
       {label ? (
-        <Text variant="label" className="mb-1.5">
+        <Text variant="label" className="mb-1.5 px-1 text-[#191A26] dark:text-[#FAF8F5]">
           {label}
         </Text>
       ) : null}
       <RNTextInput
         accessibilityLabel={accessibilityLabel ?? label}
-        placeholderTextColor="#94A3B8"
-        className={`min-h-[48px] rounded-button border bg-surface px-4 py-3 text-base text-foreground dark:bg-surface-dark dark:text-foreground-dark ${borderClass} ${className}`.trim()}
+        placeholderTextColor="#8C8E9E"
+        className={`min-h-[48px] rounded-pill border-[1.5px] bg-white px-5 py-3 text-sm font-medium text-[#191A26] dark:bg-[#232536] dark:text-[#FAF8F5] ${borderClass} ${className}`.trim()}
         {...props}
       />
       {error ? (
-        <Text variant="caption" className="mt-1 text-danger dark:text-danger-light">
+        <Text variant="caption" className="mt-1 px-2 text-danger dark:text-danger-light">
           {error}
         </Text>
       ) : hint ? (
-        <Text variant="caption" className="mt-1">
+        <Text variant="caption" className="mt-1 px-2">
           {hint}
         </Text>
       ) : null}

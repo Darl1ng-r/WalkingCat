@@ -1,9 +1,11 @@
+import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
 
 import { Button, Card, Input, Screen, Text } from '@/components/ui';
 import { mapAuthError, signIn, signInSchema, useSession } from '@/features/auth';
+import { DEMO_AVATARS } from '@/lib/demo-data';
 import { isSupabaseConfigured } from '@/lib/env';
 
 export default function SignInScreen() {
@@ -42,29 +44,40 @@ export default function SignInScreen() {
   };
 
   return (
-    <Screen scroll contentContainerClassName="justify-center py-8">
+    <Screen scroll padded={false} contentContainerClassName="justify-between bg-white dark:bg-[#12131C] pb-0">
+      {/* Top Organic Wavy Midnight-Ink Header & Blob Cat Mascot (Matching Reference Top-Center Screen) */}
+      <View className="relative overflow-hidden bg-[#191A26] pb-12 pt-8">
+        <View className="px-6">
+          <View className="h-20 w-20 items-center justify-center overflow-hidden rounded-pill border-2 border-white bg-[#191A26]">
+            <Image
+              source={{ uri: DEMO_AVATARS.mina }}
+              style={{ width: 76, height: 76 }}
+              contentFit="contain"
+            />
+          </View>
+        </View>
+        <View className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[40px] bg-white dark:bg-[#12131C]" />
+      </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="w-full gap-6">
-        <View className="items-center">
-          <View className="mb-3 h-16 w-16 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
-            <Text className="text-3xl">🐾</Text>
-          </View>
-          <Text variant="title" className="text-center">
-            Welcome back
+        className="w-full flex-1 justify-center gap-5 px-6 py-4">
+        <View className="items-start">
+          <Text variant="title" className="text-[28px] font-extrabold text-[#191A26] dark:text-[#FAF8F5]">
+            Welcome back!
           </Text>
-          <Text variant="caption" className="mt-1 text-center">
-            Sign in to continue your walking adventure.
+          <Text variant="caption" className="mt-1 text-left text-xs leading-5 text-[#6E7085]">
+            We are happy to see you again. Enter your email and password to continue your walk.
           </Text>
         </View>
 
         {!isSupabaseConfigured ? (
-          <Card className="gap-3 border-primary/40 bg-primary-muted/40 dark:bg-surface-elevated-dark">
+          <Card elevated className="gap-3">
             <View>
-              <Text variant="label" className="text-primary-dark dark:text-primary-light">
+              <Text variant="label" className="text-[#191A26]">
                 ✨ Interactive Preview Mode Available
               </Text>
-              <Text variant="caption" className="mt-1">
+              <Text variant="caption" className="mt-1 text-[#191A26]/80">
                 Explore the full StrayCat Walk app with sample walks, cat cards, card themes,
                 cosmetics, challenges, and friends leaderboards—or connect `.env.local` for live
                 Supabase auth.
@@ -72,16 +85,17 @@ export default function SignInScreen() {
             </View>
             <Button
               label="✨ Enter Interactive Demo"
+              variant="ghost"
               size="sm"
               onPress={enterDemoMode}
             />
           </Card>
         ) : null}
 
-        <Card className="gap-4">
+        <View className="gap-3.5">
           {formError ? (
-            <View className="rounded-button bg-danger-muted p-3">
-              <Text variant="caption" className="text-danger">
+            <View className="rounded-card border-[1.5px] border-[#191A26] bg-danger-muted p-3">
+              <Text variant="caption" className="font-bold text-danger">
                 {formError}
               </Text>
             </View>
@@ -109,40 +123,48 @@ export default function SignInScreen() {
             error={fieldErrors.password}
           />
 
-          <View className="items-end">
+          <View className="items-center">
             <Link href="/(auth)/forgot-password" asChild>
               <Pressable
                 accessibilityRole="link"
                 accessibilityLabel="Forgot password"
-                className="min-h-[44px] justify-center px-1">
-                <Text variant="caption" className="font-semibold text-primary">
+                className="min-h-[36px] justify-center px-1">
+                <Text variant="caption" className="text-xs font-bold text-[#F4A97B]">
                   Forgot password?
                 </Text>
               </Pressable>
             </Link>
           </View>
 
+          {/* Warm Peach Primary Button ("Войти" in reference) */}
           <Button
             label="Sign In"
+            variant="primary"
             onPress={handleSubmit}
             loading={loading}
           />
-        </Card>
+        </View>
 
-        <View className="flex-row items-center justify-center gap-1">
-          <Text variant="caption">New to StrayCat Walk?</Text>
+        <View className="items-center gap-3 pt-1">
+          <Text variant="caption" className="text-xs font-semibold text-[#6E7085]">
+            New to StrayCat Walk?
+          </Text>
+          {/* Solid Midnight-Ink Button ("Создать аккаунт" in reference) */}
           <Link href="/(auth)/sign-up" asChild>
             <Pressable
               accessibilityRole="link"
               accessibilityLabel="Create an account"
-              className="min-h-[44px] justify-center px-2">
-              <Text variant="caption" className="font-semibold text-primary">
+              className="min-h-[48px] w-full items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] px-5 py-3">
+              <Text className="text-sm font-bold text-white">
                 Create an account
               </Text>
             </Pressable>
           </Link>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Bottom Organic Midnight-Ink Wave Accent */}
+      <View className="mt-6 h-10 w-full rounded-t-[36px] bg-[#191A26]" />
     </Screen>
   );
 }

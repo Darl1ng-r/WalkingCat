@@ -21,9 +21,10 @@ export function SegmentedControl<T extends string>({
   onChange,
   className = '',
 }: SegmentedControlProps<T>) {
+  // Styled directly after the "Календарь | Трекеры" pill switcher in the reference image
   return (
     <View
-      className={`flex-row rounded-2xl bg-[#ECEEF5] p-1 dark:bg-surface-elevated-dark ${className}`.trim()}>
+      className={`flex-row rounded-pill border-[1.5px] border-[#191A26] bg-white p-0.5 dark:border-[#FAF8F5]/40 dark:bg-[#232536] ${className}`.trim()}>
       {options.map((opt) => {
         const active = opt.key === value;
         return (
@@ -32,27 +33,28 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             onPress={() => onChange(opt.key)}
-            className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-2.5 px-3 ${
-              active ? 'bg-charcoal shadow-sm dark:bg-primary' : 'bg-transparent'
+            className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-pill px-3 py-2 ${
+              active ? 'bg-[#191A26] dark:bg-[#F4A97B]' : 'bg-transparent'
             }`}>
             <Text
               variant="caption"
-              className={`text-xs font-bold ${
+              numberOfLines={1}
+              className={`text-xs font-extrabold ${
                 active
-                  ? 'text-white'
-                  : 'text-muted dark:text-muted-dark'
+                  ? 'text-white dark:text-[#191A26]'
+                  : 'text-[#191A26] dark:text-[#FAF8F5]'
               }`}>
               {opt.label}
             </Text>
             {opt.badge && opt.badge > 0 ? (
               <View
                 className={`rounded-pill px-1.5 py-0.5 ${
-                  active ? 'bg-coral' : 'bg-coral/20'
+                  active ? 'bg-[#F4A97B] dark:bg-[#191A26]' : 'bg-[#FCE8D5]'
                 }`}>
                 <Text
                   variant="caption"
                   className={`text-[10px] font-extrabold ${
-                    active ? 'text-white' : 'text-coral-dark'
+                    active ? 'text-[#191A26] dark:text-white' : 'text-[#191A26]'
                   }`}>
                   {opt.badge}
                 </Text>

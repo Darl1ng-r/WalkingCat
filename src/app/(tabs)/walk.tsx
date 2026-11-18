@@ -4,9 +4,9 @@ import { Image } from 'expo-image';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, AppState, Platform, Pressable, ScrollView, View } from 'react-native';
+import { Alert, AppState, Platform, Pressable, View } from 'react-native';
 
-import { Button, Card, GlassPill, Screen, StatTile, Text } from '@/components/ui';
+import { Button, Card, Screen, StatTile, Text } from '@/components/ui';
 import { AppConfig } from '@/constants/config';
 import { useSession } from '@/features/auth';
 import {
@@ -34,6 +34,12 @@ import {
 } from '@/lib/analytics';
 import { DEMO_AVATARS, DEMO_WALK_ROUTE } from '@/lib/demo-data';
 import { formatDistance, formatDuration, formatNumber, formatPace } from '@/lib/format';
+
+const HEADER_COMPANIONS = [
+  { id: 'marmalade', name: 'Marmalade', uri: DEMO_AVATARS.mina, active: true },
+  { id: 'whiskers', name: 'Whiskers', uri: DEMO_AVATARS.layla, active: false },
+  { id: 'mochi', name: 'Mochi', uri: DEMO_AVATARS.tariq, active: false },
+] as const;
 
 export default function WalkScreen() {
   const queryClient = useQueryClient();
@@ -70,7 +76,7 @@ export default function WalkScreen() {
   const [showPermissionExplainer, setShowPermissionExplainer] = useState(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [keepAwakeEnabled, setKeepAwakeEnabled] = useState(true);
-  const [mapFilter, setMapFilter] = useState<'all' | 'live' | 'sightings' | 'street'>('all');
+  const [mapFilter, setMapFilter] = useState<'all' | 'live' | 'sightings' | 'street'>('street');
 
   useEffect(() => {
     checkCrashRecovery();
@@ -339,7 +345,7 @@ export default function WalkScreen() {
     );
   }
 
-  // 2. Active or Paused Walk Screen
+  // 2. Active or Paused Walk Screen (Styled after the Reference "GPS" screen)
   if (status === 'active' || status === 'paused' || status === 'finishing') {
     const { movingTimeSeconds } = startedAt
       ? computeDurations(startedAt, nowMs, pauseIntervals)
@@ -355,66 +361,84 @@ export default function WalkScreen() {
 
     return (
       <Screen scroll padded={false} contentContainerClassName="pb-32">
-        {/* Full-bleed live map header */}
+        {/* Midnight-Ink Top Header ("< GPS ⋮") from Reference Middle-Right Screen */}
+        <View className="bg-[#191A26] px-5 pb-8 pt-3">
+          <View className="flex-row items-center justify-between">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View Walk History"
+              onPress={() => router.push('/history')}
+              className="h-9 w-9 items-center justify-center rounded-pill">
+              <Text className="text-lg font-bold text-white">‹</Text>
+            </Pressable>
+            <Text className="text-base font-extrabold text-white">
+              GPS · {formatDuration(movingTimeSeconds)}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Toggle screen awake"
+              onPress={() => setKeepAwakeEnabled((prev) => !prev)}
+              className="h-9 items-center justify-center rounded-pill px-2">
+              <Text className="text-xs font-bold text-[#F4A97B]">
+                {keepAwakeEnabled ? 'Awake' : 'Sleep'}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Overlapping Circular Cat/Walker Avatars + Live Map */}
         <View className="relative">
+          <View className="-mt-6 z-30 flex-row items-center justify-around px-6 pb-2">
+            {HEADER_COMPANIONS.map((item) => (
+              <Pressable
+                key={item.id}
+                onPress={() =>
+                  setMapFilter((prev) => (prev === 'street' ? 'all' : 'street'))
+                }
+                className="items-center">
+                <View className="h-14 w-14 overflow-hidden rounded-pill border-2 border-[#191A26] bg-white">
+                  <Image
+                    source={{ uri: item.uri }}
+                    style={{ width: '100%', height: '100%' }}
+                    contentFit="cover"
+                  />
+                </View>
+                <View
+                  className={`mt-1 rounded-pill px-2.5 py-0.5 ${
+                    item.active ? 'bg-[#F4A97B]' : 'bg-[#191A26]'
+                  }`}>
+                  <Text
+                    className={`text-[10px] font-extrabold ${
+                      item.active ? 'text-[#191A26]' : 'text-white'
+                    }`}>
+                    {item.name}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+
           <RouteMap
             coordinates={routePoints.length >= 2 ? routePoints : DEMO_WALK_ROUTE}
             showUserLocation
             borderless
             mapStyle={mapFilter === 'street' ? 'street' : 'satellite'}
-            height={360}
+            height={300}
           />
-
-          {/* Top Floating Glass Filter Pills (Reference Image 2) */}
-          <View className="absolute left-4 right-4 top-3 z-30 flex-row items-center gap-2">
-            <GlassPill
-              label="Live Route"
-              badgeCount={routePoints.length || DEMO_WALK_ROUTE.length}
-              active={mapFilter !== 'street'}
-              onPress={() => setMapFilter('live')}
-            />
-            <GlassPill
-              label="Street Map"
-              active={mapFilter === 'street'}
-              onPress={() =>
-                setMapFilter((prev) => (prev === 'street' ? 'all' : 'street'))
-              }
-            />
-            <GlassPill
-              label={keepAwakeEnabled ? 'Awake ON' : 'Awake OFF'}
-              onPress={() => setKeepAwakeEnabled((prev) => !prev)}
-            />
-          </View>
         </View>
 
-        {/* Rounded White Bottom Sheet Card */}
-        <View className="-mt-7 gap-4 rounded-t-[32px] bg-surface px-5 pt-6 shadow-bento dark:bg-surface-dark">
+        {/* Bottom Sheet ("Динамика" style from Reference GPS Screen) */}
+        <View className="-mt-5 gap-4 rounded-t-[28px] border-t-[1.5px] border-[#191A26] bg-white px-5 pt-5 dark:bg-[#191A26]">
           <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-2">
-              <View className="h-3 w-3 rounded-pill bg-[#58B957]" />
-              <Text variant="label" className="text-[#58B957]">
-                {status === 'paused' ? 'Walk Paused' : 'Live GPS Tracking'}
-              </Text>
-            </View>
-            <View className="rounded-pill bg-[#E8F7E8] px-3 py-1">
-              <Text className="text-xs font-extrabold text-[#3E963D]">
-                +45 Paw Pts
-              </Text>
-            </View>
-          </View>
-
-          <View className="flex-row items-baseline justify-between">
-            <Text className="text-4xl font-extrabold tracking-tight text-text-primary dark:text-text-primary-dark">
-              {formatDuration(movingTimeSeconds)}
+            <Text className="text-base font-extrabold text-[#191A26] dark:text-white">
+              {status === 'paused' ? 'Walk Paused' : 'Dynamics & Pace'}
             </Text>
-            <Text variant="caption" className="font-semibold">
-              {formatDistance(distanceMeters)} walked
-            </Text>
+            <Text className="text-sm font-bold text-[#191A26] dark:text-[#F4A97B]">⌄</Text>
           </View>
 
           {isWeakGps ? (
-            <Card className="border-primary/50 bg-primary-muted/60 py-2.5">
-              <Text variant="caption" className="font-semibold text-primary-dark">
+            <Card elevated className="py-2.5">
+              <Text variant="caption" className="font-bold text-[#191A26]">
                 📡 Weak GPS signal — waiting for a clear sky fix…
               </Text>
             </Card>
@@ -449,11 +473,11 @@ export default function WalkScreen() {
             }
           />
 
-          <View className="mt-1 flex-row gap-3">
+          <View className="flex-row gap-3">
             {status === 'active' ? (
               <Button
                 label="Pause"
-                variant="secondary"
+                variant="ghost"
                 className="flex-1"
                 onPress={pauseWalk}
               />
@@ -486,119 +510,106 @@ export default function WalkScreen() {
     );
   }
 
-  // 3. Idle Screen — Styled Directly After Reference Image 2 (Live Map + Glass Filter Bar + Bottom Sheet Challenge Card)
+  // 3. Idle Screen — Styled Directly After the Reference Middle-Right "GPS" Screen
   return (
     <Screen scroll padded={false} contentContainerClassName="pb-32">
-      {/* Top Interactive Map Viewport with Walked Path & Cat Pins */}
+      {/* Midnight-Ink Top Header ("< GPS ⋮") */}
+      <View className="bg-[#191A26] px-5 pb-9 pt-3">
+        <View className="flex-row items-center justify-between">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View Walk History"
+            onPress={() => router.push('/history')}
+            className="h-9 w-9 items-center justify-center rounded-pill">
+            <Text className="text-xl font-bold text-white">‹</Text>
+          </Pressable>
+          <Text className="text-base font-extrabold tracking-wide text-white">
+            GPS
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Toggle map style"
+            onPress={() =>
+              setMapFilter((prev) => (prev === 'street' ? 'all' : 'street'))
+            }
+            className="h-9 w-9 items-center justify-center rounded-pill">
+            <Text className="text-base font-extrabold text-white">⋮</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Overlapping Circular Blob-Cat Avatars ("Огурец | Бублик | Пиксик" in Reference) + Map */}
       <View className="relative">
+        <View
+          style={{ zIndex: 30 }}
+          className="-mt-7 flex-row items-center justify-around px-6 pb-2">
+          {HEADER_COMPANIONS.map((item) => (
+            <Pressable
+              key={item.id}
+              accessibilityRole="button"
+              accessibilityLabel={`Filter route by ${item.name}`}
+              onPress={() => router.push('/collection')}
+              className="items-center">
+              <View className="h-16 w-16 overflow-hidden rounded-pill border-2 border-[#191A26] bg-white shadow-sm">
+                <Image
+                  source={{ uri: item.uri }}
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit="cover"
+                />
+              </View>
+              <Text
+                className={`mt-1 text-xs font-extrabold ${
+                  item.active ? 'text-[#F4A97B]' : 'text-[#191A26]'
+                }`}>
+                {item.name}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
         <RouteMap
           coordinates={DEMO_WALK_ROUTE}
           borderless
           mapStyle={mapFilter === 'street' ? 'street' : 'satellite'}
           showSightingPins={mapFilter !== 'live'}
-          height={370}
+          height={310}
         />
-
-        {/* Top Floating Glass Filter Pills (Reference Image 2) */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerClassName="gap-2 px-4"
-          className="absolute left-0 right-0 top-3 z-30">
-          <GlassPill
-            label="All"
-            active={mapFilter === 'all'}
-            onPress={() => setMapFilter('all')}
-          />
-          <GlassPill
-            label="Live Route"
-            badgeCount={98}
-            active={mapFilter === 'live'}
-            onPress={() => setMapFilter('live')}
-          />
-          <GlassPill
-            label="Cat Spots"
-            badgeCount={8}
-            active={mapFilter === 'sightings'}
-            onPress={() => setMapFilter('sightings')}
-          />
-          <GlassPill
-            label={mapFilter === 'street' ? 'Satellite' : 'Street Map'}
-            active={mapFilter === 'street'}
-            onPress={() =>
-              setMapFilter((prev) => (prev === 'street' ? 'all' : 'street'))
-            }
-          />
-        </ScrollView>
       </View>
 
-      {/* Overlapping White Bottom Sheet Card (Reference Image 2 Center Screen) */}
-      <View className="-mt-8 gap-4 rounded-t-[32px] bg-surface px-6 pt-6 shadow-bento dark:bg-surface-dark">
-        {/* Top Row: Target Challenge Badge + Stacked Walker Avatars (+23) */}
+      {/* Bottom Sheet ("Динамика" Card with Two Dark Midnight-Ink Stat Tiles from Reference) */}
+      <View className="-mt-5 gap-4 rounded-t-[28px] border-t-[1.5px] border-[#191A26] bg-white px-5 pt-5 dark:bg-[#191A26]">
         <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">
-            <View className="h-8 w-8 items-center justify-center rounded-pill bg-[#E8F7E8]">
-              <Text className="text-base">🎯</Text>
-            </View>
-            <Text className="text-sm font-bold text-text-primary dark:text-text-primary-dark">
-              Challenge Route
+          <Text className="text-base font-extrabold text-[#191A26] dark:text-white">
+            Dynamics
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View Walk History"
+            onPress={() => router.push('/history')}>
+            <Text className="text-xs font-extrabold text-[#191A26] dark:text-[#F4A97B]">
+              History ⌄
             </Text>
-          </View>
-
-          <View className="flex-row items-center">
-            {[DEMO_AVATARS.mina, DEMO_AVATARS.tariq, DEMO_AVATARS.layla].map(
-              (uri, idx) => (
-                <View
-                  key={uri}
-                  style={{ marginLeft: idx === 0 ? 0 : -10 }}
-                  className="h-8 w-8 overflow-hidden rounded-pill border-2 border-white bg-primary-muted">
-                  <Image
-                    source={{ uri }}
-                    style={{ width: '100%', height: '100%' }}
-                    contentFit="cover"
-                  />
-                </View>
-              )
-            )}
-            <View
-              style={{ marginLeft: -8 }}
-              className="h-8 items-center justify-center rounded-pill border-2 border-white bg-[#58B957] px-2.5">
-              <Text className="text-xs font-extrabold text-white">+23</Text>
-            </View>
-          </View>
+          </Pressable>
         </View>
 
-        {/* Bold Editorial Title */}
-        <Text className="text-[26px] font-extrabold leading-[32px] tracking-tight text-text-primary dark:text-text-primary-dark">
-          Sunset Cat Patrol: Discover Your Next Favorite Spot
-        </Text>
-
-        {/* Reward Pills (+120 XP & +65 Gold / Paw Points) */}
-        <View className="flex-row items-center gap-3">
-          <View className="flex-row items-center gap-1.5 rounded-pill bg-[#E8F7E8] px-3 py-1.5">
-            <View className="h-5 w-5 items-center justify-center rounded-pill bg-[#58B957]">
-              <Text className="text-[10px] font-bold text-white">★</Text>
-            </View>
-            <Text className="text-xs font-extrabold text-[#181A22]">+120 XP</Text>
-          </View>
-
-          <View className="flex-row items-center gap-1.5 rounded-pill bg-[#EEFBF0] px-3 py-1.5">
-            <View className="h-5 w-5 items-center justify-center rounded-pill bg-[#58B957]">
-              <Text className="text-[10px] font-extrabold text-white">🐾</Text>
-            </View>
-            <Text className="text-xs font-extrabold text-[#181A22]">+65 Paw Pts</Text>
-          </View>
+        {/* Two Side-by-Side Dark Midnight-Ink Tiles ("123 мм. рт. ст." | "12 км/ч" in Reference) */}
+        <View className="flex-row gap-3">
+          <StatTile
+            label="Target Distance"
+            value="3.2 km"
+            unit="+65 Paw Pts"
+            accentColor="secondary"
+          />
+          <StatTile
+            label="Target Speed"
+            value="4.8 km/h"
+            unit="+120 XP"
+            accentColor="primary"
+          />
         </View>
-
-        {/* Description Copy */}
-        <Text variant="caption" className="text-[13px] leading-5 text-text-secondary">
-          Explore sunlit neighborhood stoops and garden paths right from the live map. Complete
-          your daily loop to earn +120 XP along with +65 Paw Points, and spot local cats to unlock
-          rare collector cards!
-        </Text>
 
         {recoverableWalk ? (
-          <Card className="gap-3 border-primary bg-primary-muted/30">
+          <Card elevated className="gap-3">
             <Text variant="heading">Resume your unfinished walk?</Text>
             <Text variant="caption">
               We found an active walk from{' '}
@@ -630,7 +641,7 @@ export default function WalkScreen() {
         ) : null}
 
         {pendingUploadCount > 0 ? (
-          <Card className="flex-row items-center justify-between bg-background">
+          <Card className="flex-row items-center justify-between">
             <View className="flex-1 pr-2">
               <Text variant="body" className="font-semibold">
                 {pendingUploadCount} walk{pendingUploadCount > 1 ? 's' : ''} waiting to upload
@@ -649,7 +660,7 @@ export default function WalkScreen() {
         ) : null}
 
         {showPermissionExplainer ? (
-          <Card className="gap-4 bg-background p-5">
+          <Card elevated className="gap-4 p-5">
             <Text variant="heading">📍 How we use your location</Text>
             <Text variant="caption" className="leading-5">
               We only use GPS while a walk is actively running so we can measure your distance and
@@ -670,8 +681,8 @@ export default function WalkScreen() {
         ) : (
           <>
             {permissionError ? (
-              <View className="w-full gap-2 rounded-card bg-danger-muted p-3">
-                <Text variant="caption" className="text-center text-danger">
+              <View className="w-full gap-2 rounded-card border-[1.5px] border-[#191A26] bg-danger-muted p-3">
+                <Text variant="caption" className="text-center font-bold text-danger">
                   {permissionError}
                 </Text>
                 <Button
@@ -683,51 +694,16 @@ export default function WalkScreen() {
               </View>
             ) : null}
 
-            {/* Green Pill CTA Button with White Play Circle (Reference Image 2) */}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Start Walk"
-              disabled={status === 'requestingPermission'}
+            {/* Warm Peach Primary Pill CTA (#F4A97B with #191A26 border) */}
+            <Button
+              label={status === 'requestingPermission' ? 'Starting…' : 'Start Walk'}
+              variant="primary"
+              size="lg"
+              loading={status === 'requestingPermission'}
               onPress={handleStartWalkPress}
-              className="mt-1 flex-row items-center justify-center gap-2.5 rounded-pill bg-[#58B957] py-4 shadow-md active:opacity-90">
-              <View className="h-6 w-6 items-center justify-center rounded-pill bg-white">
-                <Text className="ml-0.5 text-[10px] font-extrabold text-[#58B957]">▶</Text>
-              </View>
-              <Text className="text-base font-bold text-white">
-                {status === 'requestingPermission' ? 'Starting…' : 'Start Walk'}
-              </Text>
-            </Pressable>
+            />
           </>
         )}
-
-        {/* Creator / Route Host Footer Row (Reference Image 2 bottom of sheet) */}
-        <View className="mt-1 flex-row items-center justify-between border-t border-border/60 pt-4">
-          <View className="flex-row items-center gap-3">
-            <View className="h-11 w-11 overflow-hidden rounded-pill border border-border bg-primary-muted">
-              <Image
-                source={{ uri: DEMO_AVATARS.mina }}
-                style={{ width: '100%', height: '100%' }}
-                contentFit="cover"
-              />
-            </View>
-            <View>
-              <Text className="text-[11px] font-semibold text-text-muted">
-                Route curated by
-              </Text>
-              <Text className="text-sm font-extrabold text-text-primary dark:text-text-primary-dark">
-                {profile?.display_name || 'Mina Park'}
-              </Text>
-            </View>
-          </View>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="View Walk History"
-            onPress={() => router.push('/history')}
-            className="flex-row items-center gap-1.5 rounded-pill border border-border bg-background px-3.5 py-2 active:opacity-80">
-            <Text className="text-xs font-bold text-text-primary">📜 History</Text>
-          </Pressable>
-        </View>
       </View>
     </Screen>
   );

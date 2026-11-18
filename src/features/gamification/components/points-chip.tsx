@@ -27,19 +27,21 @@ export function PointsChip({ onPress }: PointsChipProps) {
           router.push('/challenges');
         }
       }}
-      className="flex-row items-center gap-2 rounded-pill border border-primary/30 bg-primary-muted px-3.5 py-1.5 active:opacity-80 dark:bg-surface-elevated-dark">
-      <Text className="text-sm">⭐</Text>
-      <View className="flex-row items-center gap-1.5">
+      className="flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] bg-[#FCE8D5] px-3 py-1 active:opacity-80">
+      <View className="h-5 w-5 items-center justify-center rounded-pill bg-[#F4A97B]">
+        <Text className="text-[10px]">🐾</Text>
+      </View>
+      <View className="flex-row items-center gap-1">
         <Text
           variant="caption"
-          className="font-bold text-primary-dark dark:text-primary-light">
+          className="text-xs font-extrabold text-[#191A26]">
           {formatNumber(total)} pts
         </Text>
         {week > 0 ? (
           <Text
             variant="caption"
-            className="text-xs text-text-secondary dark:text-text-secondary-dark">
-            · +{formatNumber(week)} this wk
+            className="text-[10px] font-bold text-[#191A26]/70">
+            · +{formatNumber(week)}
           </Text>
         ) : null}
       </View>

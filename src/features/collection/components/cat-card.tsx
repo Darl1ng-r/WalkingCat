@@ -45,6 +45,7 @@ export function CatCard({
   const firstSeenStr = formatShortDate(cat.first_seen_at);
   const theme = getCardThemeTokens(cat.theme_id);
 
+  // Styled after the reference image's "Статьи" 2-column crisp ink-outlined white cards
   return (
     <Animated.View
       entering={
@@ -59,14 +60,14 @@ export function CatCard({
           cat.sighting_count === 1 ? 'sighting' : 'sightings'
         }`}
         onPress={() => onPress?.(cat)}
-        className={`overflow-hidden rounded-bento border p-2.5 shadow-card transition-all active:scale-[0.98] ${theme.surfaceClass} ${
-          selected ? 'border-2 border-primary' : theme.borderClass
+        className={`overflow-hidden rounded-[22px] border-[1.5px] border-[#191A26] bg-white p-2.5 transition-all active:scale-[0.98] dark:border-[#35384F] dark:bg-[#191A26] ${
+          selected ? 'bg-[#FCE8D5]' : ''
         }`}>
-        <View className="relative overflow-hidden rounded-[20px] bg-primary-muted dark:bg-surface-elevated-dark">
+        <View className="relative overflow-hidden rounded-[16px] border border-[#191A26]/15 bg-[#FAF8F5]">
           {cat.coverUrl ? (
             <Image
               source={{ uri: cat.coverUrl }}
-              style={{ width: '100%', height: 176 }}
+              style={{ width: '100%', height: 156 }}
               contentFit="cover"
               cachePolicy="memory-disk"
               transition={reducedMotion ? 0 : 180}
@@ -80,55 +81,53 @@ export function CatCard({
             />
           ) : (
             <View
-              style={{ height: 176 }}
+              style={{ height: 156 }}
               className="items-center justify-center">
               <Text className="text-4xl">🐱</Text>
             </View>
           )}
 
-          {/* Frosted Dark-Glass Card Number Badge (#001) */}
-          <View
-            style={{ backgroundColor: 'rgba(24, 26, 34, 0.76)' }}
-            className="absolute left-2.5 top-2.5 rounded-pill border border-white/25 px-2.5 py-0.5">
+          {/* Midnight-Ink Card Number Badge (#001) */}
+          <View className="absolute left-2 top-2 rounded-pill border border-white/30 bg-[#191A26] px-2.5 py-0.5">
             <Text
               variant="caption"
-              className="text-[11px] font-extrabold text-white">
+              className="text-[10px] font-extrabold text-white">
               {cardNumber}
             </Text>
           </View>
 
-          {/* Sighting Count Badge */}
-          <View
-            className={`absolute right-2.5 top-2.5 rounded-pill px-2.5 py-0.5 shadow-sm ${theme.badgeClass}`}>
+          {/* Warm Peach Sighting Count Badge */}
+          <View className="absolute right-2 top-2 rounded-pill border border-[#191A26] bg-[#F4A97B] px-2 py-0.5">
             <Text
               variant="caption"
-              className="text-[11px] font-extrabold text-white">
+              className="text-[10px] font-extrabold text-[#191A26]">
               🐾 {cat.sighting_count}×
             </Text>
           </View>
 
           {/* Optional Edition / Foil Pill */}
           {theme.accentLabel ? (
-            <View
-              style={{ backgroundColor: 'rgba(24, 26, 34, 0.78)' }}
-              className="absolute bottom-2.5 left-2.5 rounded-pill border border-white/25 px-2.5 py-0.5">
+            <View className="absolute bottom-2 left-2 rounded-pill border border-[#191A26] bg-white px-2 py-0.5">
               <Text
                 variant="caption"
-                className="text-[10px] font-bold text-white">
+                className="text-[9px] font-extrabold text-[#191A26]">
                 {theme.accentLabel}
               </Text>
             </View>
           ) : null}
         </View>
 
-        <View className="mt-3 gap-0.5 px-1 pb-1">
+        <View className="mt-2.5 gap-0.5 px-1 pb-0.5">
           <Text
             variant="body"
             numberOfLines={1}
-            className="text-base font-extrabold tracking-tight text-text-primary dark:text-text-primary-dark">
+            className="text-sm font-extrabold tracking-tight text-[#191A26] dark:text-white">
             {displayName}
           </Text>
-          <Text variant="caption" numberOfLines={1} className="text-[11px] font-medium">
+          <Text
+            variant="caption"
+            numberOfLines={1}
+            className="text-[11px] font-medium text-[#6E7085]">
             Spotted {firstSeenStr}
           </Text>
         </View>

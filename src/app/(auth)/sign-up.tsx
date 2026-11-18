@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -11,6 +12,7 @@ import {
 import { Button, Card, Input, Screen, Text } from '@/components/ui';
 import { AppConfig } from '@/constants/config';
 import { mapAuthError, signUp, signUpSchema } from '@/features/auth';
+import { DEMO_AVATARS } from '@/lib/demo-data';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
@@ -72,26 +74,36 @@ export default function SignUpScreen() {
   }
 
   return (
-    <Screen scroll contentContainerClassName="justify-center py-8">
+    <Screen scroll padded={false} contentContainerClassName="justify-between bg-white dark:bg-[#12131C] pb-0">
+      <View className="relative overflow-hidden bg-[#191A26] pb-12 pt-8">
+        <View className="px-6">
+          <View className="h-20 w-20 items-center justify-center overflow-hidden rounded-pill border-2 border-white bg-[#191A26]">
+            <Image
+              source={{ uri: DEMO_AVATARS.layla }}
+              style={{ width: 76, height: 76 }}
+              contentFit="contain"
+            />
+          </View>
+        </View>
+        <View className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[40px] bg-white dark:bg-[#12131C]" />
+      </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="w-full gap-6">
-        <View className="items-center">
-          <View className="mb-3 h-16 w-16 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
-            <Text className="text-3xl">🐱</Text>
-          </View>
-          <Text variant="title" className="text-center">
+        className="w-full flex-1 justify-center gap-5 px-6 py-4">
+        <View className="items-start">
+          <Text variant="title" className="text-[28px] font-extrabold text-[#191A26] dark:text-[#FAF8F5]">
             Create your account
           </Text>
-          <Text variant="caption" className="mt-1 text-center">
+          <Text variant="caption" className="mt-1 text-left text-xs leading-5 text-[#6E7085]">
             Turn everyday walks into small neighborhood adventures.
           </Text>
         </View>
 
-        <Card className="gap-4">
+        <View className="gap-3.5">
           {formError ? (
-            <View className="rounded-button bg-danger-muted p-3">
-              <Text variant="caption" className="text-danger">
+            <View className="rounded-card border-[1.5px] border-[#191A26] bg-danger-muted p-3">
+              <Text variant="caption" className="font-bold text-danger">
                 {formError}
               </Text>
             </View>
@@ -124,7 +136,7 @@ export default function SignUpScreen() {
             <Text variant="caption" className="text-center text-xs leading-4">
               By creating an account, you agree to our{' '}
               <Text
-                className="font-semibold text-primary"
+                className="font-extrabold text-[#F4A97B]"
                 onPress={() => Linking.openURL(AppConfig.legal.privacyPolicyUrl).catch(() => {})}>
                 Privacy Policy
               </Text>{' '}
@@ -134,10 +146,11 @@ export default function SignUpScreen() {
 
           <Button
             label="Create Account"
+            variant="primary"
             onPress={handleSubmit}
             loading={loading}
           />
-        </Card>
+        </View>
 
         <View className="flex-row items-center justify-center gap-1">
           <Text variant="caption">Already have an account?</Text>
@@ -146,13 +159,15 @@ export default function SignUpScreen() {
               accessibilityRole="link"
               accessibilityLabel="Sign in to existing account"
               className="min-h-[44px] justify-center px-2">
-              <Text variant="caption" className="font-semibold text-primary">
+              <Text variant="caption" className="font-extrabold text-[#191A26] dark:text-[#F4A97B]">
                 Sign in
               </Text>
             </Pressable>
           </Link>
         </View>
       </KeyboardAvoidingView>
+
+      <View className="mt-6 h-10 w-full rounded-t-[36px] bg-[#191A26]" />
     </Screen>
   );
 }

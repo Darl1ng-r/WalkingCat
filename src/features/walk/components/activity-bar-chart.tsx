@@ -29,26 +29,22 @@ export function ActivityBarChart({
   return (
     <View className="gap-3">
       <View className="flex-row items-center justify-between">
-        <Text variant="caption" className="text-xs">
+        <Text variant="caption" className="text-xs font-bold text-[#191A26] dark:text-[#FAF8F5]">
           {metric === 'distance' ? 'Daily distance' : 'Daily steps'}
         </Text>
 
-        <View className="flex-row rounded-pill bg-background p-0.5 dark:bg-background-dark">
+        <View className="flex-row rounded-pill border-[1.5px] border-[#191A26] bg-white p-0.5">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Show distance chart"
             onPress={() => setMetric('distance')}
             className={`rounded-pill px-3 py-1 ${
-              metric === 'distance'
-                ? 'bg-primary'
-                : 'bg-transparent'
+              metric === 'distance' ? 'bg-[#191A26]' : 'bg-transparent'
             }`}>
             <Text
               variant="caption"
-              className={`text-xs font-semibold ${
-                metric === 'distance'
-                  ? 'text-white'
-                  : 'text-text-secondary dark:text-text-secondary-dark'
+              className={`text-xs font-extrabold ${
+                metric === 'distance' ? 'text-white' : 'text-[#191A26]'
               }`}>
               Distance
             </Text>
@@ -59,16 +55,12 @@ export function ActivityBarChart({
             accessibilityLabel="Show steps chart"
             onPress={() => setMetric('steps')}
             className={`rounded-pill px-3 py-1 ${
-              metric === 'steps'
-                ? 'bg-primary'
-                : 'bg-transparent'
+              metric === 'steps' ? 'bg-[#191A26]' : 'bg-transparent'
             }`}>
             <Text
               variant="caption"
-              className={`text-xs font-semibold ${
-                metric === 'steps'
-                  ? 'text-white'
-                  : 'text-text-secondary dark:text-text-secondary-dark'
+              className={`text-xs font-extrabold ${
+                metric === 'steps' ? 'text-white' : 'text-[#191A26]'
               }`}>
               Steps
             </Text>
@@ -82,7 +74,7 @@ export function ActivityBarChart({
         {days.map((day, idx) => {
           const val = metric === 'distance' ? day.distanceMeters : day.steps;
           const ratio = maxValue > 0 ? Math.min(1, val / maxValue) : 0;
-          const barHeight = val > 0 ? Math.max(12, Math.round(ratio * (height - 44))) : 5;
+          const barHeight = val > 0 ? Math.max(12, Math.round(ratio * (height - 44))) : 6;
           const showLabel =
             !isCompact || idx === 0 || idx === days.length - 1 || idx % 5 === 0;
 
@@ -100,27 +92,27 @@ export function ActivityBarChart({
                 <Text
                   variant="caption"
                   numberOfLines={1}
-                  className="text-[10px] font-medium">
-                  {metric === 'distance'
-                    ? day.distanceMeters >= 1000
-                      ? `${(day.distanceMeters / 1000).toFixed(1)}k`
-                      : `${day.distanceMeters}m`
-                    : day.steps >= 1000
-                      ? `${(day.steps / 1000).toFixed(1)}k`
-                      : String(day.steps)}
+                  className="text-[10px] font-bold text-[#191A26] dark:text-[#FAF8F5]">
+                {metric === 'distance'
+                  ? day.distanceMeters >= 1000
+                    ? `${(day.distanceMeters / 1000).toFixed(1)}k`
+                    : `${day.distanceMeters}m`
+                  : day.steps >= 1000
+                    ? `${(day.steps / 1000).toFixed(1)}k`
+                    : String(day.steps)}
                 </Text>
               ) : null}
 
               <View
                 style={{ height: barHeight }}
-                className={`w-full rounded-t-md ${
-                  isCompact ? 'max-w-[8px]' : 'max-w-[24px]'
+                className={`w-full rounded-pill border border-[#191A26] ${
+                  isCompact ? 'max-w-[8px]' : 'max-w-[22px]'
                 } ${
                   val > 0
                     ? day.isToday
-                      ? 'bg-primary-dark dark:bg-primary-light'
-                      : 'bg-primary'
-                    : 'bg-border dark:bg-border-dark'
+                      ? 'bg-[#F4A97B]'
+                      : 'bg-[#191A26]'
+                    : 'bg-[#FCE8D5]'
                 }`}
               />
 
@@ -129,8 +121,8 @@ export function ActivityBarChart({
                 numberOfLines={1}
                 className={`text-[10px] ${
                   day.isToday
-                    ? 'font-bold text-primary-dark dark:text-primary-light'
-                    : ''
+                    ? 'font-extrabold text-[#F4A97B]'
+                    : 'font-semibold text-[#6E7085]'
                 }`}>
                 {showLabel ? day.shortLabel : ''}
               </Text>

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui';
-import { DEMO_AVATARS, DEMO_WALK_ROUTE } from '@/lib/demo-data';
+import { DEMO_WALK_ROUTE } from '@/lib/demo-data';
 
 export interface RouteMapProps {
   coordinates: readonly { latitude: number; longitude: number }[];
@@ -58,29 +58,10 @@ function ensureLeafletLoaded(): Promise<any> {
   });
 }
 
-const SIGHTING_MARKERS = [
-  {
-    id: 'marmalade',
-    name: 'Marmalade',
-    subtitle: 'Sunlit Stoop · +23 sightings',
-    photo: '/demo/marmalade.jpg',
-    badgeCount: '+23',
-    offsetIndex: 2,
-  },
-  {
-    id: 'whiskers',
-    name: 'Prof. Whiskers',
-    subtitle: 'Maple Library · +8 sightings',
-    photo: '/demo/whiskers.jpg',
-    badgeCount: '+8',
-    offsetIndex: 4,
-  },
-];
-
 export function RouteMap({
   coordinates,
   height = 280,
-  mapStyle: initialMapStyle = 'satellite',
+  mapStyle: initialMapStyle = 'street',
   borderless = false,
   showSightingPins = true,
 }: RouteMapProps) {
@@ -97,7 +78,6 @@ export function RouteMap({
   }
 
   const activeStyle = styleOverride ?? initialMapStyle;
-
   const routeCoords = coordinates.length >= 2 ? coordinates : DEMO_WALK_ROUTE;
 
   useEffect(() => {
@@ -118,7 +98,7 @@ export function RouteMap({
         pt.longitude,
       ]);
 
-      const center = latLngs[Math.floor(latLngs.length / 2)] ?? [37.7758, -122.416];
+      const center = latLngs[Math.floor(latLngs.length / 2)] ?? [34.0153, -118.4951];
 
       const map = L.map(el, {
         center,
@@ -129,93 +109,81 @@ export function RouteMap({
 
       mapRef.current = map;
 
+      // Clean silver-white street tiles matching the Reference "GPS" screen (with Satellite toggle)
       const tileUrl =
         activeStyle === 'satellite'
           ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-          : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+          : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
       tileLayerRef.current = L.tileLayer(tileUrl, {
         maxZoom: 19,
       }).addTo(map);
 
-      // Soft glowing corridor around walked path (like Reference Image 2 green route zone)
+      // Soft warm-peach glow under the walked route
       L.polyline(latLngs, {
-        color: '#58B957',
-        weight: 22,
-        opacity: 0.28,
+        color: '#F4A97B',
+        weight: 14,
+        opacity: 0.25,
         lineCap: 'round',
         lineJoin: 'round',
       }).addTo(map);
 
-      // Outer white casing for crisp contrast on satellite & street tiles
-      L.polyline(latLngs, {
-        color: '#FFFFFF',
-        weight: 9,
-        opacity: 0.92,
-        lineCap: 'round',
-        lineJoin: 'round',
-      }).addTo(map);
-
-      // Core walked path polyline
+      // Core Warm Peach (#F4A97B) walked route polyline matching the Reference GPS screen
       const mainLine = L.polyline(latLngs, {
-        color: '#58B957',
-        weight: 5.5,
+        color: '#F4A97B',
+        weight: 4.5,
         opacity: 1,
         lineCap: 'round',
         lineJoin: 'round',
       }).addTo(map);
 
-      // Start marker (emerald ring)
+      // Start marker (Warm Peach circle with dark ink ring, matching the Reference GPS map dot)
       const startPt = latLngs[0];
       if (startPt) {
         const startIcon = L.divIcon({
           className: '',
-          iconSize: [22, 22],
-          iconAnchor: [11, 11],
-          html: `<div style="width:22px;height:22px;border-radius:999px;background:#181A22;border:3px solid #FFFFFF;box-shadow:0 4px 12px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
-            <div style="width:8px;height:8px;border-radius:999px;background:#58B957;"></div>
-          </div>`,
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+          html: `<div style="width:18px;height:18px;border-radius:999px;background:#F4A97B;border:3px solid #191A26;box-shadow:0 2px 6px rgba(25,26,38,0.25);"></div>`,
         });
         L.marker(startPt, { icon: startIcon }).addTo(map);
       }
 
-      // Current walker marker (end of walked route, Reference Image 2 "nearby" pill + avatar)
+      // Black-Ink Teardrop Pin with Cute Blob Cat Face inside (matching Reference "GPS" center pin!)
       const endPt = latLngs[latLngs.length - 1];
       if (endPt) {
-        const walkerIcon = L.divIcon({
+        const catPinIcon = L.divIcon({
           className: '',
-          iconSize: [120, 64],
-          iconAnchor: [60, 56],
-          html: `<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
-            <div style="background:#3B82F6;color:#FFFFFF;font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;box-shadow:0 4px 10px rgba(37,99,235,0.45);white-space:nowrap;margin-bottom:4px;font-family:system-ui,-apple-system,sans-serif;">
-              Mina walking live
-            </div>
-            <div style="width:36px;height:36px;border-radius:999px;border:3px solid #FFFFFF;overflow:hidden;background:#7C66DC;box-shadow:0 6px 16px rgba(0,0,0,0.4);">
-              <img src="${DEMO_AVATARS.mina}" style="width:100%;height:100%;object-fit:cover;" />
-            </div>
+          iconSize: [48, 58],
+          iconAnchor: [24, 54],
+          html: `<div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 6px 10px rgba(25,26,38,0.28));">
+            <svg xmlns="http://www.w3.org/2000/svg" width="46" height="56" viewBox="0 0 46 56">
+              <path d="M 23 54 C 23 54 43 35 43 21 C 43 10 34 2 23 2 C 12 2 3 10 3 21 C 3 35 23 54 23 54 Z" fill="#191A26" stroke="#FFFFFF" stroke-width="2" />
+              <circle cx="23" cy="21" r="13" fill="#FFFFFF" />
+              <!-- Blob Cat inside pin -->
+              <path d="M 14 23 L 16 12 L 22 17 Z" fill="#191A26" />
+              <path d="M 32 23 L 30 12 L 24 17 Z" fill="#191A26" />
+              <ellipse cx="23" cy="23" rx="9" ry="7.5" fill="#191A26" />
+              <circle cx="19.5" cy="22.5" r="2.2" fill="#FFFFFF" />
+              <circle cx="26.5" cy="22.5" r="2.2" fill="#FFFFFF" />
+            </svg>
           </div>`,
         });
-        L.marker(endPt, { icon: walkerIcon }).addTo(map);
+        L.marker(endPt, { icon: catPinIcon }).addTo(map);
       }
 
-      // Cat sighting floating glass callout markers along the path (like Reference Image 2)
-      if (showSightingPins) {
-        for (const item of SIGHTING_MARKERS) {
-          const pt = latLngs[Math.min(item.offsetIndex, latLngs.length - 1)];
-          if (!pt) continue;
-          const catPin = L.divIcon({
+      if (showSightingPins && latLngs.length >= 4) {
+        const midPt = latLngs[Math.floor(latLngs.length / 2)];
+        if (midPt) {
+          const midDot = L.divIcon({
             className: '',
-            iconSize: [168, 48],
-            iconAnchor: [24, 24],
-            html: `<div style="display:flex;align-items:center;gap:8px;background:rgba(28,30,38,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.28);border-radius:999px;padding:4px 11px 4px 4px;box-shadow:0 10px 24px rgba(0,0,0,0.38);">
-              <img src="${item.photo}" style="width:34px;height:34px;border-radius:999px;object-fit:cover;border:2px solid #FFFFFF;" />
-              <div style="display:flex;flex-direction:column;min-width:0;">
-                <span style="color:#FFFFFF;font-size:11px;font-weight:700;line-height:1.15;white-space:nowrap;font-family:system-ui,-apple-system,sans-serif;">${item.name}</span>
-                <span style="color:rgba(255,255,255,0.76);font-size:9px;font-weight:600;line-height:1.15;white-space:nowrap;font-family:system-ui,-apple-system,sans-serif;">${item.subtitle}</span>
-              </div>
+            iconSize: [22, 22],
+            iconAnchor: [11, 11],
+            html: `<div style="width:22px;height:22px;border-radius:999px;background:#191A26;border:2.5px solid #FFFFFF;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(25,26,38,0.25);">
+              <div style="width:8px;height:8px;border-radius:999px;background:#F4A97B;"></div>
             </div>`,
           });
-          L.marker(pt, { icon: catPin }).addTo(map);
+          L.marker(midPt, { icon: midDot }).addTo(map);
         }
       }
 
@@ -250,8 +218,8 @@ export function RouteMap({
   return (
     <View
       style={{ height }}
-      className={`relative w-full overflow-hidden bg-[#1D2432] ${
-        borderless ? '' : 'rounded-bento border border-white/60 shadow-card'
+      className={`relative w-full overflow-hidden bg-[#F2F1EE] ${
+        borderless ? '' : 'rounded-card border-[1.5px] border-[#191A26]'
       }`}>
       {/* Interactive Leaflet Map Host Container */}
       <div
@@ -259,54 +227,52 @@ export function RouteMap({
         style={{ width: '100%', height: '100%', zIndex: 1 }}
       />
 
-      {/* Fallback preview while Leaflet tiles initialize */}
       {!mapReady ? (
-        <View className="absolute inset-0 items-center justify-center bg-[#1D2432]">
+        <View className="absolute inset-0 items-center justify-center bg-[#F2F1EE]">
           <Image
             source={{ uri: '/demo/marmalade.jpg' }}
-            style={{ width: '100%', height: '100%', opacity: 0.25 }}
+            style={{ width: '100%', height: '100%', opacity: 0.15 }}
             contentFit="cover"
           />
-          <View className=" rounded-pill bg-black/60 px-4 py-2">
-            <Text className="text-xs font-bold text-white">Loading live neighborhood map…</Text>
+          <View className="rounded-pill border-[1.5px] border-[#191A26] bg-white px-4 py-1.5">
+            <Text className="text-xs font-extrabold text-[#191A26]">
+              Loading GPS map…
+            </Text>
           </View>
         </View>
       ) : null}
 
-      {/* Right-Side Floating Compass "N" & Recenter Controls (Reference Image 2) */}
+      {/* Right-Side Map Controls (Outlined Ink-on-White Circular Badges matching Reference) */}
       <View
         style={{ zIndex: 20 }}
-        className="absolute right-3.5 top-1/2 -translate-y-8 items-center gap-2.5">
-        {/* White Circular Compass N Badge */}
+        className="absolute bottom-4 right-3.5 items-center gap-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Reset map north and toggle satellite"
           onPress={() =>
             setStyleOverride(activeStyle === 'satellite' ? 'street' : 'satellite')
           }
-          className="h-10 w-10 items-center justify-center rounded-pill border border-black/10 bg-white shadow-md active:scale-95">
-          <View className="h-1.5 w-1.5 rounded-pill bg-[#E9806E]" />
-          <Text className="text-[11px] font-extrabold leading-none text-[#181A22]">N</Text>
+          className="h-9 w-9 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white active:scale-95">
+          <View className="h-1.5 w-1.5 rounded-pill bg-[#F4A97B]" />
+          <Text className="text-[10px] font-extrabold leading-none text-[#191A26]">N</Text>
         </Pressable>
 
-        {/* Frosted Dark-Glass Recenter Navigation Button */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Recenter walked route"
           onPress={handleRecenter}
-          style={{ backgroundColor: 'rgba(28, 30, 38, 0.78)' }}
-          className="h-10 w-10 items-center justify-center rounded-pill border border-white/25 shadow-md active:scale-95">
+          className="h-9 w-9 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] active:scale-95">
           <Text className="text-xs font-bold text-white">➤</Text>
         </Pressable>
       </View>
 
-      {/* Bottom-left live route pill */}
+      {/* Bottom-left GPS points pill */}
       <View
-        style={{ zIndex: 20, backgroundColor: 'rgba(28, 30, 38, 0.76)' }}
-        className="absolute bottom-3 left-3.5 flex-row items-center gap-2 rounded-pill border border-white/20 px-3 py-1.5">
-        <View className="h-2 w-2 rounded-pill bg-[#58B957]" />
-        <Text className="text-[11px] font-bold text-white">
-          {routeCoords.length} GPS pts · {activeStyle === 'satellite' ? 'Satellite' : 'Street'}
+        style={{ zIndex: 20 }}
+        className="absolute bottom-4 left-3.5 flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] bg-white px-3 py-1">
+        <View className="h-2 w-2 rounded-pill bg-[#F4A97B]" />
+        <Text className="text-[10px] font-extrabold text-[#191A26]">
+          {routeCoords.length} GPS pts
         </Text>
       </View>
     </View>

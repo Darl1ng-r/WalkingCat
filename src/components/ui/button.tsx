@@ -23,34 +23,39 @@ export interface ButtonProps extends Omit<PressableProps, 'children'> {
 }
 
 const variantContainerClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-primary active:bg-primary-dark shadow-sm',
-  secondary: 'bg-secondary active:bg-secondary-dark shadow-sm',
-  action: 'bg-secondary active:bg-secondary-dark shadow-sm',
-  charcoal: 'bg-charcoal active:bg-charcoal-light dark:bg-white dark:active:bg-white/90 shadow-sm',
+  primary:
+    'bg-[#F4A97B] border-[1.5px] border-[#191A26] active:opacity-90',
+  secondary:
+    'bg-[#191A26] border-[1.5px] border-[#191A26] dark:border-[#F4A97B] active:opacity-90',
+  action:
+    'bg-[#F4A97B] border-[1.5px] border-[#191A26] active:opacity-90',
+  charcoal:
+    'bg-[#191A26] border-[1.5px] border-[#191A26] dark:bg-white active:opacity-90',
   ghost:
-    'bg-surface-elevated/80 dark:bg-surface-elevated-dark border border-border dark:border-border-dark active:opacity-80',
-  danger: 'bg-danger active:opacity-90 shadow-sm',
+    'bg-white dark:bg-[#232536] border-[1.5px] border-[#191A26] dark:border-[#FAF8F5]/40 active:opacity-80',
+  danger:
+    'bg-danger border-[1.5px] border-[#191A26] active:opacity-90',
 };
 
 const variantTextClasses: Record<ButtonVariant, string> = {
-  primary: 'text-white font-bold tracking-tight',
+  primary: 'text-[#191A26] font-extrabold tracking-tight',
   secondary: 'text-white font-bold tracking-tight',
-  action: 'text-white font-bold tracking-tight',
-  charcoal: 'text-white dark:text-charcoal font-bold tracking-tight',
-  ghost: 'text-foreground dark:text-foreground-dark font-semibold',
+  action: 'text-[#191A26] font-extrabold tracking-tight',
+  charcoal: 'text-white dark:text-[#191A26] font-bold tracking-tight',
+  ghost: 'text-[#191A26] dark:text-[#FAF8F5] font-bold',
   danger: 'text-white font-bold tracking-tight',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'min-h-[40px] px-4 py-2 rounded-pill',
+  sm: 'min-h-[38px] px-4 py-1.5 rounded-pill',
   md: 'min-h-[48px] px-5 py-3 rounded-pill',
-  lg: 'min-h-[56px] px-6 py-4 rounded-pill',
+  lg: 'min-h-[54px] px-6 py-3.5 rounded-pill',
 };
 
 const sizeTextClasses: Record<ButtonSize, string> = {
-  sm: 'text-sm',
-  md: 'text-base',
-  lg: 'text-lg',
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
 };
 
 export function Button({
@@ -92,7 +97,11 @@ export function Button({
         <View className="mr-2">
           <ActivityIndicator
             size="small"
-            color={variant === 'ghost' ? '#64748B' : '#FFFFFF'}
+            color={
+              variant === 'secondary' || variant === 'charcoal' || variant === 'danger'
+                ? '#FFFFFF'
+                : '#191A26'
+            }
           />
         </View>
       ) : null}

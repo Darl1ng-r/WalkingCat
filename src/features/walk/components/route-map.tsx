@@ -48,7 +48,7 @@ export function RouteMap({
 
   const wrapperClassName = borderless
     ? 'w-full overflow-hidden'
-    : 'w-full overflow-hidden rounded-bento border border-border dark:border-border-dark';
+    : 'w-full overflow-hidden rounded-card border-[1.5px] border-[#191A26] dark:border-[#35384F]';
 
   if (Platform.OS === 'ios') {
     return (
@@ -65,7 +65,7 @@ export function RouteMap({
                   {
                     id: 'walk-route',
                     coordinates: polylineCoords,
-                    color: BrandColors.secondary,
+                    color: BrandColors.primary,
                     width: 6,
                   },
                 ]
@@ -91,7 +91,7 @@ export function RouteMap({
                   {
                     id: 'walk-route',
                     coordinates: polylineCoords,
-                    color: BrandColors.secondary,
+                    color: BrandColors.primary,
                     width: 6,
                   },
                 ]
