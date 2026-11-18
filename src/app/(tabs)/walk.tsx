@@ -1,9 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { Image } from 'expo-image';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, AppState, Platform, Pressable, View } from 'react-native';
 
 import { AppIcon, Button, Card, Screen, StatTile, Text } from '@/components/ui';
@@ -15,15 +14,18 @@ import {
 } from '@/features/gamification';
 import {
   SIGHTINGS_QUERY_KEYS,
+  type SightingSummaryItem,
   useWalkSightings,
   WalkSightingsList,
 } from '@/features/sightings';
 import {
   checkCurrentLocationPermission,
   computeDurations,
+  type GeoPoint,
   openDeviceLocationSettings,
   requestWalkLocationPermissions,
   RouteMap,
+  type RouteSightingMarker,
   useWalkStore,
   WALK_QUERY_KEYS,
 } from '@/features/walk';
@@ -32,14 +34,38 @@ import {
   getStepsBucket,
   track,
 } from '@/lib/analytics';
-import { DEMO_AVATARS, DEMO_WALK_ROUTE } from '@/lib/demo-data';
+import { DEMO_WALK_ROUTE } from '@/lib/demo-data';
 import { formatDistance, formatDuration, formatNumber, formatPace } from '@/lib/format';
 
-const HEADER_COMPANIONS = [
-  { id: 'marmalade', name: 'Marmalade', uri: DEMO_AVATARS.mina, active: true },
-  { id: 'whiskers', name: 'Whiskers', uri: DEMO_AVATARS.layla, active: false },
-  { id: 'mochi', name: 'Mochi', uri: DEMO_AVATARS.tariq, active: false },
-] as const;
+function mapSightingsToRouteMarkers(
+  sightings: SightingSummaryItem[],
+  routePoints: GeoPoint[]
+): RouteSightingMarker[] {
+  if (sightings.length === 0 || routePoints.length === 0) {
+    return [];
+  }
+
+  return sightings.map((sighting, index) => {
+    const targetMs = new Date(sighting.taken_at).getTime();
+    let bestPoint = routePoints[routePoints.length - 1];
+    if (!Number.isNaN(targetMs)) {
+      let bestDiff = Infinity;
+      for (const pt of routePoints) {
+        const diff = Math.abs(pt.timestamp - targetMs);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          bestPoint = pt;
+        }
+      }
+    }
+    return {
+      id: sighting.id,
+      latitude: bestPoint.latitude,
+      longitude: bestPoint.longitude,
+      label: `Cat #${index + 1}`,
+    };
+  });
+}
 
 export default function WalkScreen() {
   const queryClient = useQueryClient();
@@ -72,11 +98,25 @@ export default function WalkScreen() {
     status === 'summary' ? summary?.walkId : walkId
   );
 
+  const sightingMarkers = useMemo<RouteSightingMarker[]>(() => {
+    if (status === 'idle' && routePoints.length === 0) {
+      return [
+        {
+          id: 'demo-cat-1',
+          latitude: DEMO_WALK_ROUTE[4].latitude,
+          longitude: DEMO_WALK_ROUTE[4].longitude,
+          label: 'Marmalade',
+        },
+      ];
+    }
+    return mapSightingsToRouteMarkers(walkSightings, routePoints);
+  }, [status, walkSightings, routePoints]);
+
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [showPermissionExplainer, setShowPermissionExplainer] = useState(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [keepAwakeEnabled, setKeepAwakeEnabled] = useState(true);
-  const [mapFilter, setMapFilter] = useState<'all' | 'live' | 'sightings' | 'street'>('street');
+  const [mapStyle, setMapStyle] = useState<'street' | 'satellite'>('street');
 
   useEffect(() => {
     checkCrashRecovery();
@@ -363,25 +403,39 @@ export default function WalkScreen() {
       status === 'active' && lastFixAt !== null && nowMs - lastFixAt > 30_000;
 
     return (
-      <Screen scroll padded={false} contentContainerClassName="pb-32">
-        {/* Midnight-Ink Top Header */}
-        <View className="bg-[#191A26] px-5 pb-8 pt-3">
-          <View className="flex-row items-center justify-between">
+      <Screen padded={false} contentContainerClassName="flex-1">
+        {/* Compact Midnight-Ink Top Bar */}
+        <View className="flex-row items-center justify-between bg-[#191A26] px-5 py-3">
+          <View className="flex-row items-center gap-2.5">
+            <View
+              className={`h-2.5 w-2.5 rounded-full ${
+                status === 'paused' ? 'bg-amber-400' : 'bg-[#F4A97B]'
+              }`}
+            />
+            <Text className="text-base font-extrabold text-white">
+              {status === 'paused' ? 'Walk Paused' : 'Live Walk'}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center gap-2">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="View Walk History"
-              onPress={() => router.push('/history')}
-              className="h-11 w-11 items-center justify-center rounded-pill">
-              <AppIcon name="chevronLeft" size={18} color="#FFFFFF" />
+              accessibilityLabel={`Switch map to ${mapStyle === 'street' ? 'Satellite' : 'Street'} view`}
+              onPress={() =>
+                setMapStyle((prev) => (prev === 'street' ? 'satellite' : 'street'))
+              }
+              className="min-h-[36px] flex-row items-center gap-1.5 rounded-pill border border-white/20 bg-white/10 px-3">
+              <AppIcon name="pin" size={14} color="#F4A97B" />
+              <Text className="text-xs font-bold text-white">
+                {mapStyle === 'street' ? 'Street' : 'Satellite'}
+              </Text>
             </Pressable>
-            <Text className="text-base font-extrabold text-white">
-              Walk · {formatDuration(movingTimeSeconds)}
-            </Text>
+
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Toggle screen awake"
               onPress={() => setKeepAwakeEnabled((prev) => !prev)}
-              className="min-h-[44px] items-center justify-center rounded-pill px-2">
+              className="min-h-[36px] items-center justify-center rounded-pill border border-white/20 bg-white/10 px-3">
               <Text className="text-xs font-bold text-[#F4A97B]">
                 {keepAwakeEnabled ? 'Awake' : 'Sleep'}
               </Text>
@@ -389,334 +443,320 @@ export default function WalkScreen() {
           </View>
         </View>
 
-        {/* Overlapping Circular Cat/Walker Avatars + Live Map */}
-        <View className="relative">
-          <View
-            style={{ zIndex: 30 }}
-            className="-mt-7 flex-row items-center justify-around px-6 pb-2">
-            {HEADER_COMPANIONS.map((item) => (
-              <Pressable
-                key={item.id}
-                onPress={() =>
-                  setMapFilter((prev) => (prev === 'street' ? 'all' : 'street'))
-                }
-                className="items-center">
-                <View className="rounded-pill bg-white p-1 shadow-sm">
-                  <View className="h-14 w-14 overflow-hidden rounded-pill border-[2.5px] border-[#191A26] bg-white">
-                    <Image
-                      source={{ uri: item.uri }}
-                      style={{ width: '100%', height: '100%' }}
-                      contentFit="cover"
-                    />
-                  </View>
-                </View>
-                <View
-                  className={`mt-1 rounded-pill px-2.5 py-0.5 ${
-                    item.active ? 'bg-[#F4A97B]' : 'bg-[#191A26]'
-                  }`}>
-                  <Text
-                    className={`text-[10px] font-extrabold ${
-                      item.active ? 'text-[#191A26]' : 'text-white'
-                    }`}>
-                    {item.name}
-                  </Text>
-                </View>
-              </Pressable>
-            ))}
-          </View>
-
+        {/* Full-Screen Live GPS Map */}
+        <View className="relative flex-1">
           <RouteMap
-            coordinates={routePoints.length >= 2 ? routePoints : DEMO_WALK_ROUTE}
+            coordinates={routePoints}
+            sightingMarkers={sightingMarkers}
             showUserLocation
             borderless
-            mapStyle={mapFilter === 'street' ? 'street' : 'satellite'}
-            height={300}
+            fill
+            mapStyle={mapStyle}
           />
-        </View>
-
-        <View className="-mt-5 gap-4 rounded-t-[28px] border-t-[1.5px] border-[#191A26] bg-white px-5 pt-5 dark:bg-[#191A26]">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-base font-extrabold text-[#191A26] dark:text-white">
-              {status === 'paused' ? 'Walk Paused' : 'Live Pace'}
-            </Text>
-            <AppIcon name="chevronDown" size={16} color="#F4A97B" />
-          </View>
 
           {isWeakGps ? (
-            <Card elevated className="flex-row items-center gap-2 py-2.5">
-              <AppIcon name="signal" size={15} color="#191A26" />
-              <Text variant="caption" className="font-bold text-[#191A26]">
-                Weak GPS signal — waiting for a clear sky fix…
-              </Text>
-            </Card>
+            <View className="absolute left-4 right-4 top-3 z-20">
+              <View className="flex-row items-center gap-2 rounded-pill border border-[#191A26] bg-white/95 px-4 py-2 shadow-sm">
+                <AppIcon name="signal" size={14} color="#191A26" />
+                <Text variant="caption" className="font-bold text-[#191A26]">
+                  Weak GPS signal — waiting for a clear sky fix…
+                </Text>
+              </View>
+            </View>
           ) : null}
 
-          <View className="flex-row gap-3">
-            <StatTile
-              label="Distance"
-              value={formatDistance(distanceMeters)}
-              accentColor="secondary"
-            />
-            <StatTile
-              label="Avg Pace"
-              value={formatPace(paceSecondsPerKm)}
-              accentColor="primary"
-            />
+          {/* Strava-Inspired Floating Bottom Controls */}
+          <View className="absolute bottom-0 left-0 right-0 z-30 gap-3 px-4 pb-24">
+            {/* Compact Live Telemetry Strip */}
+            <View className="flex-row items-center justify-between rounded-[22px] border-[1.5px] border-[#191A26] bg-[#191A26]/95 px-4 py-3 shadow-lg">
+              <View className="items-center">
+                <Text className="text-[10px] font-bold uppercase tracking-wider text-white/65">
+                  Distance
+                </Text>
+                <Text className="text-sm font-extrabold text-white">
+                  {formatDistance(distanceMeters)}
+                </Text>
+              </View>
+              <View className="h-6 w-[1px] bg-white/15" />
+              <View className="items-center">
+                <Text className="text-[10px] font-bold uppercase tracking-wider text-white/65">
+                  Time
+                </Text>
+                <Text className="text-sm font-extrabold text-[#F4A97B]">
+                  {formatDuration(movingTimeSeconds)}
+                </Text>
+              </View>
+              <View className="h-6 w-[1px] bg-white/15" />
+              <View className="items-center">
+                <Text className="text-[10px] font-bold uppercase tracking-wider text-white/65">
+                  Pace
+                </Text>
+                <Text className="text-sm font-extrabold text-white">
+                  {formatPace(paceSecondsPerKm)}
+                </Text>
+              </View>
+              <View className="h-6 w-[1px] bg-white/15" />
+              <View className="items-center">
+                <Text className="text-[10px] font-bold uppercase tracking-wider text-white/65">
+                  Cats
+                </Text>
+                <Text className="text-sm font-extrabold text-[#F4A97B]">
+                  {walkSightings.length}
+                </Text>
+              </View>
+            </View>
+
+            {/* Stop / Pause-Resume / Marker Row */}
+            <View className="flex-row items-center justify-around rounded-[28px] border-[1.5px] border-[#191A26] bg-white/95 px-4 py-3 shadow-lg">
+              {/* Stop Button */}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Stop and Finish Walk"
+                disabled={status === 'finishing'}
+                onPress={handleFinishPress}
+                className="items-center gap-1">
+                <View className="h-12 w-12 items-center justify-center rounded-full border-[1.5px] border-[#191A26] bg-white">
+                  <View className="h-3.5 w-3.5 rounded-[3px] bg-[#191A26]" />
+                </View>
+                <Text className="text-[11px] font-extrabold text-[#191A26]">
+                  {status === 'finishing' ? 'Saving…' : 'Stop'}
+                </Text>
+              </Pressable>
+
+              {/* Center Pause / Resume Button */}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={status === 'active' ? 'Pause Walk' : 'Resume Walk'}
+                onPress={status === 'active' ? pauseWalk : resumeWalk}
+                className="items-center gap-1">
+                <View className="h-16 w-16 items-center justify-center rounded-full border-2 border-[#191A26] bg-[#F4A97B] shadow-md">
+                  {status === 'active' ? (
+                    <View className="flex-row gap-1.5">
+                      <View className="h-5 w-1.5 rounded-full bg-[#191A26]" />
+                      <View className="h-5 w-1.5 rounded-full bg-[#191A26]" />
+                    </View>
+                  ) : (
+                    <View
+                      style={{
+                        width: 0,
+                        height: 0,
+                        marginLeft: 3,
+                        borderTopWidth: 9,
+                        borderBottomWidth: 9,
+                        borderLeftWidth: 15,
+                        borderTopColor: 'transparent',
+                        borderBottomColor: 'transparent',
+                        borderLeftColor: '#191A26',
+                      }}
+                    />
+                  )}
+                </View>
+                <Text className="text-[11px] font-extrabold text-[#191A26]">
+                  {status === 'active' ? 'Pause' : 'Resume'}
+                </Text>
+              </Pressable>
+
+              {/* Cat Sighting Marker Button */}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Drop Cat Sighting Marker"
+                onPress={() =>
+                  router.push({
+                    pathname: '/sighting/capture',
+                    params: walkId ? { walkId } : {},
+                  })
+                }
+                className="items-center gap-1">
+                <View className="relative h-12 w-12 items-center justify-center rounded-full border-[1.5px] border-[#191A26] bg-white">
+                  <AppIcon name="pin" size={20} color="#191A26" />
+                  {walkSightings.length > 0 ? (
+                    <View className="absolute -right-1 -top-1 h-5 min-w-[20px] items-center justify-center rounded-full border border-[#191A26] bg-[#F4A97B] px-1">
+                      <Text className="text-[10px] font-extrabold text-[#191A26]">
+                        {walkSightings.length}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+                <Text className="text-[11px] font-extrabold text-[#191A26]">
+                  Marker
+                </Text>
+              </Pressable>
+            </View>
+
+            {status === 'paused' ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Discard Walk"
+                onPress={handleDiscardPress}
+                className="self-center rounded-pill bg-white/90 px-4 py-1.5">
+                <Text className="text-xs font-bold text-danger">Discard Walk</Text>
+              </Pressable>
+            ) : null}
           </View>
-
-          <Button
-            label={
-              walkSightings.length > 0
-                ? `Spot a Cat (${walkSightings.length} spotted)`
-                : 'Spot a Cat Along Route'
-            }
-            variant="secondary"
-            size="lg"
-            onPress={() =>
-              router.push({
-                pathname: '/sighting/capture',
-                params: walkId ? { walkId } : {},
-              })
-            }
-          />
-
-          <View className="flex-row gap-3">
-            {status === 'active' ? (
-              <Button
-                label="Pause"
-                variant="ghost"
-                className="flex-1"
-                onPress={pauseWalk}
-              />
-            ) : (
-              <Button
-                label="Resume"
-                variant="action"
-                className="flex-1"
-                onPress={resumeWalk}
-              />
-            )}
-
-            <Button
-              label="Finish Walk"
-              variant="action"
-              className="flex-1"
-              loading={status === 'finishing'}
-              onPress={handleFinishPress}
-            />
-          </View>
-
-          <Button
-            label="Discard Walk"
-            variant="ghost"
-            size="sm"
-            onPress={handleDiscardPress}
-          />
         </View>
       </Screen>
     );
   }
 
-  // 3. Idle Screen — Styled Directly After the Reference Middle-Right "GPS" Screen
+  // 3. Idle Screen — Full-Screen Map + Clean Start & Marker Controls
   return (
-    <Screen scroll padded={false} contentContainerClassName="pb-32">
-      {/* Midnight-Ink Top Header */}
-      <View className="bg-[#191A26] px-5 pb-9 pt-3">
-        <View className="flex-row items-center justify-between">
+    <Screen padded={false} contentContainerClassName="flex-1">
+      {/* Compact Midnight-Ink Top Header (No back arrow, no 3-dots) */}
+      <View className="flex-row items-center justify-between bg-[#191A26] px-5 py-3">
+        <Text className="text-base font-extrabold tracking-wide text-white">
+          Walk & Map
+        </Text>
+
+        <View className="flex-row items-center gap-2">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="View Walk History"
             onPress={() => router.push('/history')}
-            className="h-11 w-11 items-center justify-center rounded-pill">
-            <AppIcon name="chevronLeft" size={18} color="#FFFFFF" />
+            className="min-h-[36px] flex-row items-center gap-1 rounded-pill border border-white/20 bg-white/10 px-3">
+            <AppIcon name="clock" size={13} color="#FFFFFF" />
+            <Text className="text-xs font-bold text-white">History</Text>
           </Pressable>
-          <Text className="text-base font-extrabold tracking-wide text-white">
-            Walk & Map
-          </Text>
+
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Toggle map style"
+            accessibilityLabel={`Switch map to ${mapStyle === 'street' ? 'Satellite' : 'Street'} view`}
             onPress={() =>
-              setMapFilter((prev) => (prev === 'street' ? 'all' : 'street'))
+              setMapStyle((prev) => (prev === 'street' ? 'satellite' : 'street'))
             }
-            className="h-11 w-11 items-center justify-center rounded-pill">
-            <AppIcon name="moreVertical" size={18} color="#FFFFFF" />
+            className="min-h-[36px] flex-row items-center gap-1.5 rounded-pill border border-white/20 bg-white/10 px-3">
+            <AppIcon name="pin" size={13} color="#F4A97B" />
+            <Text className="text-xs font-bold text-white">
+              {mapStyle === 'street' ? 'Street' : 'Satellite'}
+            </Text>
           </Pressable>
         </View>
       </View>
 
-      {/* Overlapping Circular Blob-Cat Avatars ("Огурец | Бублик | Пиксик" in Reference) + Map */}
-      <View className="relative">
-        <View
-          style={{ zIndex: 30 }}
-          className="-mt-8 flex-row items-center justify-around px-6 pb-2">
-          {HEADER_COMPANIONS.map((item) => (
-            <Pressable
-              key={item.id}
-              accessibilityRole="button"
-              accessibilityLabel={`Filter route by ${item.name}`}
-              onPress={() => router.push('/collection')}
-              className="items-center">
-              <View className="rounded-pill bg-white p-1.5 shadow-sm">
-                <View className="h-16 w-16 overflow-hidden rounded-pill border-[2.5px] border-[#191A26] bg-white">
-                  <Image
-                    source={{ uri: item.uri }}
-                    style={{ width: '100%', height: '100%' }}
-                    contentFit="cover"
-                  />
-                </View>
-              </View>
-              <Text
-                className={`mt-1 text-xs font-extrabold ${
-                  item.active ? 'text-[#F4A97B]' : 'text-[#191A26]'
-                }`}>
-                {item.name}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
+      {/* Full-Screen Google Map */}
+      <View className="relative flex-1">
         <RouteMap
-          coordinates={DEMO_WALK_ROUTE}
+          coordinates={routePoints}
+          sightingMarkers={sightingMarkers}
+          showDemoRouteWhenEmpty
+          showUserLocation
           borderless
-          mapStyle={mapFilter === 'street' ? 'street' : 'satellite'}
-          showSightingPins={mapFilter !== 'live'}
-          height={310}
+          fill
+          mapStyle={mapStyle}
         />
-      </View>
 
-      {/* Bottom Sheet */}
-      <View className="-mt-5 gap-4 rounded-t-[28px] border-t-[1.5px] border-[#191A26] bg-white px-5 pt-5 dark:bg-[#191A26]">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-base font-extrabold text-[#191A26] dark:text-white">
-            Route Goal
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="View Walk History"
-            onPress={() => router.push('/history')}
-            className="min-h-[36px] flex-row items-center gap-0.5">
-            <Text className="text-xs font-extrabold text-[#191A26] dark:text-[#F4A97B]">
-              History
-            </Text>
-            <AppIcon name="chevronRight" size={13} color="#F4A97B" />
-          </Pressable>
-        </View>
-
-        <View className="flex-row gap-3">
-          <StatTile
-            label="Loop Goal"
-            value="3.2 km"
-            unit="+65 Paw Pts"
-            accentColor="secondary"
-          />
-          <StatTile
-            label="Easy Pace"
-            value="4.8 km/h"
-            unit="+120 XP"
-            accentColor="primary"
-          />
-        </View>
-
-        {recoverableWalk ? (
-          <Card elevated className="gap-3">
-            <Text variant="heading">Resume your unfinished walk?</Text>
-            <Text variant="caption">
-              We found an active walk from{' '}
-              {new Date(recoverableWalk.startedAt).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-              . Would you like to continue or discard it?
-            </Text>
-            <View className="flex-row gap-3">
-              <Button
-                label="Resume Walk"
-                variant="action"
-                className="flex-1"
-                onPress={() => {
-                  resumeRecoveredWalk().catch(() => {});
-                }}
-              />
-              <Button
-                label="Discard"
-                variant="ghost"
-                className="flex-1"
-                onPress={() => {
-                  discardRecoveredWalk().catch(() => {});
-                }}
-              />
-            </View>
-          </Card>
-        ) : null}
-
-        {pendingUploadCount > 0 ? (
-          <Card className="flex-row items-center justify-between">
-            <View className="flex-1 pr-2">
-              <Text variant="body" className="font-semibold">
-                {pendingUploadCount} walk{pendingUploadCount > 1 ? 's' : ''} waiting to upload
+        {/* Floating Bottom Controls Above Dock */}
+        <View className="absolute bottom-0 left-0 right-0 z-30 gap-3 px-4 pb-24">
+          {recoverableWalk ? (
+            <Card elevated className="gap-3">
+              <Text variant="heading">Resume your unfinished walk?</Text>
+              <Text variant="caption">
+                We found an active walk from{' '}
+                {new Date(recoverableWalk.startedAt).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+                . Would you like to continue or discard it?
               </Text>
-              <Text variant="caption">Will sync automatically when online.</Text>
-            </View>
-            <Button
-              label="Retry Now"
-              size="sm"
-              variant="secondary"
-              onPress={() => {
-                triggerSync().catch(() => {});
-              }}
-            />
-          </Card>
-        ) : null}
-
-        {showPermissionExplainer ? (
-          <Card elevated className="gap-4 p-5">
-            <View className="flex-row items-center gap-2">
-              <AppIcon name="pin" size={18} color="#191A26" />
-              <Text variant="heading">How we use your location</Text>
-            </View>
-            <Text variant="caption" className="leading-5">
-              We only use GPS while a walk is actively running so we can measure your distance and
-              draw your private route—including when your screen is locked in your pocket.
-            </Text>
-            <Button
-              label="Continue & Allow Location"
-              variant="action"
-              size="lg"
-              onPress={handleConfirmPermissionRequest}
-            />
-            <Button
-              label="Not Now"
-              variant="ghost"
-              onPress={() => setShowPermissionExplainer(false)}
-            />
-          </Card>
-        ) : (
-          <>
-            {permissionError ? (
-              <View className="w-full gap-2 rounded-card border-[1.5px] border-[#191A26] bg-danger-muted p-3">
-                <Text variant="caption" className="text-center font-bold text-danger">
-                  {permissionError}
-                </Text>
+              <View className="flex-row gap-3">
                 <Button
-                  label="Open Device Settings"
-                  size="sm"
-                  variant="secondary"
-                  onPress={openDeviceLocationSettings}
+                  label="Resume Walk"
+                  variant="action"
+                  className="flex-1"
+                  onPress={() => {
+                    resumeRecoveredWalk().catch(() => {});
+                  }}
+                />
+                <Button
+                  label="Discard"
+                  variant="ghost"
+                  className="flex-1"
+                  onPress={() => {
+                    discardRecoveredWalk().catch(() => {});
+                  }}
                 />
               </View>
-            ) : null}
+            </Card>
+          ) : null}
 
-            {/* Warm Peach Primary Pill CTA (#F4A97B with #191A26 border) */}
-            <Button
-              label={status === 'requestingPermission' ? 'Starting…' : 'Start Walk'}
-              variant="primary"
-              size="lg"
-              loading={status === 'requestingPermission'}
-              onPress={handleStartWalkPress}
-            />
-          </>
-        )}
+          {pendingUploadCount > 0 ? (
+            <Card className="flex-row items-center justify-between">
+              <View className="flex-1 pr-2">
+                <Text variant="body" className="font-semibold">
+                  {pendingUploadCount} walk{pendingUploadCount > 1 ? 's' : ''} waiting to upload
+                </Text>
+                <Text variant="caption">Will sync automatically when online.</Text>
+              </View>
+              <Button
+                label="Retry Now"
+                size="sm"
+                variant="secondary"
+                onPress={() => {
+                  triggerSync().catch(() => {});
+                }}
+              />
+            </Card>
+          ) : null}
+
+          {showPermissionExplainer ? (
+            <Card elevated className="gap-4 p-5">
+              <View className="flex-row items-center gap-2">
+                <AppIcon name="pin" size={18} color="#191A26" />
+                <Text variant="heading">How we use your location</Text>
+              </View>
+              <Text variant="caption" className="leading-5">
+                We only use GPS while a walk is actively running so we can measure your distance and
+                draw your private route—including when your screen is locked in your pocket.
+              </Text>
+              <Button
+                label="Continue & Allow Location"
+                variant="action"
+                size="lg"
+                onPress={handleConfirmPermissionRequest}
+              />
+              <Button
+                label="Not Now"
+                variant="ghost"
+                onPress={() => setShowPermissionExplainer(false)}
+              />
+            </Card>
+          ) : (
+            <>
+              {permissionError ? (
+                <View className="w-full gap-2 rounded-card border-[1.5px] border-[#191A26] bg-danger-muted p-3">
+                  <Text variant="caption" className="text-center font-bold text-danger">
+                    {permissionError}
+                  </Text>
+                  <Button
+                    label="Open Device Settings"
+                    size="sm"
+                    variant="secondary"
+                    onPress={openDeviceLocationSettings}
+                  />
+                </View>
+              ) : null}
+
+              {/* Clean Start + Marker Floating Row */}
+              <View className="flex-row items-center gap-3">
+                <Button
+                  label={status === 'requestingPermission' ? 'Starting…' : 'Start Walk'}
+                  variant="primary"
+                  size="lg"
+                  className="flex-1 shadow-lg"
+                  loading={status === 'requestingPermission'}
+                  onPress={handleStartWalkPress}
+                />
+
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Log Cat Sighting Marker"
+                  onPress={() => router.push('/sighting/capture')}
+                  className="h-14 w-14 items-center justify-center rounded-full border-[1.5px] border-[#191A26] bg-white shadow-lg">
+                  <AppIcon name="pin" size={20} color="#191A26" />
+                </Pressable>
+              </View>
+            </>
+          )}
+        </View>
       </View>
     </Screen>
   );

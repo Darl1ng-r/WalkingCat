@@ -1,19 +1,29 @@
 import { AppleMaps, GoogleMaps } from 'expo-maps';
 import { Platform, View } from 'react-native';
 
-import { Card, Text } from '@/components/ui';
+import { AppIcon, Card, Text } from '@/components/ui';
 import { BrandColors } from '@/constants/theme';
 import { DEMO_WALK_ROUTE } from '@/lib/demo-data';
 import { getRouteBounds } from '../geo';
 
+export interface RouteSightingMarker {
+  id: string;
+  latitude: number;
+  longitude: number;
+  label?: string;
+}
+
 export interface RouteMapProps {
   coordinates: readonly { latitude: number; longitude: number }[];
+  sightingMarkers?: readonly RouteSightingMarker[];
   showUserLocation?: boolean;
   fitToBounds?: boolean;
-  height?: number;
+  height?: number | '100%';
+  fill?: boolean;
   mapStyle?: 'satellite' | 'street';
   borderless?: boolean;
   showSightingPins?: boolean;
+  showDemoRouteWhenEmpty?: boolean;
 }
 
 export function RouteMap({
@@ -21,11 +31,20 @@ export function RouteMap({
   showUserLocation = false,
   fitToBounds = false,
   height = 260,
+  fill = false,
   borderless = false,
+  showDemoRouteWhenEmpty = true,
 }: RouteMapProps) {
-  const activeCoords = coordinates.length >= 2 ? coordinates : DEMO_WALK_ROUTE;
+  const activeCoords =
+    coordinates.length >= 2
+      ? coordinates
+      : coordinates.length === 1
+        ? coordinates
+        : showDemoRouteWhenEmpty
+          ? DEMO_WALK_ROUTE
+          : [];
   const latest = activeCoords[activeCoords.length - 1];
-  const bounds = fitToBounds ? getRouteBounds(activeCoords) : null;
+  const bounds = fitToBounds && activeCoords.length >= 2 ? getRouteBounds(activeCoords) : null;
   const cameraPosition = bounds
     ? {
         coordinates: bounds.center,
@@ -50,9 +69,11 @@ export function RouteMap({
     ? 'w-full overflow-hidden'
     : 'w-full overflow-hidden rounded-card border-[1.5px] border-[#191A26] dark:border-[#35384F]';
 
+  const containerStyle = fill ? { flex: 1 as const } : { height };
+
   if (Platform.OS === 'ios') {
     return (
-      <View style={{ height }} className={wrapperClassName}>
+      <View style={containerStyle} className={wrapperClassName}>
         <AppleMaps.View
           style={{ flex: 1 }}
           cameraPosition={cameraPosition}
@@ -78,7 +99,7 @@ export function RouteMap({
 
   if (Platform.OS === 'android') {
     return (
-      <View style={{ height }} className={wrapperClassName}>
+      <View style={containerStyle} className={wrapperClassName}>
         <GoogleMaps.View
           style={{ flex: 1 }}
           cameraPosition={cameraPosition}
@@ -104,9 +125,12 @@ export function RouteMap({
 
   return (
     <Card
-      style={{ height }}
+      style={containerStyle}
       className="items-center justify-center bg-surface-elevated dark:bg-surface-elevated-dark">
-      <Text variant="heading">🗺️ Route Map</Text>
+      <AppIcon name="pin" size={24} color="#191A26" />
+      <Text variant="heading" className="mt-2">
+        Route Map
+      </Text>
       <Text variant="caption" className="mt-1 text-center">
         {activeCoords.length} GPS points recorded ({Platform.OS} preview)
       </Text>

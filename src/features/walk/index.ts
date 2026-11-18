@@ -13,7 +13,11 @@ export {
   type ActivityBarChartProps,
   type ChartMetric,
 } from './components/activity-bar-chart';
-export { RouteMap, type RouteMapProps } from './components/route-map';
+export {
+  RouteMap,
+  type RouteMapProps,
+  type RouteSightingMarker,
+} from './components/route-map';
 export {
   buildActivityDashboardSummary,
   enumerateDateKeys,

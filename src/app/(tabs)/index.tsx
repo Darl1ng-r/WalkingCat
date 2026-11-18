@@ -1,16 +1,14 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import {
   AppIcon,
   Button,
   Card,
-  GlassPill,
   ProgressStripBento,
   Screen,
-  StatTile,
   Text,
 } from '@/components/ui';
 import { useSession } from '@/features/auth';
@@ -22,14 +20,14 @@ import {
   usePointsSummary,
 } from '@/features/gamification';
 import { useTodayHealthSummary } from '@/features/health';
-import { ActivityBarChart, RouteMap, useActivityDashboard } from '@/features/walk';
-import { DEMO_AVATARS, DEMO_WALK_ROUTE } from '@/lib/demo-data';
+import { ActivityBarChart, useActivityDashboard } from '@/features/walk';
+import { DEMO_AVATARS } from '@/lib/demo-data';
 import { formatDistance, formatNumber } from '@/lib/format';
 
-// Organic black-ink wavy drip divider from the bottom of the "Планы" card in the reference image
+// Organic black-ink wavy drip divider from the reference design
 const WAVY_DRIP_SVG_URI = `data:image/svg+xml;utf8,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="440" height="28" viewBox="0 0 440 28" preserveAspectRatio="none">
-    <path d="M0,0 L440,0 L440,6 Q410,26 380,10 Q350,-4 320,16 Q290,28 260,10 Q220,-4 185,18 Q155,28 125,8 Q90,-4 55,20 Q25,28 0,8 Z" fill="#191A26" />
+  `<svg xmlns="http://www.w3.org/2000/svg" width="440" height="26" viewBox="0 0 440 26" preserveAspectRatio="none">
+    <path d="M0,0 L440,0 L440,6 Q410,24 380,10 Q350,-4 320,15 Q290,26 260,9 Q220,-4 185,17 Q155,26 125,8 Q90,-4 55,19 Q25,26 0,8 Z" fill="#191A26" />
   </svg>`
 )}`;
 
@@ -42,23 +40,14 @@ export default function HomeScreen() {
   const pawBalance = pointsSummary?.totalPoints ?? 620;
   const { data: collectionCards = [] } = useCatCollection('newest');
   const [connecting, setConnecting] = useState(false);
-  const [heroMapStyle, setHeroMapStyle] = useState<'satellite' | 'street'>('street');
 
   const permState = data?.permissionState ?? 'not_connected';
   const providerName = data?.providerDisplayName ?? 'Health App';
   const stepsToday = data?.stepsToday ?? null;
-  const walksToday = data?.walksTodayCount ?? 0;
-  const distanceToday = data?.distanceTodayMeters ?? 0;
 
   const displaySteps =
     stepsToday ??
     (weekSummary?.totalSteps ? Math.round(weekSummary.totalSteps / 4) : 6840);
-  const displayDistance =
-    distanceToday > 0
-      ? distanceToday
-      : weekSummary?.totalDistanceMeters
-        ? Math.round(weekSummary.totalDistanceMeters / 3)
-        : 3420;
 
   const handleConnectPress = async () => {
     setConnecting(true);
@@ -69,7 +58,7 @@ export default function HomeScreen() {
     }
   };
 
-  // Top 3 cats/companions for the "Мои питомцы" scalloped header circles
+  // Top 3 recent neighborhood cats for the scalloped header circles
   const topCats = [
     {
       id: collectionCards[0]?.id ?? 'demo-cat-1',
@@ -94,26 +83,26 @@ export default function HomeScreen() {
     },
   ];
 
+  const primaryChallenge = challengesOverview?.activeDaily?.[0];
+
   return (
-    <Screen scroll padded={false} contentContainerClassName="gap-4 pb-32">
-      {/* 1. Deep Midnight-Ink Top Header ("Мои питомцы + ⋮" from Reference Top-Left Screen) */}
+    <Screen scroll padded={false} contentContainerClassName="gap-5 pb-32">
+      {/* 1. Midnight-Ink Header + 3 Scalloped Cat Portraits */}
       <View className="bg-[#191A26] px-5 pb-14 pt-3">
         <View className="flex-row items-center justify-between">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Open profile"
-            onPress={() => router.push('/profile')}>
+            onPress={() => router.push('/profile')}
+            className="min-h-[40px] justify-center">
             <Text className="text-lg font-extrabold text-white">
-              {profile?.display_name || 'My Cats & Walks'}
+              {profile?.display_name || 'StrayCat Walk'}
             </Text>
           </Pressable>
-          <View className="flex-row items-center gap-2">
-            <PointsChip />
-          </View>
+          <PointsChip />
         </View>
       </View>
 
-      {/* 2. Scalloped White Halo Circles ("Огурец | Бублик | Пиксик" from Reference Top-Left Screen) */}
       <View style={{ zIndex: 20 }} className="-mt-12 px-3">
         <View className="flex-row items-start justify-around">
           {topCats.map((cat) => (
@@ -125,7 +114,6 @@ export default function HomeScreen() {
                 router.push({ pathname: '/cat/[id]', params: { id: cat.id } })
               }
               className="items-center">
-              {/* Outer cream/white halo ring that carves a scalloped arch into the #191A26 header */}
               <View className="rounded-pill bg-[#FAF8F5] p-1.5 dark:bg-[#12131C]">
                 <View className="h-[74px] w-[74px] overflow-hidden rounded-pill border-[2.5px] border-[#191A26] bg-white">
                   <Image
@@ -152,57 +140,26 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <View className="gap-4 px-4">
-        {/* 3. Filter Pill Row with Warm Peach Circle Icon + Solid Dark & Outlined White Pills */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerClassName="items-center gap-2 py-0.5">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Start Walk"
-            onPress={() => router.push('/walk')}
-            className="h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#F4A97B]">
-            <AppIcon name="paw" size={16} color="#191A26" />
-          </Pressable>
-          <GlassPill
-            label="All"
-            active={heroMapStyle === 'street'}
-            onPress={() => setHeroMapStyle('street')}
-          />
-          <GlassPill
-            label="Cats"
-            badgeCount={collectionCards.length || 4}
-            onPress={() => router.push('/collection')}
-          />
-          <GlassPill
-            label="League"
-            onPress={() => router.push('/social')}
-          />
-          <GlassPill
-            label="Boutique"
-            onPress={() => router.push('/cosmetics')}
-          />
-        </ScrollView>
-
-        {/* 4. Dark Midnight-Ink "Планы" (Plans & Daily Challenges) Card + Organic Wavy Drip Bottom Edge */}
+      <View className="gap-5 px-4">
+        {/* 2. Single Hero Focal Card: Today's Stroll + Week Strip + Active Challenge + Start Walk CTA */}
         <View>
           <View className="rounded-t-[28px] bg-[#191A26] px-4 pb-4 pt-4">
             <View className="flex-row items-center justify-between">
               <Text className="text-base font-extrabold text-white">
-                Today&apos;s Plans & Challenges
+                Today&apos;s Stroll
               </Text>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="All Challenges"
-                onPress={() => router.push('/challenges')}>
+                onPress={() => router.push('/challenges')}
+                className="min-h-[32px] justify-center">
                 <Text className="text-xs font-bold text-[#F4A97B]">
-                  All Challenges +
+                  All Challenges
                 </Text>
               </Pressable>
             </View>
 
-            {/* Dynamic Weekly Activity Day Strip */}
+            {/* Dynamic 7-Day Activity Strip */}
             <View className="my-3 flex-row items-center justify-between px-1">
               {(weekSummary?.days ?? []).slice(-7).map((d) => {
                 const dayNum = d.date.slice(8, 10);
@@ -239,54 +196,20 @@ export default function HomeScreen() {
               })}
             </View>
 
-            {/* Warm Peach Pill Row & Dark Slate Pill Row inside the Midnight-Ink Card */}
-            <View className="gap-2.5">
-              {challengesOverview && challengesOverview.activeDaily.length > 0 ? (
-                challengesOverview.activeDaily.map((challenge) => (
-                  <ChallengeCard
-                    key={challenge.instanceId}
-                    challenge={challenge}
-                    compact
-                  />
-                ))
-              ) : (
-                <Pressable
-                  onPress={() => router.push('/walk')}
-                  className="flex-row items-center justify-between rounded-pill bg-[#FCE8D5] px-4 py-3">
-                  <Text className="text-xs font-extrabold text-[#191A26]">
-                    Sunset Neighborhood Walk
-                  </Text>
-                  <Text className="text-xs font-bold text-[#191A26]">+65 pts</Text>
-                </Pressable>
-              )}
+            <View className="gap-3">
+              {primaryChallenge ? (
+                <ChallengeCard challenge={primaryChallenge} compact />
+              ) : null}
 
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Start a walk with friends"
+              <Button
+                label="Start Walk"
+                variant="primary"
+                size="md"
                 onPress={() => router.push('/walk')}
-                className="flex-row items-center justify-between rounded-pill border border-white/25 bg-[#2A2C3E] px-4 py-3">
-                <View className="flex-row items-center gap-2">
-                  <View className="h-6 w-6 overflow-hidden rounded-pill border border-white/40 bg-white">
-                    <Image
-                      source={{ uri: DEMO_AVATARS.mina }}
-                      style={{ width: '100%', height: '100%' }}
-                      contentFit="cover"
-                    />
-                  </View>
-                  <Text
-                    numberOfLines={1}
-                    className="text-xs font-bold text-white">
-                    Ready for a neighborhood stroll?
-                  </Text>
-                </View>
-                <Text className="text-xs font-extrabold text-[#F4A97B]">
-                  Go ›
-                </Text>
-              </Pressable>
+              />
             </View>
           </View>
 
-          {/* Organic Black-Ink Wavy Drip Bottom Edge (Matching Reference Top-Left Screen) */}
           <Image
             source={{ uri: WAVY_DRIP_SVG_URI }}
             style={{ width: '100%', height: 22 }}
@@ -294,32 +217,7 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* 5. Outlined Action Pill Rows */}
-        <View className="gap-2.5">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Open Friends League"
-            onPress={() => router.push('/social')}
-            className="min-h-[46px] flex-row items-center justify-between rounded-pill border-[1.5px] border-[#191A26] bg-white px-5 py-3 transition-opacity duration-150 hover:opacity-90 active:opacity-80 dark:border-[#35384F] dark:bg-[#232536]">
-            <Text className="text-xs font-extrabold text-[#191A26] dark:text-[#FAF8F5]">
-              Don&apos;t miss the Friends League race!
-            </Text>
-            <AppIcon name="chevronRight" size={15} color="#191A26" />
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Open Cosmetics Boutique"
-            onPress={() => router.push('/cosmetics')}
-            className="min-h-[46px] flex-row items-center justify-between rounded-pill border-[1.5px] border-[#191A26] bg-white px-5 py-3 transition-opacity duration-150 hover:opacity-90 active:opacity-80 dark:border-[#35384F] dark:bg-[#232536]">
-            <Text className="text-xs font-extrabold text-[#191A26] dark:text-[#FAF8F5]">
-              Visit the Card Themes & Boutique
-            </Text>
-            <AppIcon name="chevronRight" size={15} color="#191A26" />
-          </Pressable>
-        </View>
-
-        {/* 6. 3-Pill Attribute / Progress Strip */}
+        {/* 3. Today's Snapshot: 3-Pill Progress Strip */}
         <ProgressStripBento
           title="My Progress"
           metrics={[
@@ -330,7 +228,7 @@ export default function HomeScreen() {
               target: 750,
               color: 'coral',
               icon: 'paw',
-              onPress: () => router.push('/challenges'),
+              onPress: () => router.push('/cosmetics'),
             },
             {
               id: 'cats',
@@ -353,208 +251,67 @@ export default function HomeScreen() {
           ]}
         />
 
-        {/* 7. Live GPS Route Preview Card */}
-        <Card className="gap-3 overflow-hidden p-0">
-          <RouteMap
-            coordinates={DEMO_WALK_ROUTE}
-            borderless
-            mapStyle={heroMapStyle}
-            height={210}
-          />
-          <View className="flex-row items-center justify-between px-4 pb-4 pt-1">
-            <View className="flex-1 pr-2">
-              <Text className="text-sm font-extrabold text-[#191A26] dark:text-white">
-                Neighborhood GPS Route
+        {/* 4. Weekly Rhythm Chart (Single clean card with inline summary & History link) */}
+        <Card className="gap-4">
+          <View className="flex-row items-center justify-between gap-2">
+            <View className="flex-1">
+              <Text variant="heading">
+                {weekSummary?.encouragingTitle?.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim() ??
+                  'This Week'}
               </Text>
-              <Text variant="caption" className="text-xs">
-                Warm peach trail · {DEMO_WALK_ROUTE.length} checkpoints
+              <Text variant="caption" className="mt-0.5 text-xs">
+                {weekSummary
+                  ? `${formatDistance(weekSummary.totalDistanceMeters)} · ${formatNumber(
+                      weekSummary.totalWalks
+                    )} walks · ${weekSummary.activeDaysCount} active days`
+                  : 'Your personal walking rhythm appears here.'}
               </Text>
             </View>
-            <Button
-              label="Start Walk"
-              variant="primary"
-              size="sm"
-              onPress={() => router.push('/walk')}
-            />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View Walk History"
+              onPress={() => router.push('/history')}
+              className="min-h-[36px] flex-row items-center gap-0.5">
+              <Text className="text-xs font-extrabold text-[#191A26] dark:text-[#F4A97B]">
+                History
+              </Text>
+              <AppIcon name="chevronRight" size={14} color="#F4A97B" />
+            </Pressable>
           </View>
+
+          {weekSummary ? (
+            <ActivityBarChart days={weekSummary.days} height={118} />
+          ) : null}
         </Card>
 
-        {/* 8. Today's Activity (Concise 2-tile row to reduce vertical bloat) */}
-        <View className="gap-2.5">
-          <Text variant="label" className="text-[#191A26] dark:text-white">
-            Today&apos;s Activity
-          </Text>
-          <View className="flex-row gap-3">
-            <StatTile
-              label="Steps Today"
-              value={stepsToday !== null ? formatNumber(stepsToday) : '—'}
-              accentColor="secondary"
-              unit={
-                permState === 'connected'
-                  ? `from ${providerName}`
-                  : `${formatNumber(walksToday)} walks`
-              }
-            />
-            <StatTile
-              label="Distance Today"
-              value={formatDistance(displayDistance)}
-              accentColor="coral"
-              unit={
-                data?.activeKcalToday
-                  ? `${formatNumber(data.activeKcalToday)} kcal`
-                  : undefined
-              }
-            />
-          </View>
-        </View>
-
-        {!isLoading && permState !== 'connected' ? (
+        {/* Optional Health Connect Banner (only shown when disconnected on native) */}
+        {!isLoading && permState !== 'connected' && permState !== 'unavailable' ? (
           <Card elevated className="gap-3">
             <View className="flex-row items-center gap-2">
               <AppIcon name="heart" size={18} color="#191A26" />
               <Text variant="heading">Connect {providerName}</Text>
             </View>
             {permState === 'install_required' ? (
-              <>
-                <Text variant="caption" className="leading-5">
-                  Install or update Google Health Connect to display your daily steps and active
-                  calories burned. We only read Steps and Active Calories and never write to your
-                  health records.
-                </Text>
-                <Button
-                  label="Install Health Connect"
-                  variant="secondary"
-                  onPress={openHealthSettings}
-                />
-              </>
+              <Button
+                label="Install Health Connect"
+                variant="secondary"
+                onPress={openHealthSettings}
+              />
             ) : permState === 'denied' ? (
-              <>
-                <Text variant="caption" className="leading-5">
-                  Health access was not granted. You can still record walks normally, or enable read
-                  access for Steps and Active Calories in {providerName} settings anytime.
-                </Text>
-                <Button
-                  label={`Open ${providerName} Settings`}
-                  variant="secondary"
-                  onPress={openHealthSettings}
-                />
-              </>
-            ) : permState === 'unavailable' ? (
-              <Text variant="caption" className="leading-5">
-                {providerName} is not available in this runtime (requires a native iOS/Android
-                development build). Walk distance, pace, and estimated calories still work normally!
-              </Text>
+              <Button
+                label={`Open ${providerName} Settings`}
+                variant="secondary"
+                onPress={openHealthSettings}
+              />
             ) : (
-              <>
-                <Text variant="caption" className="leading-5">
-                  Connect {providerName} to see your daily step count and walk steps. We only read
-                  Steps and Active Calories—we never write data or share health metrics.
-                </Text>
-                <Button
-                  label={`Connect ${providerName}`}
-                  loading={connecting}
-                  onPress={handleConnectPress}
-                />
-              </>
+              <Button
+                label={`Connect ${providerName}`}
+                loading={connecting}
+                onPress={handleConnectPress}
+              />
             )}
           </Card>
         ) : null}
-
-        {permState === 'connected' && stepsToday === 0 ? (
-          <Card className="gap-1.5">
-            <Text variant="label">0 steps reported so far</Text>
-            <Text variant="caption" className="text-xs leading-5">
-              If you have walked today and still see 0 steps, check that step read access is enabled
-              for StrayCat Walk in {providerName}.
-            </Text>
-            <Button
-              label={`Manage in ${providerName}`}
-              size="sm"
-              variant="ghost"
-              onPress={openHealthSettings}
-            />
-          </Card>
-        ) : null}
-
-        {/* 9. Weekly Activity Summary Card */}
-        <Card className="gap-4">
-          <View className="flex-row items-start justify-between gap-2">
-            <View className="flex-1">
-              <Text variant="label">This Week</Text>
-              <Text variant="heading" className="mt-1">
-                {weekSummary?.encouragingTitle?.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim() ??
-                  'A fresh week for a stroll'}
-              </Text>
-              <Text variant="caption" className="mt-0.5 text-xs leading-5">
-                {weekSummary?.encouragingSubtitle ??
-                  'Whenever you step outside for a walk, your personal progress will show up here.'}
-              </Text>
-            </View>
-            <Button
-              label="Progress"
-              size="sm"
-              variant="ghost"
-              onPress={() => router.push('/history/progress')}
-            />
-          </View>
-
-          <View className="flex-row gap-2.5">
-            <StatTile
-              label="Active Days"
-              value={
-                weekSummary
-                  ? `${weekSummary.activeDaysCount} of ${weekSummary.totalDays}`
-                  : '0 of 7'
-              }
-              unit="days"
-            />
-            <StatTile
-              label="Walks"
-              value={weekSummary ? formatNumber(weekSummary.totalWalks) : '0'}
-            />
-          </View>
-
-          <View className="flex-row gap-2.5">
-            <StatTile
-              label="Distance"
-              value={
-                weekSummary
-                  ? formatDistance(weekSummary.totalDistanceMeters)
-                  : '0 m'
-              }
-              accentColor="coral"
-            />
-            <StatTile
-              label="Steps"
-              value={
-                weekSummary && weekSummary.totalSteps > 0
-                  ? formatNumber(weekSummary.totalSteps)
-                  : '—'
-              }
-            />
-          </View>
-
-          {weekSummary ? (
-            <ActivityBarChart days={weekSummary.days} height={124} />
-          ) : null}
-
-          <View className="flex-row gap-3 pt-1">
-            <Button
-              label="Walk History"
-              size="sm"
-              variant="secondary"
-              className="flex-1"
-              onPress={() => router.push('/history')}
-            />
-            <Button
-              label="Week / Month View"
-              size="sm"
-              variant="ghost"
-              className="flex-1"
-              onPress={() => router.push('/history/progress')}
-            />
-          </View>
-        </Card>
       </View>
     </Screen>
   );

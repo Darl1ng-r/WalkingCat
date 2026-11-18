@@ -6,14 +6,24 @@ import { AppIcon, Text } from '@/components/ui';
 import { DEMO_WALK_ROUTE } from '@/lib/demo-data';
 import { env, isGoogleMapsConfigured } from '@/lib/env';
 
+export interface RouteSightingMarker {
+  id: string;
+  latitude: number;
+  longitude: number;
+  label?: string;
+}
+
 export interface RouteMapProps {
   coordinates: readonly { latitude: number; longitude: number }[];
+  sightingMarkers?: readonly RouteSightingMarker[];
   showUserLocation?: boolean;
   fitToBounds?: boolean;
-  height?: number;
+  height?: number | '100%';
+  fill?: boolean;
   mapStyle?: 'satellite' | 'street';
   borderless?: boolean;
   showSightingPins?: boolean;
+  showDemoRouteWhenEmpty?: boolean;
 }
 
 declare global {
@@ -29,7 +39,7 @@ const GOOGLE_MAPS_SCRIPT_ID = 'walkingcat-google-maps-js';
 const LEAFLET_CSS_ID = 'walkingcat-leaflet-css';
 const LEAFLET_JS_ID = 'walkingcat-leaflet-js';
 
-// Clean silver-white custom style for Google Maps JS API to match the "Blobs" reference GPS screen
+// Clean silver-white custom style for Google Maps JS API
 const GOOGLE_MAPS_SILVER_STYLE = [
   { elementType: 'geometry', stylers: [{ color: '#f5f5f5' }] },
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
@@ -73,7 +83,7 @@ const GOOGLE_MAPS_SILVER_STYLE = [
 ];
 
 const BLOB_CAT_PIN_SVG_URI = `data:image/svg+xml;utf8,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="46" height="56" viewBox="0 0 46 56">
+  `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="54" viewBox="0 0 46 56">
     <path d="M 23 54 C 23 54 43 35 43 21 C 43 10 34 2 23 2 C 12 2 3 10 3 21 C 3 35 23 54 23 54 Z" fill="#191A26" stroke="#FFFFFF" stroke-width="2" />
     <circle cx="23" cy="21" r="13" fill="#FFFFFF" />
     <path d="M 14 23 L 16 12 L 22 17 Z" fill="#191A26" />
@@ -84,8 +94,18 @@ const BLOB_CAT_PIN_SVG_URI = `data:image/svg+xml;utf8,${encodeURIComponent(
   </svg>`
 )}`;
 
+const CAT_SIGHTING_PIN_SVG_URI = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="46" viewBox="0 0 46 56">
+    <path d="M 23 54 C 23 54 43 35 43 21 C 43 10 34 2 23 2 C 12 2 3 10 3 21 C 3 35 23 54 23 54 Z" fill="#F4A97B" stroke="#191A26" stroke-width="3" />
+    <circle cx="23" cy="21" r="11" fill="#191A26" />
+    <path d="M 16 23 L 17.5 14 L 22 18 Z" fill="#FFFFFF" />
+    <path d="M 30 23 L 28.5 14 L 24 18 Z" fill="#FFFFFF" />
+    <ellipse cx="23" cy="22.5" rx="7" ry="5.5" fill="#FFFFFF" />
+  </svg>`
+)}`;
+
 const START_DOT_SVG_URI = `data:image/svg+xml;utf8,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20">
     <circle cx="10" cy="10" r="7" fill="#F4A97B" stroke="#191A26" stroke-width="3.5" />
   </svg>`
 )}`;
@@ -128,6 +148,40 @@ function ensureGoogleMapsLoaded(apiKey: string): Promise<any> {
   });
 }
 
+function ensureLeafletLoaded(): Promise<any> {
+  if (typeof window === 'undefined') {
+    return Promise.resolve(null);
+  }
+  if (window.L) {
+    return Promise.resolve(window.L);
+  }
+
+  if (!document.getElementById(LEAFLET_CSS_ID)) {
+    const link = document.createElement('link');
+    link.id = LEAFLET_CSS_ID;
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+  }
+
+  return new Promise((resolve) => {
+    const existingScript = document.getElementById(LEAFLET_JS_ID) as HTMLScriptElement | null;
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(window.L));
+      existingScript.addEventListener('error', () => resolve(null));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = LEAFLET_JS_ID;
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.async = true;
+    script.onload = () => resolve(window.L);
+    script.onerror = () => resolve(null);
+    document.body.appendChild(script);
+  });
+}
+
 function addHtmlOverlayPin(
   gmaps: any,
   map: any,
@@ -166,48 +220,18 @@ function addHtmlOverlayPin(
   }
   const overlay = new CustomPinOverlay();
   overlay.setMap(map);
-}
-
-function ensureLeafletLoaded(): Promise<any> {
-  if (typeof window === 'undefined') {
-    return Promise.resolve(null);
-  }
-  if (window.L) {
-    return Promise.resolve(window.L);
-  }
-
-  if (!document.getElementById(LEAFLET_CSS_ID)) {
-    const link = document.createElement('link');
-    link.id = LEAFLET_CSS_ID;
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(link);
-  }
-
-  return new Promise((resolve) => {
-    const existingScript = document.getElementById(LEAFLET_JS_ID) as HTMLScriptElement | null;
-    if (existingScript) {
-      existingScript.addEventListener('load', () => resolve(window.L));
-      existingScript.addEventListener('error', () => resolve(null));
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = LEAFLET_JS_ID;
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.async = true;
-    script.onload = () => resolve(window.L);
-    script.onerror = () => resolve(null);
-    document.body.appendChild(script);
-  });
+  return overlay;
 }
 
 export function RouteMap({
   coordinates,
+  sightingMarkers = [],
   height = 280,
+  fill = false,
   mapStyle: initialMapStyle = 'street',
   borderless = false,
   showSightingPins = true,
+  showDemoRouteWhenEmpty = true,
 }: RouteMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const googleMapRef = useRef<any>(null);
@@ -223,7 +247,12 @@ export function RouteMap({
   }
 
   const activeStyle = styleOverride ?? initialMapStyle;
-  const routeCoords = coordinates.length >= 2 ? coordinates : DEMO_WALK_ROUTE;
+  const routeCoords =
+    coordinates.length >= 1
+      ? coordinates
+      : showDemoRouteWhenEmpty
+        ? DEMO_WALK_ROUTE
+        : [];
 
   useEffect(() => {
     let isMounted = true;
@@ -231,6 +260,8 @@ export function RouteMap({
     async function initMap() {
       const el = containerRef.current;
       if (!el) return;
+
+      const defaultCenter = { lat: 34.0153, lng: -118.4951 };
 
       // Path A: Official Google Maps JavaScript SDK when EXPO_PUBLIC_GOOGLE_MAPS_API_KEY is configured
       if (!useTileFallback && isGoogleMapsConfigured && env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY) {
@@ -249,10 +280,8 @@ export function RouteMap({
             lat: pt.latitude,
             lng: pt.longitude,
           }));
-          const center = pathLatLngs[Math.floor(pathLatLngs.length / 2)] ?? {
-            lat: 34.0153,
-            lng: -118.4951,
-          };
+          const center =
+            pathLatLngs[Math.floor(pathLatLngs.length / 2)] ?? defaultCenter;
 
           const map = new gmaps.Map(containerRef.current, {
             center,
@@ -266,50 +295,64 @@ export function RouteMap({
 
           googleMapRef.current = map;
 
-          // Soft warm-peach glow under the walked route
-          new gmaps.Polyline({
-            path: pathLatLngs,
-            geodesic: true,
-            strokeColor: '#F4A97B',
-            strokeOpacity: 0.28,
-            strokeWeight: 14,
-            map,
-          });
+          if (pathLatLngs.length >= 2) {
+            new gmaps.Polyline({
+              path: pathLatLngs,
+              geodesic: true,
+              strokeColor: '#F4A97B',
+              strokeOpacity: 0.28,
+              strokeWeight: 14,
+              map,
+            });
 
-          // Core Warm Peach (#F4A97B) walked route polyline
-          new gmaps.Polyline({
-            path: pathLatLngs,
-            geodesic: true,
-            strokeColor: '#F4A97B',
-            strokeOpacity: 1.0,
-            strokeWeight: 5,
-            map,
-          });
+            new gmaps.Polyline({
+              path: pathLatLngs,
+              geodesic: true,
+              strokeColor: '#F4A97B',
+              strokeOpacity: 1.0,
+              strokeWeight: 5,
+              map,
+            });
+          }
 
-          // Start marker (via OverlayView to avoid deprecated google.maps.Marker warning)
+          // Start marker
           const startPt = pathLatLngs[0];
           if (startPt) {
             addHtmlOverlayPin(
               gmaps,
               map,
               startPt,
-              `<img src="${START_DOT_SVG_URI}" style="width:20px;height:20px;filter:drop-shadow(0 2px 5px rgba(25,26,38,0.28));" />`,
-              10,
-              10
+              `<img src="${START_DOT_SVG_URI}" style="width:18px;height:18px;filter:drop-shadow(0 2px 5px rgba(25,26,38,0.28));" />`,
+              9,
+              9
             );
           }
 
-          // End marker (Black-Ink Blob-Cat Teardrop Pin)
+          // Walker current position pin
           const endPt = pathLatLngs[pathLatLngs.length - 1];
           if (endPt) {
             addHtmlOverlayPin(
               gmaps,
               map,
               endPt,
-              `<img src="${BLOB_CAT_PIN_SVG_URI}" style="width:46px;height:56px;filter:drop-shadow(0 6px 10px rgba(25,26,38,0.3));" />`,
-              23,
-              54
+              `<img src="${BLOB_CAT_PIN_SVG_URI}" style="width:44px;height:54px;filter:drop-shadow(0 6px 10px rgba(25,26,38,0.3));" />`,
+              22,
+              52
             );
+          }
+
+          // Cat sighting pins placed where the user found cats
+          if (showSightingPins) {
+            for (const marker of sightingMarkers) {
+              addHtmlOverlayPin(
+                gmaps,
+                map,
+                { lat: marker.latitude, lng: marker.longitude },
+                `<img src="${CAT_SIGHTING_PIN_SVG_URI}" style="width:38px;height:46px;filter:drop-shadow(0 4px 8px rgba(25,26,38,0.3));" />`,
+                19,
+                44
+              );
+            }
           }
 
           if (pathLatLngs.length >= 2) {
@@ -317,7 +360,7 @@ export function RouteMap({
             for (const pt of pathLatLngs) {
               bounds.extend(pt);
             }
-            map.fitBounds(bounds, 36);
+            map.fitBounds(bounds, 48);
           }
 
           setMapReady(true);
@@ -325,7 +368,7 @@ export function RouteMap({
         }
       }
 
-      // Path B: Google Maps Tile Layer (mt1.google.com) fallback when API key is not yet in .env.local
+      // Path B: Google Maps Tile Layer fallback
       const L = await ensureLeafletLoaded();
       if (!isMounted || !L || !containerRef.current) return;
 
@@ -338,7 +381,10 @@ export function RouteMap({
         pt.latitude,
         pt.longitude,
       ]);
-      const center = latLngs[Math.floor(latLngs.length / 2)] ?? [34.0153, -118.4951];
+      const center = latLngs[Math.floor(latLngs.length / 2)] ?? [
+        defaultCenter.lat,
+        defaultCenter.lng,
+      ];
 
       const map = L.map(containerRef.current, {
         center,
@@ -349,7 +395,6 @@ export function RouteMap({
 
       leafletMapRef.current = map;
 
-      // Google Maps Street (lyrs=m) and Google Satellite Hybrid (lyrs=y) tile servers
       const googleTileUrl =
         activeStyle === 'satellite'
           ? 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
@@ -359,65 +404,61 @@ export function RouteMap({
         maxZoom: 20,
       }).addTo(map);
 
-      // Soft warm-peach glow under the walked route
-      L.polyline(latLngs, {
-        color: '#F4A97B',
-        weight: 14,
-        opacity: 0.28,
-        lineCap: 'round',
-        lineJoin: 'round',
-      }).addTo(map);
+      let mainLine: any = null;
+      if (latLngs.length >= 2) {
+        L.polyline(latLngs, {
+          color: '#F4A97B',
+          weight: 14,
+          opacity: 0.28,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }).addTo(map);
 
-      // Core Warm Peach (#F4A97B) walked route polyline
-      const mainLine = L.polyline(latLngs, {
-        color: '#F4A97B',
-        weight: 5,
-        opacity: 1,
-        lineCap: 'round',
-        lineJoin: 'round',
-      }).addTo(map);
+        mainLine = L.polyline(latLngs, {
+          color: '#F4A97B',
+          weight: 5,
+          opacity: 1,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }).addTo(map);
+      }
 
-      // Start marker
       const startPt = latLngs[0];
       if (startPt) {
         const startIcon = L.divIcon({
           className: '',
-          iconSize: [20, 20],
-          iconAnchor: [10, 10],
-          html: `<img src="${START_DOT_SVG_URI}" style="width:20px;height:20px;filter:drop-shadow(0 2px 5px rgba(25,26,38,0.28));" />`,
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+          html: `<img src="${START_DOT_SVG_URI}" style="width:18px;height:18px;filter:drop-shadow(0 2px 5px rgba(25,26,38,0.28));" />`,
         });
         L.marker(startPt, { icon: startIcon }).addTo(map);
       }
 
-      // Black-Ink Blob-Cat Teardrop Pin at head of route
       const endPt = latLngs[latLngs.length - 1];
       if (endPt) {
         const catPinIcon = L.divIcon({
           className: '',
-          iconSize: [46, 56],
-          iconAnchor: [23, 54],
-          html: `<img src="${BLOB_CAT_PIN_SVG_URI}" style="width:46px;height:56px;filter:drop-shadow(0 6px 10px rgba(25,26,38,0.3));" />`,
+          iconSize: [44, 54],
+          iconAnchor: [22, 52],
+          html: `<img src="${BLOB_CAT_PIN_SVG_URI}" style="width:44px;height:54px;filter:drop-shadow(0 6px 10px rgba(25,26,38,0.3));" />`,
         });
         L.marker(endPt, { icon: catPinIcon }).addTo(map);
       }
 
-      if (showSightingPins && latLngs.length >= 4) {
-        const midPt = latLngs[Math.floor(latLngs.length / 2)];
-        if (midPt) {
-          const midDot = L.divIcon({
+      if (showSightingPins) {
+        for (const marker of sightingMarkers) {
+          const sIcon = L.divIcon({
             className: '',
-            iconSize: [22, 22],
-            iconAnchor: [11, 11],
-            html: `<div style="width:22px;height:22px;border-radius:999px;background:#191A26;border:2.5px solid #FFFFFF;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(25,26,38,0.25);">
-              <div style="width:8px;height:8px;border-radius:999px;background:#F4A97B;"></div>
-            </div>`,
+            iconSize: [38, 46],
+            iconAnchor: [19, 44],
+            html: `<img src="${CAT_SIGHTING_PIN_SVG_URI}" style="width:38px;height:46px;filter:drop-shadow(0 4px 8px rgba(25,26,38,0.3));" />`,
           });
-          L.marker(midPt, { icon: midDot }).addTo(map);
+          L.marker([marker.latitude, marker.longitude], { icon: sIcon }).addTo(map);
         }
       }
 
-      if (latLngs.length >= 2) {
-        map.fitBounds(mainLine.getBounds(), { padding: [36, 36], maxZoom: 16 });
+      if (mainLine) {
+        map.fitBounds(mainLine.getBounds(), { padding: [48, 48], maxZoom: 16 });
       }
 
       setMapReady(true);
@@ -433,15 +474,22 @@ export function RouteMap({
         leafletMapRef.current = null;
       }
     };
-  }, [activeStyle, routeCoords, showSightingPins, useTileFallback]);
+  }, [activeStyle, routeCoords, showSightingPins, sightingMarkers, useTileFallback]);
 
   const handleRecenter = () => {
-    if (googleMapRef.current && window.google?.maps) {
+    if (googleMapRef.current && window.google?.maps && routeCoords.length >= 1) {
+      if (routeCoords.length === 1) {
+        googleMapRef.current.panTo({
+          lat: routeCoords[0].latitude,
+          lng: routeCoords[0].longitude,
+        });
+        return;
+      }
       const bounds = new window.google.maps.LatLngBounds();
       for (const pt of routeCoords) {
         bounds.extend({ lat: pt.latitude, lng: pt.longitude });
       }
-      googleMapRef.current.fitBounds(bounds, 36);
+      googleMapRef.current.fitBounds(bounds, 48);
       return;
     }
 
@@ -453,7 +501,7 @@ export function RouteMap({
       if (latLngs.length >= 2) {
         const bounds = window.L.latLngBounds(latLngs);
         leafletMapRef.current.flyToBounds(bounds, {
-          padding: [36, 36],
+          padding: [48, 48],
           maxZoom: 16,
           duration: 0.6,
         });
@@ -461,9 +509,11 @@ export function RouteMap({
     }
   };
 
+  const containerStyle = fill ? { flex: 1 as const, width: '100%' as const } : { height };
+
   return (
     <View
-      style={{ height }}
+      style={containerStyle}
       className={`relative w-full overflow-hidden bg-[#F2F1EE] ${
         borderless ? '' : 'rounded-card border-[1.5px] border-[#191A26]'
       }`}>
@@ -488,10 +538,10 @@ export function RouteMap({
         </View>
       ) : null}
 
-      {/* Right-Side Map Controls (Outlined Ink-on-White Circular Badges) */}
+      {/* Right-Side Map Controls */}
       <View
         style={{ zIndex: 20 }}
-        className="absolute bottom-4 right-3.5 items-center gap-2">
+        className="absolute right-3.5 top-4 items-center gap-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Reset map north and toggle satellite"
@@ -499,7 +549,7 @@ export function RouteMap({
           onPress={() =>
             setStyleOverride(activeStyle === 'satellite' ? 'street' : 'satellite')
           }
-          className="h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white active:scale-95">
+          className="h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white shadow-sm active:scale-95">
           <View className="h-1.5 w-1.5 rounded-pill bg-[#F4A97B]" />
           <Text className="text-[10px] font-extrabold leading-none text-[#191A26]">N</Text>
         </Pressable>
@@ -509,19 +559,9 @@ export function RouteMap({
           accessibilityLabel="Recenter walked route"
           hitSlop={6}
           onPress={handleRecenter}
-          className="h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] active:scale-95">
+          className="h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] shadow-sm active:scale-95">
           <AppIcon name="navigation" size={14} color="#FFFFFF" />
         </Pressable>
-      </View>
-
-      {/* Bottom-left live route status pill */}
-      <View
-        style={{ zIndex: 20 }}
-        className="absolute bottom-4 left-3.5 flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] bg-white px-3 py-1">
-        <View className="h-2 w-2 rounded-pill bg-[#F4A97B]" />
-        <Text className="text-[10px] font-extrabold text-[#191A26]">
-          Live Route · {routeCoords.length} stops
-        </Text>
       </View>
     </View>
   );

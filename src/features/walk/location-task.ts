@@ -53,11 +53,44 @@ if (Platform.OS !== 'web' && process.env.NODE_ENV !== 'test') {
 }
 
 let foregroundSubscription: Location.LocationSubscription | null = null;
+let webWatchId: number | null = null;
 
 export async function startWalkLocationTracking(
   onPoint?: (point: GeoPoint) => void
 ): Promise<void> {
   if (Platform.OS === 'web') {
+    if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+      try {
+        if (webWatchId !== null) {
+          navigator.geolocation.clearWatch(webWatchId);
+        }
+        webWatchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            const activeWalk = getActiveWalkRecord();
+            if (!activeWalk || activeWalk.state !== 'active') {
+              return;
+            }
+            const pt: GeoPoint = {
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              accuracy: pos.coords.accuracy,
+              speed: pos.coords.speed,
+              timestamp: pos.timestamp || Date.now(),
+            };
+            insertWalkPoints(activeWalk.id, [pt]);
+            onPoint?.(pt);
+          },
+          (err) => {
+            logger.info('Web geolocation watch unavailable or denied', {
+              message: err.message,
+            });
+          },
+          { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
+        );
+      } catch (err) {
+        logger.warn('Web geolocation setup failed', { error: String(err) });
+      }
+    }
     return;
   }
 
@@ -128,6 +161,14 @@ export async function stopWalkLocationTracking(): Promise<void> {
   }
 
   if (Platform.OS === 'web') {
+    if (
+      webWatchId !== null &&
+      typeof navigator !== 'undefined' &&
+      'geolocation' in navigator
+    ) {
+      navigator.geolocation.clearWatch(webWatchId);
+      webWatchId = null;
+    }
     return;
   }
 
