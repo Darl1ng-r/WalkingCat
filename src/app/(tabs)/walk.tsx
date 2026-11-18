@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, AppState, Platform, Pressable, View } from 'react-native';
 
-import { Button, Card, Screen, StatTile, Text } from '@/components/ui';
+import { AppIcon, Button, Card, Screen, StatTile, Text } from '@/components/ui';
 import { AppConfig } from '@/constants/config';
 import { useSession } from '@/features/auth';
 import {
@@ -264,13 +264,16 @@ export default function WalkScreen() {
     return (
       <Screen scroll contentContainerClassName="gap-5 pb-32">
         <View className="mt-2">
-          <Text variant="label">Walk Completed 🎉</Text>
+          <View className="flex-row items-center gap-1.5">
+            <AppIcon name="check" size={14} color="#191A26" />
+            <Text variant="label">Walk Completed</Text>
+          </View>
           <Text variant="title" className="mt-1">
             Great walk!
           </Text>
           <Text variant="caption" className="mt-1">
             {summary.syncStatus === 'synced'
-              ? '✓ Saved to your private history'
+              ? 'Saved to your private history'
               : summary.syncStatus === 'uploading'
                 ? 'Uploading to your private history…'
                 : 'Saved on device — will upload automatically when online'}
@@ -441,9 +444,10 @@ export default function WalkScreen() {
           </View>
 
           {isWeakGps ? (
-            <Card elevated className="py-2.5">
+            <Card elevated className="flex-row items-center gap-2 py-2.5">
+              <AppIcon name="signal" size={15} color="#191A26" />
               <Text variant="caption" className="font-bold text-[#191A26]">
-                📡 Weak GPS signal — waiting for a clear sky fix…
+                Weak GPS signal — waiting for a clear sky fix…
               </Text>
             </Card>
           ) : null}
@@ -464,8 +468,8 @@ export default function WalkScreen() {
           <Button
             label={
               walkSightings.length > 0
-                ? `📷 Spot a Cat (${walkSightings.length} spotted)`
-                : '📷 Spot a Cat Along Route'
+                ? `Spot a Cat (${walkSightings.length} spotted)`
+                : 'Spot a Cat Along Route'
             }
             variant="secondary"
             size="lg"
@@ -667,7 +671,10 @@ export default function WalkScreen() {
 
         {showPermissionExplainer ? (
           <Card elevated className="gap-4 p-5">
-            <Text variant="heading">📍 How we use your location</Text>
+            <View className="flex-row items-center gap-2">
+              <AppIcon name="pin" size={18} color="#191A26" />
+              <Text variant="heading">How we use your location</Text>
+            </View>
             <Text variant="caption" className="leading-5">
               We only use GPS while a walk is actively running so we can measure your distance and
               draw your private route—including when your screen is locked in your pocket.

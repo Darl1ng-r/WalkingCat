@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Pressable, Share, View } from 'react-native';
 
 import {
+  AppIcon,
   Button,
   Card,
   EmptyState,
@@ -75,15 +76,15 @@ function getLeagueBadgeForRank(rank: number): {
   icon: string;
 } {
   if (rank === 1) {
-    return { label: 'Diamond', color: '#FFFFFF', bg: '#191A26', icon: '💎' };
+    return { label: 'Diamond', color: '#FFFFFF', bg: '#191A26', icon: 'gem' };
   }
   if (rank === 2) {
-    return { label: 'Gold', color: '#191A26', bg: '#F4A97B', icon: '🥇' };
+    return { label: 'Gold', color: '#191A26', bg: '#F4A97B', icon: 'award' };
   }
   if (rank === 3) {
-    return { label: 'Silver', color: '#191A26', bg: '#FCE8D5', icon: '🥈' };
+    return { label: 'Silver', color: '#191A26', bg: '#FCE8D5', icon: 'award' };
   }
-  return { label: 'Bronze', color: '#191A26', bg: '#FAF8F5', icon: '🛡️' };
+  return { label: 'Bronze', color: '#191A26', bg: '#FAF8F5', icon: 'shield' };
 }
 
 export default function SocialScreen() {
@@ -205,7 +206,7 @@ export default function SocialScreen() {
           <Text className="text-xs font-bold text-[#F4A97B]">▾</Text>
         </View>
         <Button
-          label="🔗 Invite"
+          label="Invite"
           size="sm"
           variant="primary"
           loading={createInviteMutation.isPending}
@@ -242,7 +243,7 @@ export default function SocialScreen() {
         <View className="gap-4">
           {/* 3-Pill Progress Strip */}
           <ProgressStripBento
-            title="MY PROGRESS"
+            title="My Progress"
             metrics={[
               {
                 id: 'points',
@@ -250,7 +251,7 @@ export default function SocialScreen() {
                 current: pawBalance,
                 target: 750,
                 color: 'coral',
-                icon: '🐾',
+                icon: 'paw',
               },
               {
                 id: 'cats',
@@ -258,7 +259,7 @@ export default function SocialScreen() {
                 current: collectionCards.length || 4,
                 target: 10,
                 color: 'primary',
-                icon: '🃏',
+                icon: 'cards',
               },
               {
                 id: 'steps',
@@ -266,7 +267,7 @@ export default function SocialScreen() {
                 current: 428,
                 target: 500,
                 color: 'secondary',
-                icon: '🔥',
+                icon: 'flame',
               },
             ]}
           />
@@ -281,13 +282,17 @@ export default function SocialScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Leaderboard metric ${m.label}`}
                   onPress={() => setMetric(m.key)}
-                  className={`flex-1 flex-row items-center justify-center gap-1 rounded-pill border-[1.5px] border-[#191A26] py-2 ${
+                  className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] py-2 ${
                     active ? 'bg-[#191A26]' : 'bg-white'
                   }`}>
-                  <Text className="text-xs">{m.emoji}</Text>
+                  <AppIcon
+                    name={m.emoji}
+                    size={13}
+                    color={active ? '#F4A97B' : '#191A26'}
+                  />
                   <Text
                     variant="caption"
-                    className={`text-xs font-extrabold ${
+                    className={`text-xs font-bold ${
                       active ? 'text-white' : 'text-[#191A26]'
                     }`}>
                     {m.shortLabel}
@@ -424,10 +429,14 @@ export default function SocialScreen() {
                             <View
                               style={{ backgroundColor: tierBadge.bg }}
                               className="flex-row items-center gap-1 rounded-pill border border-[#191A26] px-2 py-0.5">
-                              <Text className="text-[9px]">{tierBadge.icon}</Text>
+                              <AppIcon
+                                name={tierBadge.icon}
+                                size={10}
+                                color={tierBadge.color}
+                              />
                               <Text
                                 style={{ color: tierBadge.color }}
-                                className="text-[9px] font-extrabold">
+                                className="text-[9px] font-bold">
                                 {tierBadge.label}
                               </Text>
                             </View>
@@ -478,7 +487,7 @@ export default function SocialScreen() {
           {/* Opt-in / Opt-out toggle */}
           <Card className="flex-row items-center justify-between gap-3 py-3">
             <View className="flex-1">
-              <Text variant="label">👀 Show me on Friends Leaderboard</Text>
+              <Text variant="label">Show me on Friends Leaderboard</Text>
               <Text variant="caption" className="mt-0.5 text-xs">
                 {showOnLeaderboard
                   ? 'Visible to your accepted friends. Turn off anytime to hide your stats.'
@@ -510,7 +519,7 @@ export default function SocialScreen() {
             </Card>
           ) : activityEvents.length === 0 ? (
             <EmptyState
-              emoji="✨"
+              emoji="sparkles"
               title="No recent milestones yet"
               message="Completed walks, unlocked badges, challenge completions, and shared cat cards from you and your friends will appear here."
             />
@@ -526,7 +535,7 @@ export default function SocialScreen() {
                         contentFit="cover"
                       />
                     ) : (
-                      <Text className="text-xl">{ev.copy.emoji}</Text>
+                      <AppIcon name={ev.copy.emoji} size={20} color="#191A26" />
                     )}
                   </View>
 
@@ -587,7 +596,7 @@ export default function SocialScreen() {
                   })()
                 ) : null}
 
-                {/* Reactions Row (👏 🐾 ❤️ 🔥) */}
+                {/* Reactions Row */}
                 <View className="flex-row items-center gap-2 border-t border-[#191A26]/15 pt-2.5">
                   {REACTION_EMOJIS.map((emoji) => {
                     const found = ev.reactions.find((r) => r.emoji === emoji);
@@ -606,14 +615,14 @@ export default function SocialScreen() {
                             currentMyReaction: ev.myReaction,
                           });
                         }}
-                        className={`flex-row items-center gap-1 rounded-pill border-[1.5px] border-[#191A26] px-3 py-1 ${
+                        className={`flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] px-3 py-1 ${
                           active ? 'bg-[#F4A97B]' : 'bg-white'
                         }`}>
-                        <Text className="text-sm">{emoji}</Text>
+                        <AppIcon name={emoji} size={13} color="#191A26" />
                         {count > 0 ? (
                           <Text
                             variant="caption"
-                            className="text-xs font-extrabold text-[#191A26]">
+                            className="font-display text-xs font-bold text-[#191A26]">
                             {count}
                           </Text>
                         ) : null}
@@ -633,7 +642,7 @@ export default function SocialScreen() {
           <Card elevated className="gap-3">
             <View className="flex-row items-center justify-between gap-3">
               <View className="flex-1">
-                <Text variant="label">🔗 Invite by Link or Code</Text>
+                <Text variant="label">Invite by Link or Code</Text>
                 <Text variant="caption" className="mt-0.5 text-xs">
                   Share a `walkingcat://invite/...` link or enter a friend&apos;s invite code.
                 </Text>

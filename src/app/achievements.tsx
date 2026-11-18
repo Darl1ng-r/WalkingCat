@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { View } from 'react-native';
 
 import {
+  AppIcon,
   Button,
   Card,
   ErrorState,
@@ -103,12 +104,12 @@ export default function AchievementsScreen() {
                 : 'opacity-85'
             }`}>
             <View
-              className={`h-14 w-14 items-center justify-center rounded-pill ${
+              className={`h-14 w-14 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] ${
                 item.unlocked
-                  ? 'bg-primary-muted dark:bg-surface-elevated-dark'
-                  : 'bg-border/60 dark:bg-border-dark'
+                  ? 'bg-[#FCE8D5]'
+                  : 'bg-[#FAF8F5]'
               }`}>
-              <Text className="text-2xl">{item.icon}</Text>
+              <AppIcon name={item.icon} size={24} color="#191A26" />
             </View>
 
             <View className="flex-1 gap-1">

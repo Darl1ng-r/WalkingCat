@@ -2,7 +2,7 @@ import { View, type ViewProps } from 'react-native';
 
 import { Button } from './button';
 import { Card } from './card';
-import { Text } from './text';
+import { AppIcon, Text } from './text';
 
 export interface ErrorStateProps extends ViewProps {
   title?: string;
@@ -24,8 +24,8 @@ export function ErrorState({
     <Card
       className={`items-center justify-center border-danger/30 p-6 ${className}`.trim()}
       {...props}>
-      <View className="mb-3 h-12 w-12 items-center justify-center rounded-pill bg-danger-muted">
-        <Text className="text-xl">⚠️</Text>
+      <View className="mb-3 h-12 w-12 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-danger-muted">
+        <AppIcon name="warning" size={22} color="#D9534F" />
       </View>
       <Text variant="heading" className="mb-1 text-center">
         {title}

@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { AppIcon, Text } from '@/components/ui';
 import type { ChallengeInstanceItem } from '../api';
 import {
   computeChallengeProgressRatio,
@@ -30,7 +30,6 @@ export function ChallengeCard({
   );
   const timeRemaining = formatChallengeTimeRemaining(challenge.periodEnd);
 
-  // Styled after the reference image's "Запись к ветеринару / Прогулка с другими друзьями" pill-shaped plan cards
   return (
     <View
       className={`gap-2 rounded-[22px] border-[1.5px] border-[#191A26] ${
@@ -43,13 +42,13 @@ export function ChallengeCard({
       <View className="flex-row items-center justify-between gap-3">
         <View className="flex-1 flex-row items-center gap-2.5">
           <View className="h-8 w-8 items-center justify-center rounded-pill border border-[#191A26] bg-[#191A26]">
-            <Text className="text-sm text-white">{challenge.icon}</Text>
+            <AppIcon name={challenge.icon} size={15} color="#F4A97B" />
           </View>
           <View className="flex-1">
             <Text
               variant="body"
               numberOfLines={1}
-              className="text-sm font-extrabold text-[#191A26]">
+              className="font-display text-sm font-bold text-[#191A26]">
               {challenge.title}
             </Text>
             {!compact ? (
@@ -65,8 +64,8 @@ export function ChallengeCard({
         <View className="rounded-pill border border-[#191A26] bg-white px-2.5 py-0.5">
           <Text
             variant="caption"
-            className="text-[11px] font-extrabold text-[#191A26]">
-            {isCompleted ? `✓ +${challenge.rewardPoints}` : `+${challenge.rewardPoints} pts`}
+            className="font-display text-[11px] font-bold text-[#191A26]">
+            {isCompleted ? `+${challenge.rewardPoints}` : `+${challenge.rewardPoints} pts`}
           </Text>
         </View>
       </View>
@@ -85,7 +84,7 @@ export function ChallengeCard({
             {progressText}
           </Text>
           <Text variant="caption" className="text-[11px] font-semibold text-[#191A26]/70">
-            {isCompleted ? 'Completed 🎉' : timeRemaining}
+            {isCompleted ? 'Completed' : timeRemaining}
           </Text>
         </View>
       </View>

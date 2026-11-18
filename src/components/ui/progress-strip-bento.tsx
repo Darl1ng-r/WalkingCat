@@ -1,6 +1,6 @@
 import { Pressable, View } from 'react-native';
 
-import { Text } from './text';
+import { AppIcon, Text } from './text';
 
 export interface ProgressStripMetric {
   id: string;
@@ -19,16 +19,15 @@ export interface ProgressStripBentoProps {
 }
 
 export function ProgressStripBento({
-  title = 'MY PROGRESS',
+  title = 'My Progress',
   metrics,
 }: ProgressStripBentoProps) {
-  // Styled after the reference image's 3-pill attribute row ("Черный | 10 месяцев | 14 кг" & warm peach progress pills)
   return (
     <View className="gap-2">
       {title ? (
         <Text
           variant="label"
-          className="px-1 text-xs font-extrabold uppercase tracking-wider text-[#191A26] dark:text-[#FAF8F5]">
+          className="px-1 text-sm font-bold text-[#191A26] dark:text-[#FAF8F5]">
           {title}
         </Text>
       ) : null}
@@ -52,11 +51,15 @@ export function ProgressStripBento({
                     ? 'bg-[#FCE8D5]'
                     : 'bg-white'
               }`}>
-              <View className="flex-row items-center gap-1">
-                <Text className="text-xs">{m.icon}</Text>
+              <View className="flex-row items-center gap-1.5">
+                <AppIcon
+                  name={m.icon}
+                  size={13}
+                  color={isDark ? '#F4A97B' : '#191A26'}
+                />
                 <Text
                   numberOfLines={1}
-                  className={`text-xs font-extrabold ${
+                  className={`font-display text-xs font-bold ${
                     isDark ? 'text-white' : 'text-[#191A26]'
                   }`}>
                   {formatted}
@@ -71,7 +74,6 @@ export function ProgressStripBento({
                 {m.label}
               </Text>
 
-              {/* Slim progress bar inside the pill */}
               <View
                 className={`mt-1.5 h-1.5 w-full overflow-hidden rounded-pill ${
                   isDark ? 'bg-white/20' : 'bg-[#191A26]/12'

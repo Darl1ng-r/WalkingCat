@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { AppIcon, Text } from '@/components/ui';
 import { DEMO_WALK_ROUTE } from '@/lib/demo-data';
 import { env, isGoogleMapsConfigured } from '@/lib/env';
 
@@ -20,6 +20,7 @@ declare global {
   interface Window {
     google?: any;
     gm_authFailure?: () => void;
+    __walkingcatGoogleMapsReady?: () => void;
     L?: any;
   }
 }
@@ -93,27 +94,78 @@ function ensureGoogleMapsLoaded(apiKey: string): Promise<any> {
   if (typeof window === 'undefined') {
     return Promise.resolve(null);
   }
-  if (window.google?.maps) {
+  if (window.google?.maps?.Map) {
     return Promise.resolve(window.google.maps);
   }
 
   return new Promise((resolve) => {
     const existing = document.getElementById(GOOGLE_MAPS_SCRIPT_ID) as HTMLScriptElement | null;
     if (existing) {
-      existing.addEventListener('load', () => resolve(window.google?.maps ?? null));
-      existing.addEventListener('error', () => resolve(null));
+      const checkReady = () => {
+        if (window.google?.maps?.Map) {
+          resolve(window.google.maps);
+        } else {
+          setTimeout(checkReady, 50);
+        }
+      };
+      checkReady();
       return;
     }
 
+    window.__walkingcatGoogleMapsReady = () => {
+      resolve(window.google?.maps ?? null);
+    };
+
     const script = document.createElement('script');
     script.id = GOOGLE_MAPS_SCRIPT_ID;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
+      apiKey
+    )}&v=weekly&loading=async&callback=__walkingcatGoogleMapsReady`;
     script.async = true;
     script.defer = true;
-    script.onload = () => resolve(window.google?.maps ?? null);
     script.onerror = () => resolve(null);
     document.head.appendChild(script);
   });
+}
+
+function addHtmlOverlayPin(
+  gmaps: any,
+  map: any,
+  position: { lat: number; lng: number },
+  html: string,
+  anchorX: number,
+  anchorY: number
+) {
+  class CustomPinOverlay extends gmaps.OverlayView {
+    private div: HTMLDivElement | null = null;
+    onAdd() {
+      const div = document.createElement('div');
+      div.style.position = 'absolute';
+      div.style.pointerEvents = 'none';
+      div.innerHTML = html;
+      this.div = div;
+      const panes = this.getPanes();
+      panes?.overlayMouseTarget?.appendChild(div);
+    }
+    draw() {
+      if (!this.div) return;
+      const projection = this.getProjection();
+      if (!projection) return;
+      const point = projection.fromLatLngToDivPixel(new gmaps.LatLng(position.lat, position.lng));
+      if (point) {
+        this.div.style.left = `${point.x - anchorX}px`;
+        this.div.style.top = `${point.y - anchorY}px`;
+      }
+    }
+    onRemove() {
+      if (this.div?.parentNode) {
+        this.div.parentNode.removeChild(this.div);
+      }
+      this.div = null;
+    }
+  }
+  const overlay = new CustomPinOverlay();
+  overlay.setMap(map);
 }
 
 function ensureLeafletLoaded(): Promise<any> {
@@ -234,32 +286,30 @@ export function RouteMap({
             map,
           });
 
-          // Start marker
+          // Start marker (via OverlayView to avoid deprecated google.maps.Marker warning)
           const startPt = pathLatLngs[0];
           if (startPt) {
-            new gmaps.Marker({
-              position: startPt,
+            addHtmlOverlayPin(
+              gmaps,
               map,
-              icon: {
-                url: START_DOT_SVG_URI,
-                scaledSize: new gmaps.Size(20, 20),
-                anchor: new gmaps.Point(10, 10),
-              },
-            });
+              startPt,
+              `<img src="${START_DOT_SVG_URI}" style="width:20px;height:20px;filter:drop-shadow(0 2px 5px rgba(25,26,38,0.28));" />`,
+              10,
+              10
+            );
           }
 
           // End marker (Black-Ink Blob-Cat Teardrop Pin)
           const endPt = pathLatLngs[pathLatLngs.length - 1];
           if (endPt) {
-            new gmaps.Marker({
-              position: endPt,
+            addHtmlOverlayPin(
+              gmaps,
               map,
-              icon: {
-                url: BLOB_CAT_PIN_SVG_URI,
-                scaledSize: new gmaps.Size(46, 56),
-                anchor: new gmaps.Point(23, 54),
-              },
-            });
+              endPt,
+              `<img src="${BLOB_CAT_PIN_SVG_URI}" style="width:46px;height:56px;filter:drop-shadow(0 6px 10px rgba(25,26,38,0.3));" />`,
+              23,
+              54
+            );
           }
 
           if (pathLatLngs.length >= 2) {
@@ -458,7 +508,7 @@ export function RouteMap({
           accessibilityLabel="Recenter walked route"
           onPress={handleRecenter}
           className="h-9 w-9 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] active:scale-95">
-          <Text className="text-xs font-bold text-white">➤</Text>
+          <AppIcon name="navigation" size={14} color="#FFFFFF" />
         </Pressable>
       </View>
 

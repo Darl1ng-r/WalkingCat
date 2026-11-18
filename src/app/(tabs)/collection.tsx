@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import {
+  AppIcon,
   Button,
   Card,
   EmptyState,
@@ -63,8 +64,9 @@ export default function CollectionScreen() {
               accessibilityRole="button"
               accessibilityLabel="Open Card Themes Boutique"
               onPress={() => router.push('/cosmetics')}
-              className="rounded-pill border border-white/30 bg-[#252738] px-3 py-1">
-              <Text className="text-xs font-bold text-[#F4A97B]">✨ Themes</Text>
+              className="flex-row items-center gap-1.5 rounded-pill border border-white/30 bg-[#252738] px-3 py-1">
+              <AppIcon name="sparkles" size={12} color="#F4A97B" />
+              <Text className="text-xs font-bold text-[#F4A97B]">Themes</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -133,7 +135,7 @@ export default function CollectionScreen() {
         </Pressable>
       </View>
 
-      {/* Filter / Sort Pill Row with Warm Peach Search Circle ("🔍 | Все | Популярные | Рядом" in Reference) */}
+      {/* Filter / Sort Pill Row with Warm Peach Camera Circle */}
       {cats.length > 0 ? (
         <View className="flex-row items-center gap-2 pt-1">
           <Pressable
@@ -141,7 +143,7 @@ export default function CollectionScreen() {
             accessibilityLabel="Spot new cat"
             onPress={() => router.push('/sighting/capture')}
             className="h-9 w-9 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#F4A97B]">
-            <Text className="text-xs font-extrabold text-[#191A26]">📷</Text>
+            <AppIcon name="camera" size={16} color="#191A26" />
           </Pressable>
           {SORT_OPTIONS.map((opt) => (
             <GlassPill
@@ -156,7 +158,7 @@ export default function CollectionScreen() {
 
       {/* Collector Progress Strip */}
       <ProgressStripBento
-        title="ALBUM MILESTONES"
+        title="Album Milestones"
         metrics={[
           {
             id: 'cards',
@@ -164,7 +166,7 @@ export default function CollectionScreen() {
             current: headerStats.totalCats,
             target: 10,
             color: 'primary',
-            icon: '🃏',
+            icon: 'cards',
           },
           {
             id: 'visits',
@@ -172,7 +174,7 @@ export default function CollectionScreen() {
             current: headerStats.totalSightings,
             target: 25,
             color: 'coral',
-            icon: '🐾',
+            icon: 'paw',
           },
           {
             id: 'days',
@@ -180,7 +182,7 @@ export default function CollectionScreen() {
             current: headerStats.discoveryDaysCount,
             target: 14,
             color: 'secondary',
-            icon: '☀️',
+            icon: 'sun',
           },
         ]}
       />
@@ -244,7 +246,7 @@ export default function CollectionScreen() {
                     />
                   ) : (
                     <View className="h-[52px] w-[52px] items-center justify-center rounded-xl bg-[#FCE8D5]">
-                      <Text className="text-xl">🐱</Text>
+                      <AppIcon name="cat" size={24} color="#191A26" />
                     </View>
                   )}
 

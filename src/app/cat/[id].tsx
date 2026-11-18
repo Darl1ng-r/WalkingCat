@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Alert, Platform, Pressable, View } from 'react-native';
 
 import {
+  AppIcon,
   Button,
   Card,
   EmptyState,
@@ -273,7 +274,7 @@ export default function CatDetailScreen() {
             <Text className="text-lg font-extrabold text-white">
               {displayName}
             </Text>
-            <Text className="text-xs text-[#F4A97B]">✏️</Text>
+            <AppIcon name="edit" size={14} color="#F4A97B" />
           </Pressable>
 
           <Pressable
@@ -291,7 +292,7 @@ export default function CatDetailScreen() {
             {/* Flanking circular mini-badges from the "Огурец" reference mockup */}
             <View className="flex-row items-center justify-center gap-4">
               <View className="mt-12 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
-                <Text className="text-sm">🐾</Text>
+                <AppIcon name="paw" size={16} color="#191A26" />
               </View>
 
               <View className="relative h-40 w-40 items-center justify-center overflow-hidden rounded-pill border-[3px] border-[#191A26] bg-[#FAF8F5]">
@@ -310,7 +311,7 @@ export default function CatDetailScreen() {
                     }}
                   />
                 ) : (
-                  <Text className="text-6xl">🐱</Text>
+                  <AppIcon name="cat" size={56} color="#191A26" />
                 )}
               </View>
 
@@ -319,7 +320,7 @@ export default function CatDetailScreen() {
                 accessibilityLabel="Open Boutique"
                 onPress={() => router.push('/cosmetics' as never)}
                 className="mt-12 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
-                <Text className="text-sm">🎨</Text>
+                <AppIcon name="palette" size={16} color="#191A26" />
               </Pressable>
             </View>
           </View>
@@ -330,18 +331,22 @@ export default function CatDetailScreen() {
       <View className="gap-5 px-5 pt-3">
         {/* 2. Centered Midnight-Ink "Биография" Pill Badge & Subtitle */}
         <View className="items-center gap-1.5">
-          <View className="rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] px-6 py-2">
+          <View className="flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] px-6 py-2">
+            <AppIcon name={equippedTheme.icon} size={13} color="#F4A97B" />
             <Text className="text-xs font-extrabold text-white">
-              {equippedTheme.icon} {equippedTheme.name}
+              {equippedTheme.name}
             </Text>
           </View>
           <Text className="mt-1 text-base font-bold text-[#191A26] dark:text-white">
             Neighborhood Cat · {cardNumber}
           </Text>
           {coarseAreaLabel ? (
-            <Text variant="caption" className="text-xs text-[#6E7085]">
-              📍 {coarseAreaLabel} · Exact location is never saved
-            </Text>
+            <View className="flex-row items-center gap-1">
+              <AppIcon name="pin" size={12} color="#6E7085" />
+              <Text variant="caption" className="text-xs text-[#6E7085]">
+                {coarseAreaLabel} · Exact location is never saved
+              </Text>
+            </View>
           ) : null}
         </View>
 
@@ -443,9 +448,9 @@ export default function CatDetailScreen() {
         <Card className="gap-3">
           <View className="flex-row items-center justify-between gap-2">
             <View className="flex-1">
-              <Text variant="label">🎨 Card Theme</Text>
+              <Text variant="label">Card Theme</Text>
               <Text variant="caption" className="text-xs">
-                Equipped: {equippedTheme.icon} {equippedTheme.name}
+                Equipped: {equippedTheme.name}
               </Text>
             </View>
             <Button
@@ -492,7 +497,11 @@ export default function CatDetailScreen() {
                         ? 'bg-[#FCE8D5]'
                         : 'bg-white opacity-60'
                   }`}>
-                  <Text className="text-sm">{unlocked ? item.icon : '🔒'}</Text>
+                  <AppIcon
+                    name={unlocked ? item.icon : 'lock'}
+                    size={13}
+                    color={isEquipped ? '#F4A97B' : '#191A26'}
+                  />
                   <Text
                     variant="caption"
                     className={`text-xs font-extrabold ${
@@ -512,7 +521,7 @@ export default function CatDetailScreen() {
           <View className="flex-row items-center justify-between gap-3 rounded-pill border border-white/25 bg-[#232536] px-4 py-3">
             <View className="flex-1">
               <Text className="text-xs font-extrabold text-white">
-                🤝 Share Card with Friends
+                Share Card with Friends
               </Text>
               <Text
                 numberOfLines={2}
@@ -522,7 +531,7 @@ export default function CatDetailScreen() {
               </Text>
             </View>
             <Button
-              label={sharedSuccessNote ? 'Shared ✓' : 'Share Card'}
+              label={sharedSuccessNote ? 'Shared' : 'Share Card'}
               size="sm"
               variant="primary"
               loading={shareCardMutation.isPending}
@@ -553,7 +562,7 @@ export default function CatDetailScreen() {
               <View className="flex-row items-center justify-between gap-3">
                 <View className="flex-1">
                   <Text className="text-xs font-extrabold text-white">
-                    🐾 Same Cat as Another Card?
+                    Same Cat as Another Card?
                   </Text>
                   <Text className="mt-0.5 text-[11px] text-white/70">
                     Link latest sighting to another card
@@ -618,7 +627,7 @@ export default function CatDetailScreen() {
                   />
                 ) : (
                   <View className="h-[72px] w-[72px] items-center justify-center rounded-xl bg-[#FCE8D5]">
-                    <Text className="text-2xl">🐱</Text>
+                    <AppIcon name="cat" size={28} color="#191A26" />
                   </View>
                 )}
 
@@ -631,7 +640,7 @@ export default function CatDetailScreen() {
                   </Text>
                   {sighting.area_geohash ? (
                     <Text variant="caption" className="text-xs">
-                      📍 {formatCoarseAreaLabel(sighting.area_geohash)}
+                      {formatCoarseAreaLabel(sighting.area_geohash)}
                     </Text>
                   ) : null}
                 </View>
@@ -640,7 +649,7 @@ export default function CatDetailScreen() {
               <View className="flex-row flex-wrap items-center justify-end gap-2 border-t border-[#191A26]/15 pt-2.5">
                 {sighting.walk_id ? (
                   <Button
-                    label="🥾 View Walk"
+                    label="View Walk"
                     size="sm"
                     variant="ghost"
                     onPress={() => {

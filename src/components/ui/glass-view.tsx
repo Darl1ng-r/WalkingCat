@@ -1,6 +1,6 @@
 import { Pressable, View, type ViewProps } from 'react-native';
 
-import { Text } from './text';
+import { AppIcon, Text } from './text';
 
 export interface GlassViewProps extends ViewProps {
   tone?: 'light' | 'dark';
@@ -42,7 +42,6 @@ export function GlassPill({
   onPress,
   icon,
 }: GlassPillProps) {
-  // Styled after the reference's circular/pill filter row (solid #191A26 active pill + crisp outlined white inactive pills)
   return (
     <Pressable
       accessibilityRole="button"
@@ -51,10 +50,16 @@ export function GlassPill({
       className={`flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] px-4 py-1.5 ${
         active ? 'bg-[#191A26]' : 'bg-white'
       }`}>
-      {icon ? <Text className="text-xs">{icon}</Text> : null}
+      {icon ? (
+        <AppIcon
+          name={icon}
+          size={13}
+          color={active ? '#F4A97B' : '#191A26'}
+        />
+      ) : null}
       <Text
         variant="caption"
-        className={`text-xs font-extrabold ${
+        className={`text-xs font-bold ${
           active ? 'text-white' : 'text-[#191A26]'
         }`}>
         {label}
@@ -66,7 +71,7 @@ export function GlassPill({
           }`}>
           <Text
             variant="caption"
-            className="text-[10px] font-extrabold text-[#191A26]">
+            className="text-[10px] font-bold text-[#191A26]">
             {badgeCount}
           </Text>
         </View>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
 import {
+  AppIcon,
   Button,
   Card,
   GlassPill,
@@ -169,7 +170,7 @@ export default function HomeScreen() {
             accessibilityLabel="Start Walk"
             onPress={() => router.push('/walk')}
             className="h-9 w-9 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#F4A97B]">
-            <Text className="text-xs font-extrabold text-[#191A26]">🐾</Text>
+            <AppIcon name="paw" size={16} color="#191A26" />
           </Pressable>
           <GlassPill
             label="All"
@@ -323,7 +324,7 @@ export default function HomeScreen() {
 
         {/* 6. 3-Pill Attribute / Progress Strip */}
         <ProgressStripBento
-          title="MY PROGRESS"
+          title="My Progress"
           metrics={[
             {
               id: 'points',
@@ -331,7 +332,7 @@ export default function HomeScreen() {
               current: pawBalance,
               target: 750,
               color: 'coral',
-              icon: '🐾',
+              icon: 'paw',
               onPress: () => router.push('/challenges'),
             },
             {
@@ -340,7 +341,7 @@ export default function HomeScreen() {
               current: collectionCards.length || 4,
               target: 10,
               color: 'primary',
-              icon: '🃏',
+              icon: 'cards',
               onPress: () => router.push('/collection'),
             },
             {
@@ -349,7 +350,7 @@ export default function HomeScreen() {
               current: displaySteps,
               target: 8000,
               color: 'secondary',
-              icon: '🔥',
+              icon: 'flame',
               onPress: () => router.push('/walk'),
             },
           ]}
@@ -422,7 +423,10 @@ export default function HomeScreen() {
 
         {!isLoading && permState !== 'connected' ? (
           <Card elevated className="gap-3">
-            <Text variant="heading">❤️ Connect {providerName}</Text>
+            <View className="flex-row items-center gap-2">
+              <AppIcon name="heart" size={18} color="#191A26" />
+              <Text variant="heading">Connect {providerName}</Text>
+            </View>
             {permState === 'install_required' ? (
               <>
                 <Text variant="caption" className="leading-5">
@@ -491,7 +495,8 @@ export default function HomeScreen() {
             <View className="flex-1">
               <Text variant="label">This Week</Text>
               <Text variant="heading" className="mt-1">
-                {weekSummary?.encouragingTitle ?? 'A fresh week for a stroll 🌿'}
+                {weekSummary?.encouragingTitle?.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim() ??
+                  'A fresh week for a stroll'}
               </Text>
               <Text variant="caption" className="mt-0.5 text-xs leading-5">
                 {weekSummary?.encouragingSubtitle ??

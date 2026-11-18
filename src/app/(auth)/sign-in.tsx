@@ -75,7 +75,7 @@ export default function SignInScreen() {
           <Card elevated className="gap-3">
             <View>
               <Text variant="label" className="text-[#191A26]">
-                ✨ Interactive Preview Mode Available
+                Interactive Preview Mode Available
               </Text>
               <Text variant="caption" className="mt-1 text-[#191A26]/80">
                 Explore the full StrayCat Walk app with sample walks, cat cards, card themes,
@@ -84,7 +84,7 @@ export default function SignInScreen() {
               </Text>
             </View>
             <Button
-              label="✨ Enter Interactive Demo"
+              label="Enter Interactive Demo"
               variant="ghost"
               size="sm"
               onPress={enterDemoMode}

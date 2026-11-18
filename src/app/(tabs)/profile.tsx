@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
 import {
+  AppIcon,
   Button,
   Card,
   getActiveLeagueTier,
@@ -152,7 +153,7 @@ export default function ProfileScreen() {
                 accessibilityLabel="View Achievements"
                 onPress={() => router.push('/achievements')}
                 className="mt-10 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
-                <Text className="text-sm">🏅</Text>
+                <AppIcon name="award" size={16} color="#191A26" />
               </Pressable>
 
               <View
@@ -176,7 +177,7 @@ export default function ProfileScreen() {
                 accessibilityLabel="View Walk History"
                 onPress={() => router.push('/history')}
                 className="mt-10 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
-                <Text className="text-sm">🕒</Text>
+                <AppIcon name="clock" size={16} color="#191A26" />
               </Pressable>
             </View>
           </View>
@@ -191,9 +192,10 @@ export default function ProfileScreen() {
             accessibilityRole="button"
             accessibilityLabel="Customize banner and title"
             onPress={() => router.push('/cosmetics' as never)}
-            className="rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] px-6 py-2">
-            <Text className="text-xs font-extrabold text-white">
-              {titleLabel} · 🎨
+            className="flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] px-6 py-2">
+            <AppIcon name="palette" size={13} color="#F4A97B" />
+            <Text className="text-xs font-bold text-white">
+              {titleLabel}
             </Text>
           </Pressable>
           <Text className="mt-1 text-base font-extrabold text-[#191A26] dark:text-white">
@@ -264,7 +266,7 @@ export default function ProfileScreen() {
               className={item.enabled ? 'active:opacity-80' : 'opacity-70'}>
               <View className="flex-row items-center gap-3 rounded-pill border border-white/25 bg-[#232536] px-4 py-3">
                 <View className="h-9 w-9 items-center justify-center rounded-pill bg-[#191A26]">
-                  <Text className="text-base">{item.emoji}</Text>
+                  <AppIcon name={item.emoji} size={16} color="#F4A97B" />
                 </View>
                 <View className="flex-1">
                   <Text

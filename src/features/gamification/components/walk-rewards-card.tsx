@@ -6,7 +6,7 @@ import Animated, {
   useReducedMotion,
 } from 'react-native-reanimated';
 
-import { Card, Text } from '@/components/ui';
+import { AppIcon, Card, Text } from '@/components/ui';
 import { useWalkRewards } from '../hooks';
 
 export interface WalkRewardsCardProps {
@@ -45,7 +45,10 @@ export function WalkRewardsCard({
   if (rewards.totalPointsEarned === 0) {
     return (
       <Card className="gap-1.5 border-border dark:border-border-dark">
-        <Text variant="label">⭐ Walk Points</Text>
+        <View className="flex-row items-center gap-1.5">
+          <AppIcon name="sparkles" size={14} color="#191A26" />
+          <Text variant="label">Walk Points</Text>
+        </View>
         <Text variant="caption" className="text-xs leading-5">
           {rewards.reasonNotRewarded === 'daily_cap_reached'
             ? "You've already earned points on 3 walks today! This walk is still saved to your history and counts toward your distance and challenges."
@@ -62,10 +65,12 @@ export function WalkRewardsCard({
           ? undefined
           : FadeInDown.duration(300).springify().damping(18)
       }>
-      <Card className="gap-3 border-primary/50 bg-primary-muted/30 dark:bg-surface-elevated-dark">
+      <Card elevated className="gap-3">
         <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">
-            <Text className="text-2xl">⭐</Text>
+          <View className="flex-row items-center gap-2.5">
+            <View className="h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26]">
+              <AppIcon name="sparkles" size={18} color="#F4A97B" />
+            </View>
             <View>
               <Text variant="label">Rewards Earned</Text>
               <Text variant="heading">
@@ -75,35 +80,44 @@ export function WalkRewardsCard({
           </View>
 
           {rewards.isEstimatePreview ? (
-            <View className="rounded-pill bg-primary/15 px-2.5 py-1">
-              <Text variant="caption" className="text-[11px] font-semibold">
+            <View className="rounded-pill border border-[#191A26] bg-white px-2.5 py-1">
+              <Text variant="caption" className="text-[11px] font-bold text-[#191A26]">
                 Syncing
               </Text>
             </View>
           ) : (
-            <View className="rounded-pill bg-secondary/20 px-2.5 py-1">
-              <Text variant="caption" className="text-[11px] font-semibold">
+            <View className="rounded-pill border border-[#191A26] bg-[#191A26] px-2.5 py-1">
+              <Text variant="caption" className="text-[11px] font-bold text-white">
                 Awarded
               </Text>
             </View>
           )}
         </View>
 
-        <View className="gap-1.5 border-t border-border pt-2.5 dark:border-border-dark">
+        <View className="gap-1.5 border-t border-[#191A26]/15 pt-2.5">
           {rewards.lines.map((line) => (
             <View
               key={line.id}
               className="flex-row items-center justify-between">
-              <Text variant="caption" className="text-xs font-medium">
-                {line.sourceType === 'achievement'
-                  ? `🏅 ${line.reason}`
-                  : line.sourceType === 'challenge'
-                    ? `🎯 ${line.reason}`
-                    : `✓ ${line.reason}`}
-              </Text>
+              <View className="flex-row items-center gap-1.5">
+                <AppIcon
+                  name={
+                    line.sourceType === 'achievement'
+                      ? 'award'
+                      : line.sourceType === 'challenge'
+                        ? 'target'
+                        : 'check'
+                  }
+                  size={13}
+                  color="#191A26"
+                />
+                <Text variant="caption" className="text-xs font-medium text-[#191A26]">
+                  {line.reason}
+                </Text>
+              </View>
               <Text
                 variant="caption"
-                className="text-xs font-bold text-primary-dark dark:text-primary-light">
+                className="font-display text-xs font-bold text-[#191A26]">
                 +{line.amount} pts
               </Text>
             </View>

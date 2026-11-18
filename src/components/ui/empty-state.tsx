@@ -5,7 +5,7 @@ import { BrandColors } from '@/constants/theme';
 
 import { Button } from './button';
 import { Card } from './card';
-import { Text } from './text';
+import { AppIcon, Text } from './text';
 
 export interface EmptyStateProps extends ViewProps {
   icon?: SymbolViewProps['name'];
@@ -19,7 +19,7 @@ export interface EmptyStateProps extends ViewProps {
 
 export function EmptyState({
   icon,
-  emoji = '🐾',
+  emoji = 'paw',
   title,
   message,
   actionLabel,
@@ -31,11 +31,11 @@ export function EmptyState({
     <Card
       className={`items-center justify-center p-6 ${className}`.trim()}
       {...props}>
-      <View className="mb-4 h-16 w-16 items-center justify-center rounded-pill bg-primary-muted dark:bg-surface-elevated-dark">
+      <View className="mb-4 h-16 w-16 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#FCE8D5]">
         {icon ? (
-          <SymbolView name={icon} size={30} tintColor={BrandColors.primary} />
+          <SymbolView name={icon} size={28} tintColor={BrandColors.primaryDark} />
         ) : (
-          <Text className="text-3xl">{emoji}</Text>
+          <AppIcon name={emoji} size={28} color="#191A26" />
         )}
       </View>
       <Text variant="heading" className="mb-2 text-center">

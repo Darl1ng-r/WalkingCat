@@ -5,7 +5,7 @@ import Animated, {
   useReducedMotion,
 } from 'react-native-reanimated';
 
-import { Text } from '@/components/ui';
+import { AppIcon, Text } from '@/components/ui';
 import { getCardThemeTokens } from '@/features/cosmetics';
 import { invalidateSignedSightingPhotoUrl } from '@/features/sightings';
 import {
@@ -45,7 +45,6 @@ export function CatCard({
   const firstSeenStr = formatShortDate(cat.first_seen_at);
   const theme = getCardThemeTokens(cat.theme_id);
 
-  // Styled after the reference image's "Статьи" 2-column crisp ink-outlined white cards
   return (
     <Animated.View
       entering={
@@ -83,7 +82,7 @@ export function CatCard({
             <View
               style={{ height: 156 }}
               className="items-center justify-center">
-              <Text className="text-4xl">🐱</Text>
+              <AppIcon name="cat" size={36} color="#191A26" />
             </View>
           )}
 
@@ -91,17 +90,18 @@ export function CatCard({
           <View className="absolute left-2 top-2 rounded-pill border border-white/30 bg-[#191A26] px-2.5 py-0.5">
             <Text
               variant="caption"
-              className="text-[10px] font-extrabold text-white">
+              className="font-display text-[10px] font-bold text-white">
               {cardNumber}
             </Text>
           </View>
 
           {/* Warm Peach Sighting Count Badge */}
-          <View className="absolute right-2 top-2 rounded-pill border border-[#191A26] bg-[#F4A97B] px-2 py-0.5">
+          <View className="absolute right-2 top-2 flex-row items-center gap-1 rounded-pill border border-[#191A26] bg-[#F4A97B] px-2 py-0.5">
+            <AppIcon name="paw" size={10} color="#191A26" />
             <Text
               variant="caption"
-              className="text-[10px] font-extrabold text-[#191A26]">
-              🐾 {cat.sighting_count}×
+              className="font-display text-[10px] font-bold text-[#191A26]">
+              {cat.sighting_count}×
             </Text>
           </View>
 
@@ -110,7 +110,7 @@ export function CatCard({
             <View className="absolute bottom-2 left-2 rounded-pill border border-[#191A26] bg-white px-2 py-0.5">
               <Text
                 variant="caption"
-                className="text-[9px] font-extrabold text-[#191A26]">
+                className="text-[9px] font-bold text-[#191A26]">
                 {theme.accentLabel}
               </Text>
             </View>
@@ -121,7 +121,7 @@ export function CatCard({
           <Text
             variant="body"
             numberOfLines={1}
-            className="text-sm font-extrabold tracking-tight text-[#191A26] dark:text-white">
+            className="font-display text-sm font-bold tracking-tight text-[#191A26] dark:text-white">
             {displayName}
           </Text>
           <Text

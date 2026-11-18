@@ -86,7 +86,7 @@ export default function ChallengesScreen() {
         </View>
         <View className="flex-row gap-2">
           <Button
-            label="🎨 Boutique"
+            label="Boutique"
             size="sm"
             variant="secondary"
             onPress={() => router.push('/cosmetics' as never)}
@@ -123,7 +123,7 @@ export default function ChallengesScreen() {
       <Card className="gap-3">
         <View className="flex-row items-center justify-between">
           <View className="flex-1">
-            <Text variant="label">🎯 Challenge Goal Level</Text>
+            <Text variant="label">Challenge Goal Level</Text>
             <Text variant="caption" className="mt-0.5 text-xs">
               Adjust targets anytime to fit your schedule and energy level.
             </Text>

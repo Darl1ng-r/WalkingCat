@@ -5,6 +5,10 @@ module.exports = {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Plus Jakarta Sans', 'Rubik', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Rubik', 'Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       colors: {
         primary: {
           DEFAULT: '#F4A97B',

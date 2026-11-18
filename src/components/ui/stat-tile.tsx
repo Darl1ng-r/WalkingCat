@@ -1,6 +1,6 @@
 import { View, type ViewProps } from 'react-native';
 
-import { Text } from './text';
+import { AppIcon, Text } from './text';
 
 export interface StatTileProps extends ViewProps {
   label: string;
@@ -20,7 +20,6 @@ export function StatTile({
   className = '',
   ...props
 }: StatTileProps) {
-  // Styled after the reference image's "Динамика" dark midnight-ink stat tiles with dotted wave curve & warm peach accent
   const isWarmCard = accentColor === 'coral';
 
   return (
@@ -33,13 +32,17 @@ export function StatTile({
       <View className="flex-row items-center justify-between gap-1.5">
         <Text
           numberOfLines={1}
-          className={`flex-1 text-[11px] font-bold ${
+          className={`flex-1 text-xs font-semibold ${
             isWarmCard ? 'text-[#191A26]' : 'text-white/90'
           }`}>
           {label}
         </Text>
         {icon ? (
-          <Text className="text-xs">{icon}</Text>
+          <AppIcon
+            name={icon}
+            size={14}
+            color={isWarmCard ? '#191A26' : '#F4A97B'}
+          />
         ) : (
           <View
             className={`h-2 w-2 rounded-pill ${
@@ -66,7 +69,7 @@ export function StatTile({
 
       <View className="flex-row items-baseline gap-1">
         <Text
-          className={`text-lg font-extrabold tracking-tight ${
+          className={`font-display text-lg font-bold tracking-tight ${
             isWarmCard ? 'text-[#191A26]' : 'text-white'
           }`}>
           {value}
@@ -74,7 +77,7 @@ export function StatTile({
         {unit ? (
           <Text
             numberOfLines={1}
-            className={`text-[10px] font-semibold ${
+            className={`text-[11px] font-semibold ${
               isWarmCard ? 'text-[#191A26]/75' : 'text-[#F4A97B]'
             }`}>
             {unit}

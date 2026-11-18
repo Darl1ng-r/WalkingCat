@@ -26,4 +26,12 @@ export {
 } from './segmented-control';
 export { Skeleton, type SkeletonProps } from './skeleton';
 export { StatTile, type StatTileProps } from './stat-tile';
-export { Text, type TextProps, type TextVariant } from './text';
+export {
+  AppIcon,
+  resolveIconName,
+  Text,
+  type AppIconName,
+  type AppIconProps,
+  type TextProps,
+  type TextVariant,
+} from './text';

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 
 import {
+  AppIcon,
   Button,
   Card,
   ErrorState,
@@ -28,10 +29,10 @@ import {
 } from '@/features/cosmetics';
 import { formatNumber } from '@/lib/format';
 
-const CATEGORY_TABS: { key: CosmeticCategory; label: string }[] = [
-  { key: 'card_theme', label: '🎨 Card Themes' },
-  { key: 'profile_banner', label: '🖼️ Banners' },
-  { key: 'profile_title', label: '🏷️ Titles' },
+const CATEGORY_TABS: { key: CosmeticCategory; label: string; icon: string }[] = [
+  { key: 'card_theme', label: 'Card Themes', icon: 'palette' },
+  { key: 'profile_banner', label: 'Banners', icon: 'cards' },
+  { key: 'profile_title', label: 'Titles', icon: 'award' },
 ];
 
 export default function CosmeticsScreen() {
@@ -163,7 +164,10 @@ export default function CosmeticsScreen() {
       {/* Wallet Summary */}
       <Card className="gap-3">
         <View className="flex-row items-center justify-between">
-          <Text variant="label">🐾 Your Paw Points Wallet</Text>
+          <View className="flex-row items-center gap-1.5">
+            <AppIcon name="paw" size={14} color="#191A26" />
+            <Text variant="label">Your Paw Points Wallet</Text>
+          </View>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="View challenges to earn more points"
@@ -193,7 +197,7 @@ export default function CosmeticsScreen() {
         </View>
 
         <Text variant="caption" className="text-xs leading-5">
-          💡 Unlocking cosmetics never reduces your lifetime Paw Points or your
+          Unlocking cosmetics never reduces your lifetime Paw Points or your
           weekly leaderboard score.
         </Text>
       </Card>
@@ -230,17 +234,22 @@ export default function CosmeticsScreen() {
                 setStatusMessage(null);
                 setErrorMessage(null);
               }}
-              className={`flex-1 items-center justify-center rounded-pill border px-3 py-2.5 ${
+              className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] px-3 py-2.5 ${
                 active
-                  ? 'border-primary bg-primary'
-                  : 'border-border bg-surface dark:border-border-dark dark:bg-surface-dark'
+                  ? 'bg-[#191A26]'
+                  : 'bg-white dark:bg-[#232536]'
               }`}>
+              <AppIcon
+                name={tab.icon}
+                size={13}
+                color={active ? '#F4A97B' : '#191A26'}
+              />
               <Text
                 variant="caption"
                 className={`text-xs font-bold ${
                   active
                     ? 'text-white'
-                    : 'text-text-primary dark:text-text-primary-dark'
+                    : 'text-[#191A26] dark:text-white'
                 }`}>
                 {tab.label}
               </Text>
@@ -298,8 +307,8 @@ export default function CosmeticsScreen() {
               {/* Top Row: Icon + Name + Rarity + Cost */}
               <View className="flex-row items-start justify-between gap-3">
                 <View className="flex-1 flex-row items-start gap-3">
-                  <View className="h-11 w-11 items-center justify-center rounded-2xl bg-primary-muted dark:bg-surface-elevated-dark">
-                    <Text className="text-2xl">{item.icon}</Text>
+                  <View className="h-11 w-11 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#FCE8D5]">
+                    <AppIcon name={item.icon} size={20} color="#191A26" />
                   </View>
                   <View className="flex-1 gap-1">
                     <View className="flex-row flex-wrap items-center gap-2">
@@ -331,11 +340,12 @@ export default function CosmeticsScreen() {
                       </Text>
                     </View>
                   ) : (
-                    <View className="rounded-pill bg-primary/15 px-2.5 py-1">
+                    <View className="flex-row items-center gap-1 rounded-pill border border-[#191A26] bg-[#FCE8D5] px-2.5 py-1">
+                      <AppIcon name="paw" size={11} color="#191A26" />
                       <Text
                         variant="caption"
-                        className="text-xs font-bold text-primary">
-                        🐾 {formatNumber(item.cost_points)} pts
+                        className="font-display text-xs font-bold text-[#191A26]">
+                        {formatNumber(item.cost_points)} pts
                       </Text>
                     </View>
                   )}
