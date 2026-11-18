@@ -202,8 +202,7 @@ export function FloatingDock({
 
   return (
     <View
-      pointerEvents="box-none"
-      style={{ bottom: bottomOffset }}
+      style={{ bottom: bottomOffset, pointerEvents: 'box-none' }}
       className="absolute left-0 right-0 z-50 items-center px-4">
       <View className="w-full max-w-[460px] flex-row items-center gap-2.5">
         {/* Main Frosted Dark-Glass Capsule Dock */}

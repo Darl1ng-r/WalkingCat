@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui';
@@ -84,8 +84,7 @@ export function RouteMap({
   borderless = false,
   showSightingPins = true,
 }: RouteMapProps) {
-  const reactId = useId().replace(/:/g, '');
-  const containerId = `walkingcat-map-${reactId}`;
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
   const tileLayerRef = useRef<any>(null);
   const [styleOverride, setStyleOverride] = useState<'satellite' | 'street' | null>(null);
@@ -106,7 +105,7 @@ export function RouteMap({
 
     ensureLeafletLoaded().then((L) => {
       if (!isMounted || !L) return;
-      const el = document.getElementById(containerId);
+      const el = containerRef.current;
       if (!el) return;
 
       if (mapRef.current) {
@@ -234,7 +233,7 @@ export function RouteMap({
         mapRef.current = null;
       }
     };
-  }, [containerId, activeStyle, routeCoords, showSightingPins]);
+  }, [activeStyle, routeCoords, showSightingPins]);
 
   const handleRecenter = () => {
     if (!mapRef.current || !window.L) return;
@@ -255,8 +254,8 @@ export function RouteMap({
         borderless ? '' : 'rounded-bento border border-white/60 shadow-card'
       }`}>
       {/* Interactive Leaflet Map Host Container */}
-      <View
-        nativeID={containerId}
+      <div
+        ref={containerRef}
         style={{ width: '100%', height: '100%', zIndex: 1 }}
       />
 

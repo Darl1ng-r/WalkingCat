@@ -22,14 +22,15 @@ export interface SessionContextValue {
   signOut: () => Promise<void>;
 }
 
+const DEMO_TIMESTAMP_ISO = '2026-09-15T10:00:00.000Z';
+
 function buildDemoSessionAndProfile(): { session: Session; profile: Profile } {
-  const nowIso = new Date().toISOString();
   const demoUser: User = {
     id: demoState.userId,
     app_metadata: {},
     user_metadata: { display_name: demoState.displayName },
     aud: 'authenticated',
-    created_at: '2026-09-15T10:00:00.000Z',
+    created_at: DEMO_TIMESTAMP_ISO,
     email: 'mina@walkingcat.app',
   };
   const demoSession: Session = {
@@ -43,33 +44,68 @@ function buildDemoSessionAndProfile(): { session: Session; profile: Profile } {
     id: demoState.userId,
     username: demoState.username,
     display_name: demoState.displayName,
-    avatar_url: null,
+    avatar_url: demoState.avatarUrl,
     weight_kg: 64,
     challenge_difficulty: 'standard',
     equipped_banner_id: demoState.equippedBannerId,
     equipped_title_id: demoState.equippedTitleId,
     onboarded_at: '2026-09-15T10:05:00.000Z',
-    created_at: '2026-09-15T10:00:00.000Z',
-    updated_at: nowIso,
+    created_at: DEMO_TIMESTAMP_ISO,
+    updated_at: DEMO_TIMESTAMP_ISO,
   };
   return { session: demoSession, profile: demoProfile };
 }
+
+const FALLBACK_SESSION_CONTEXT: SessionContextValue = (() => {
+  if (isDemoMode) {
+    const { session, profile } = buildDemoSessionAndProfile();
+    return {
+      session,
+      user: session.user,
+      profile,
+      isLoading: false,
+      isAuthenticated: true,
+      isOnboarded: true,
+      refreshProfile: async () => profile,
+      enterDemoMode: () => {},
+      signOut: async () => {},
+    };
+  }
+  return {
+    session: null,
+    user: null,
+    profile: null,
+    isLoading: true,
+    isAuthenticated: false,
+    isOnboarded: false,
+    refreshProfile: async () => null,
+    enterDemoMode: () => {},
+    signOut: async () => {},
+  };
+})();
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
 export function useSession(): SessionContextValue {
   const value = use(SessionContext);
   if (!value) {
-    throw new Error('useSession must be used within a <SessionProvider />');
+    if (process.env.NODE_ENV === 'test') {
+      throw new Error('useSession must be used within a <SessionProvider />');
+    }
+    return FALLBACK_SESSION_CONTEXT;
   }
   return value;
 }
 
 export function SessionProvider({ children }: PropsWithChildren) {
   const queryClient = useQueryClient();
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [session, setSession] = useState<Session | null>(() =>
+    isDemoMode ? buildDemoSessionAndProfile().session : null
+  );
+  const [profile, setProfile] = useState<Profile | null>(() =>
+    isDemoMode ? buildDemoSessionAndProfile().profile : null
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(() => !isDemoMode);
 
   const loadProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     try {
@@ -167,6 +203,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
   }, [loadProfile, queryClient]);
 
   useEffect(() => {
+    if (isDemoMode) return;
+
     const handleAppStateChange = (state: AppStateStatus) => {
       if (state === 'active') {
         supabase.auth.startAutoRefresh();

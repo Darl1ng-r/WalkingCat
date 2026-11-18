@@ -21,6 +21,8 @@ import { SessionProvider, useSession } from '@/features/auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { queryClient } from '@/lib/query-client';
 
+export { ErrorBoundary } from 'expo-router';
+
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootNavigator() {
