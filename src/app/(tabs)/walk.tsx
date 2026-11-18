@@ -388,7 +388,9 @@ export default function WalkScreen() {
 
         {/* Overlapping Circular Cat/Walker Avatars + Live Map */}
         <View className="relative">
-          <View className="-mt-6 z-30 flex-row items-center justify-around px-6 pb-2">
+          <View
+            style={{ zIndex: 30 }}
+            className="-mt-7 flex-row items-center justify-around px-6 pb-2">
             {HEADER_COMPANIONS.map((item) => (
               <Pressable
                 key={item.id}
@@ -396,12 +398,14 @@ export default function WalkScreen() {
                   setMapFilter((prev) => (prev === 'street' ? 'all' : 'street'))
                 }
                 className="items-center">
-                <View className="h-14 w-14 overflow-hidden rounded-pill border-2 border-[#191A26] bg-white">
-                  <Image
-                    source={{ uri: item.uri }}
-                    style={{ width: '100%', height: '100%' }}
-                    contentFit="cover"
-                  />
+                <View className="rounded-pill bg-white p-1 shadow-sm">
+                  <View className="h-14 w-14 overflow-hidden rounded-pill border-[2.5px] border-[#191A26] bg-white">
+                    <Image
+                      source={{ uri: item.uri }}
+                      style={{ width: '100%', height: '100%' }}
+                      contentFit="cover"
+                    />
+                  </View>
                 </View>
                 <View
                   className={`mt-1 rounded-pill px-2.5 py-0.5 ${
@@ -542,7 +546,7 @@ export default function WalkScreen() {
       <View className="relative">
         <View
           style={{ zIndex: 30 }}
-          className="-mt-7 flex-row items-center justify-around px-6 pb-2">
+          className="-mt-8 flex-row items-center justify-around px-6 pb-2">
           {HEADER_COMPANIONS.map((item) => (
             <Pressable
               key={item.id}
@@ -550,12 +554,14 @@ export default function WalkScreen() {
               accessibilityLabel={`Filter route by ${item.name}`}
               onPress={() => router.push('/collection')}
               className="items-center">
-              <View className="h-16 w-16 overflow-hidden rounded-pill border-2 border-[#191A26] bg-white shadow-sm">
-                <Image
-                  source={{ uri: item.uri }}
-                  style={{ width: '100%', height: '100%' }}
-                  contentFit="cover"
-                />
+              <View className="rounded-pill bg-white p-1.5 shadow-sm">
+                <View className="h-16 w-16 overflow-hidden rounded-pill border-[2.5px] border-[#191A26] bg-white">
+                  <Image
+                    source={{ uri: item.uri }}
+                    style={{ width: '100%', height: '100%' }}
+                    contentFit="cover"
+                  />
+                </View>
               </View>
               <Text
                 className={`mt-1 text-xs font-extrabold ${

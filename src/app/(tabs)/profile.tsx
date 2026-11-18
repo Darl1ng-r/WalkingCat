@@ -145,21 +145,39 @@ export default function ProfileScreen() {
         </View>
 
         <View className="items-center pt-2">
-          <View className="w-full items-center rounded-t-[180px] bg-white pt-6 dark:bg-[#12131C]">
-            <View
-              accessibilityLabel={`Avatar for ${displayName}`}
-              className="h-36 w-36 items-center justify-center overflow-hidden rounded-pill border-[3px] border-[#191A26] bg-[#FAF8F5]">
-              {avatarUri ? (
-                <Image
-                  source={{ uri: avatarUri }}
-                  style={{ width: '100%', height: '100%' }}
-                  contentFit="cover"
-                />
-              ) : (
-                <Text variant="heading" className="text-3xl font-extrabold text-[#191A26]">
-                  {initials}
-                </Text>
-              )}
+          <View className="w-full items-center rounded-t-[200px] bg-white pt-6 dark:bg-[#12131C]">
+            <View className="flex-row items-center justify-center gap-4">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="View Achievements"
+                onPress={() => router.push('/achievements')}
+                className="mt-10 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
+                <Text className="text-sm">🏅</Text>
+              </Pressable>
+
+              <View
+                accessibilityLabel={`Avatar for ${displayName}`}
+                className="h-36 w-36 items-center justify-center overflow-hidden rounded-pill border-[3px] border-[#191A26] bg-[#FAF8F5]">
+                {avatarUri ? (
+                  <Image
+                    source={{ uri: avatarUri }}
+                    style={{ width: '100%', height: '100%' }}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <Text variant="heading" className="text-3xl font-extrabold text-[#191A26]">
+                    {initials}
+                  </Text>
+                )}
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="View Walk History"
+                onPress={() => router.push('/history')}
+                className="mt-10 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
+                <Text className="text-sm">🕒</Text>
+              </Pressable>
             </View>
           </View>
         </View>

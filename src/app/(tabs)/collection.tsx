@@ -78,18 +78,22 @@ export default function CollectionScreen() {
       </View>
 
       {/* 3 Overlapping Circular Category/Stat Badges ("Все | Собаки | Коты" in Reference) */}
-      <View className="-mt-11 flex-row items-center justify-around px-2">
+      <View
+        style={{ zIndex: 20 }}
+        className="-mt-12 flex-row items-center justify-around px-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`All Cats: ${headerStats.totalCats}`}
           onPress={() => setSort('newest')}
           className="items-center">
-          <View className="h-[74px] w-[74px] items-center justify-center rounded-pill border-[2.5px] border-[#191A26] bg-[#191A26] shadow-sm">
-            <View className="h-[62px] w-[62px] items-center justify-center rounded-pill border border-white/40">
-              <Text className="text-base font-extrabold text-white">
-                {formatNumber(headerStats.totalCats)}
-              </Text>
-              <Text className="text-[10px] font-bold text-white/80">Cats</Text>
+          <View className="rounded-pill bg-[#FAF8F5] p-1.5 dark:bg-[#12131C]">
+            <View className="h-[74px] w-[74px] items-center justify-center rounded-pill border-[2.5px] border-[#191A26] bg-[#191A26] shadow-sm">
+              <View className="h-[62px] w-[62px] items-center justify-center rounded-pill border border-white/40">
+                <Text className="text-base font-extrabold text-white">
+                  {formatNumber(headerStats.totalCats)}
+                </Text>
+                <Text className="text-[10px] font-bold text-white/80">Cats</Text>
+              </View>
             </View>
           </View>
         </Pressable>
@@ -99,12 +103,14 @@ export default function CollectionScreen() {
           accessibilityLabel={`Total Sightings: ${headerStats.totalSightings}`}
           onPress={() => setSort('most_seen')}
           className="items-center">
-          <View className="h-[74px] w-[74px] items-center justify-center rounded-pill border-[2.5px] border-[#191A26] bg-white shadow-sm">
-            <View className="h-[62px] w-[62px] items-center justify-center rounded-pill border border-[#191A26]">
-              <Text className="text-base font-extrabold text-[#191A26]">
-                {formatNumber(headerStats.totalSightings)}
-              </Text>
-              <Text className="text-[10px] font-bold text-[#6E7085]">Visits</Text>
+          <View className="rounded-pill bg-[#FAF8F5] p-1.5 dark:bg-[#12131C]">
+            <View className="h-[74px] w-[74px] items-center justify-center rounded-pill border-[2.5px] border-[#191A26] bg-white shadow-sm">
+              <View className="h-[62px] w-[62px] items-center justify-center rounded-pill border border-[#191A26]">
+                <Text className="text-base font-extrabold text-[#191A26]">
+                  {formatNumber(headerStats.totalSightings)}
+                </Text>
+                <Text className="text-[10px] font-bold text-[#6E7085]">Visits</Text>
+              </View>
             </View>
           </View>
         </Pressable>
@@ -114,12 +120,14 @@ export default function CollectionScreen() {
           accessibilityLabel={`Discovery Days: ${headerStats.discoveryDaysCount}`}
           onPress={() => setSort('a_z')}
           className="items-center">
-          <View className="h-[74px] w-[74px] items-center justify-center rounded-pill border-[2.5px] border-[#191A26] bg-white shadow-sm">
-            <View className="h-[62px] w-[62px] items-center justify-center rounded-pill border border-[#191A26]">
-              <Text className="text-base font-extrabold text-[#191A26]">
-                {formatNumber(headerStats.discoveryDaysCount)}
-              </Text>
-              <Text className="text-[10px] font-bold text-[#6E7085]">Days</Text>
+          <View className="rounded-pill bg-[#FAF8F5] p-1.5 dark:bg-[#12131C]">
+            <View className="h-[74px] w-[74px] items-center justify-center rounded-pill border-[2.5px] border-[#191A26] bg-white shadow-sm">
+              <View className="h-[62px] w-[62px] items-center justify-center rounded-pill border border-[#191A26]">
+                <Text className="text-base font-extrabold text-[#191A26]">
+                  {formatNumber(headerStats.discoveryDaysCount)}
+                </Text>
+                <Text className="text-[10px] font-bold text-[#6E7085]">Days</Text>
+              </View>
             </View>
           </View>
         </Pressable>

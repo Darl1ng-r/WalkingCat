@@ -287,25 +287,40 @@ export default function CatDetailScreen() {
 
         {/* White Arched Dome Rising into Midnight-Ink Header ("Огурец" Portrait Arch) */}
         <View className="items-center pt-2">
-          <View className="w-full items-center rounded-t-[180px] bg-white pt-6 dark:bg-[#12131C]">
-            <View className="relative h-40 w-40 items-center justify-center overflow-hidden rounded-pill border-[3px] border-[#191A26] bg-[#FAF8F5]">
-              {cat.coverUrl ? (
-                <Image
-                  source={{ uri: cat.coverUrl }}
-                  style={{ width: '100%', height: '100%' }}
-                  contentFit="cover"
-                  cachePolicy="memory-disk"
-                  accessibilityLabel={`Hero photo of ${displayName}`}
-                  onError={() => {
-                    if (cat.cover_photo_path) {
-                      invalidateSignedSightingPhotoUrl(cat.cover_photo_path);
-                      refetch().catch(() => {});
-                    }
-                  }}
-                />
-              ) : (
-                <Text className="text-6xl">🐱</Text>
-              )}
+          <View className="relative w-full items-center rounded-t-[200px] bg-white pt-6 dark:bg-[#12131C]">
+            {/* Flanking circular mini-badges from the "Огурец" reference mockup */}
+            <View className="flex-row items-center justify-center gap-4">
+              <View className="mt-12 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
+                <Text className="text-sm">🐾</Text>
+              </View>
+
+              <View className="relative h-40 w-40 items-center justify-center overflow-hidden rounded-pill border-[3px] border-[#191A26] bg-[#FAF8F5]">
+                {cat.coverUrl ? (
+                  <Image
+                    source={{ uri: cat.coverUrl }}
+                    style={{ width: '100%', height: '100%' }}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    accessibilityLabel={`Hero photo of ${displayName}`}
+                    onError={() => {
+                      if (cat.cover_photo_path) {
+                        invalidateSignedSightingPhotoUrl(cat.cover_photo_path);
+                        refetch().catch(() => {});
+                      }
+                    }}
+                  />
+                ) : (
+                  <Text className="text-6xl">🐱</Text>
+                )}
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Open Boutique"
+                onPress={() => router.push('/cosmetics' as never)}
+                className="mt-12 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
+                <Text className="text-sm">🎨</Text>
+              </Pressable>
             </View>
           </View>
         </View>

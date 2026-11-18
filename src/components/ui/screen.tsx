@@ -23,19 +23,21 @@ export function Screen({
   return (
     <SafeAreaView
       edges={edges}
-      className={`flex-1 bg-background dark:bg-background-dark ${className}`.trim()}
+      className={`flex-1 bg-[#191A26] ${className}`.trim()}
       {...props}>
-      {scroll ? (
-        <ScrollView
-          contentContainerClassName={`flex-grow ${padClass} pb-28 ${contentContainerClassName}`.trim()}
-          showsVerticalScrollIndicator={false}>
-          {children}
-        </ScrollView>
-      ) : (
-        <View className={`flex-1 ${padClass} ${contentContainerClassName}`.trim()}>
-          {children}
-        </View>
-      )}
+      <View className="w-full max-w-[480px] flex-1 self-center overflow-hidden bg-background dark:bg-background-dark">
+        {scroll ? (
+          <ScrollView
+            contentContainerClassName={`flex-grow ${padClass} pb-28 ${contentContainerClassName}`.trim()}
+            showsVerticalScrollIndicator={false}>
+            {children}
+          </ScrollView>
+        ) : (
+          <View className={`flex-1 ${padClass} ${contentContainerClassName}`.trim()}>
+            {children}
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 }

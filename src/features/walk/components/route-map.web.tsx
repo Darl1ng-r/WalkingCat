@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui';
 import { DEMO_WALK_ROUTE } from '@/lib/demo-data';
+import { env, isGoogleMapsConfigured } from '@/lib/env';
 
 export interface RouteMapProps {
   coordinates: readonly { latitude: number; longitude: number }[];
@@ -17,12 +18,102 @@ export interface RouteMapProps {
 
 declare global {
   interface Window {
+    google?: any;
     L?: any;
   }
 }
 
+const GOOGLE_MAPS_SCRIPT_ID = 'walkingcat-google-maps-js';
 const LEAFLET_CSS_ID = 'walkingcat-leaflet-css';
 const LEAFLET_JS_ID = 'walkingcat-leaflet-js';
+
+// Clean silver-white custom style for Google Maps JS API to match the "Blobs" reference GPS screen
+const GOOGLE_MAPS_SILVER_STYLE = [
+  { elementType: 'geometry', stylers: [{ color: '#f5f5f5' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#616161' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#f5f5f5' }] },
+  {
+    featureType: 'administrative.land_parcel',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#bdbdbd' }],
+  },
+  {
+    featureType: 'poi',
+    elementType: 'geometry',
+    stylers: [{ color: '#eeeeee' }],
+  },
+  {
+    featureType: 'poi.park',
+    elementType: 'geometry',
+    stylers: [{ color: '#e8ece6' }],
+  },
+  {
+    featureType: 'road',
+    elementType: 'geometry',
+    stylers: [{ color: '#ffffff' }],
+  },
+  {
+    featureType: 'road.arterial',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#757575' }],
+  },
+  {
+    featureType: 'road.highway',
+    elementType: 'geometry',
+    stylers: [{ color: '#dadada' }],
+  },
+  {
+    featureType: 'water',
+    elementType: 'geometry',
+    stylers: [{ color: '#d8e2eb' }],
+  },
+];
+
+const BLOB_CAT_PIN_SVG_URI = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="46" height="56" viewBox="0 0 46 56">
+    <path d="M 23 54 C 23 54 43 35 43 21 C 43 10 34 2 23 2 C 12 2 3 10 3 21 C 3 35 23 54 23 54 Z" fill="#191A26" stroke="#FFFFFF" stroke-width="2" />
+    <circle cx="23" cy="21" r="13" fill="#FFFFFF" />
+    <path d="M 14 23 L 16 12 L 22 17 Z" fill="#191A26" />
+    <path d="M 32 23 L 30 12 L 24 17 Z" fill="#191A26" />
+    <ellipse cx="23" cy="23" rx="9" ry="7.5" fill="#191A26" />
+    <circle cx="19.5" cy="22.5" r="2.2" fill="#FFFFFF" />
+    <circle cx="26.5" cy="22.5" r="2.2" fill="#FFFFFF" />
+  </svg>`
+)}`;
+
+const START_DOT_SVG_URI = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+    <circle cx="10" cy="10" r="7" fill="#F4A97B" stroke="#191A26" stroke-width="3.5" />
+  </svg>`
+)}`;
+
+function ensureGoogleMapsLoaded(apiKey: string): Promise<any> {
+  if (typeof window === 'undefined') {
+    return Promise.resolve(null);
+  }
+  if (window.google?.maps) {
+    return Promise.resolve(window.google.maps);
+  }
+
+  return new Promise((resolve) => {
+    const existing = document.getElementById(GOOGLE_MAPS_SCRIPT_ID) as HTMLScriptElement | null;
+    if (existing) {
+      existing.addEventListener('load', () => resolve(window.google?.maps ?? null));
+      existing.addEventListener('error', () => resolve(null));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = GOOGLE_MAPS_SCRIPT_ID;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve(window.google?.maps ?? null);
+    script.onerror = () => resolve(null);
+    document.head.appendChild(script);
+  });
+}
 
 function ensureLeafletLoaded(): Promise<any> {
   if (typeof window === 'undefined') {
@@ -66,8 +157,8 @@ export function RouteMap({
   showSightingPins = true,
 }: RouteMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<any>(null);
-  const tileLayerRef = useRef<any>(null);
+  const googleMapRef = useRef<any>(null);
+  const leafletMapRef = useRef<any>(null);
   const [styleOverride, setStyleOverride] = useState<'satellite' | 'street' | null>(null);
   const [lastPropStyle, setLastPropStyle] = useState(initialMapStyle);
   const [mapReady, setMapReady] = useState(false);
@@ -83,91 +174,170 @@ export function RouteMap({
   useEffect(() => {
     let isMounted = true;
 
-    ensureLeafletLoaded().then((L) => {
-      if (!isMounted || !L) return;
+    async function initMap() {
       const el = containerRef.current;
       if (!el) return;
 
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
+      // Path A: Official Google Maps JavaScript SDK when EXPO_PUBLIC_GOOGLE_MAPS_API_KEY is configured
+      if (isGoogleMapsConfigured && env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY) {
+        const gmaps = await ensureGoogleMapsLoaded(env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY);
+        if (!isMounted) return;
+
+        if (gmaps && containerRef.current) {
+          const pathLatLngs = routeCoords.map((pt) => ({
+            lat: pt.latitude,
+            lng: pt.longitude,
+          }));
+          const center = pathLatLngs[Math.floor(pathLatLngs.length / 2)] ?? {
+            lat: 34.0153,
+            lng: -118.4951,
+          };
+
+          const map = new gmaps.Map(containerRef.current, {
+            center,
+            zoom: 16,
+            mapTypeId: activeStyle === 'satellite' ? 'hybrid' : 'roadmap',
+            styles: activeStyle === 'street' ? GOOGLE_MAPS_SILVER_STYLE : undefined,
+            disableDefaultUI: true,
+            zoomControl: false,
+            gestureHandling: 'greedy',
+          });
+
+          googleMapRef.current = map;
+
+          // Soft warm-peach glow under the walked route
+          new gmaps.Polyline({
+            path: pathLatLngs,
+            geodesic: true,
+            strokeColor: '#F4A97B',
+            strokeOpacity: 0.28,
+            strokeWeight: 14,
+            map,
+          });
+
+          // Core Warm Peach (#F4A97B) walked route polyline
+          new gmaps.Polyline({
+            path: pathLatLngs,
+            geodesic: true,
+            strokeColor: '#F4A97B',
+            strokeOpacity: 1.0,
+            strokeWeight: 5,
+            map,
+          });
+
+          // Start marker
+          const startPt = pathLatLngs[0];
+          if (startPt) {
+            new gmaps.Marker({
+              position: startPt,
+              map,
+              icon: {
+                url: START_DOT_SVG_URI,
+                scaledSize: new gmaps.Size(20, 20),
+                anchor: new gmaps.Point(10, 10),
+              },
+            });
+          }
+
+          // End marker (Black-Ink Blob-Cat Teardrop Pin)
+          const endPt = pathLatLngs[pathLatLngs.length - 1];
+          if (endPt) {
+            new gmaps.Marker({
+              position: endPt,
+              map,
+              icon: {
+                url: BLOB_CAT_PIN_SVG_URI,
+                scaledSize: new gmaps.Size(46, 56),
+                anchor: new gmaps.Point(23, 54),
+              },
+            });
+          }
+
+          if (pathLatLngs.length >= 2) {
+            const bounds = new gmaps.LatLngBounds();
+            for (const pt of pathLatLngs) {
+              bounds.extend(pt);
+            }
+            map.fitBounds(bounds, 36);
+          }
+
+          setMapReady(true);
+          return;
+        }
+      }
+
+      // Path B: Google Maps Tile Layer (mt1.google.com) fallback when API key is not yet in .env.local
+      const L = await ensureLeafletLoaded();
+      if (!isMounted || !L || !containerRef.current) return;
+
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
       }
 
       const latLngs: [number, number][] = routeCoords.map((pt) => [
         pt.latitude,
         pt.longitude,
       ]);
-
       const center = latLngs[Math.floor(latLngs.length / 2)] ?? [34.0153, -118.4951];
 
-      const map = L.map(el, {
+      const map = L.map(containerRef.current, {
         center,
         zoom: 16,
         zoomControl: false,
         attributionControl: false,
       });
 
-      mapRef.current = map;
+      leafletMapRef.current = map;
 
-      // Clean silver-white street tiles matching the Reference "GPS" screen (with Satellite toggle)
-      const tileUrl =
+      // Google Maps Street (lyrs=m) and Google Satellite Hybrid (lyrs=y) tile servers
+      const googleTileUrl =
         activeStyle === 'satellite'
-          ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-          : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+          ? 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
+          : 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
 
-      tileLayerRef.current = L.tileLayer(tileUrl, {
-        maxZoom: 19,
+      L.tileLayer(googleTileUrl, {
+        maxZoom: 20,
       }).addTo(map);
 
       // Soft warm-peach glow under the walked route
       L.polyline(latLngs, {
         color: '#F4A97B',
         weight: 14,
-        opacity: 0.25,
+        opacity: 0.28,
         lineCap: 'round',
         lineJoin: 'round',
       }).addTo(map);
 
-      // Core Warm Peach (#F4A97B) walked route polyline matching the Reference GPS screen
+      // Core Warm Peach (#F4A97B) walked route polyline
       const mainLine = L.polyline(latLngs, {
         color: '#F4A97B',
-        weight: 4.5,
+        weight: 5,
         opacity: 1,
         lineCap: 'round',
         lineJoin: 'round',
       }).addTo(map);
 
-      // Start marker (Warm Peach circle with dark ink ring, matching the Reference GPS map dot)
+      // Start marker
       const startPt = latLngs[0];
       if (startPt) {
         const startIcon = L.divIcon({
           className: '',
-          iconSize: [18, 18],
-          iconAnchor: [9, 9],
-          html: `<div style="width:18px;height:18px;border-radius:999px;background:#F4A97B;border:3px solid #191A26;box-shadow:0 2px 6px rgba(25,26,38,0.25);"></div>`,
+          iconSize: [20, 20],
+          iconAnchor: [10, 10],
+          html: `<img src="${START_DOT_SVG_URI}" style="width:20px;height:20px;filter:drop-shadow(0 2px 5px rgba(25,26,38,0.28));" />`,
         });
         L.marker(startPt, { icon: startIcon }).addTo(map);
       }
 
-      // Black-Ink Teardrop Pin with Cute Blob Cat Face inside (matching Reference "GPS" center pin!)
+      // Black-Ink Blob-Cat Teardrop Pin at head of route
       const endPt = latLngs[latLngs.length - 1];
       if (endPt) {
         const catPinIcon = L.divIcon({
           className: '',
-          iconSize: [48, 58],
-          iconAnchor: [24, 54],
-          html: `<div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 6px 10px rgba(25,26,38,0.28));">
-            <svg xmlns="http://www.w3.org/2000/svg" width="46" height="56" viewBox="0 0 46 56">
-              <path d="M 23 54 C 23 54 43 35 43 21 C 43 10 34 2 23 2 C 12 2 3 10 3 21 C 3 35 23 54 23 54 Z" fill="#191A26" stroke="#FFFFFF" stroke-width="2" />
-              <circle cx="23" cy="21" r="13" fill="#FFFFFF" />
-              <!-- Blob Cat inside pin -->
-              <path d="M 14 23 L 16 12 L 22 17 Z" fill="#191A26" />
-              <path d="M 32 23 L 30 12 L 24 17 Z" fill="#191A26" />
-              <ellipse cx="23" cy="23" rx="9" ry="7.5" fill="#191A26" />
-              <circle cx="19.5" cy="22.5" r="2.2" fill="#FFFFFF" />
-              <circle cx="26.5" cy="22.5" r="2.2" fill="#FFFFFF" />
-            </svg>
-          </div>`,
+          iconSize: [46, 56],
+          iconAnchor: [23, 54],
+          html: `<img src="${BLOB_CAT_PIN_SVG_URI}" style="width:46px;height:56px;filter:drop-shadow(0 6px 10px rgba(25,26,38,0.3));" />`,
         });
         L.marker(endPt, { icon: catPinIcon }).addTo(map);
       }
@@ -192,26 +362,43 @@ export function RouteMap({
       }
 
       setMapReady(true);
-    });
+    }
+
+    initMap();
 
     return () => {
       isMounted = false;
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
+      googleMapRef.current = null;
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
       }
     };
   }, [activeStyle, routeCoords, showSightingPins]);
 
   const handleRecenter = () => {
-    if (!mapRef.current || !window.L) return;
-    const latLngs: [number, number][] = routeCoords.map((pt) => [
-      pt.latitude,
-      pt.longitude,
-    ]);
-    if (latLngs.length >= 2) {
-      const bounds = window.L.latLngBounds(latLngs);
-      mapRef.current.flyToBounds(bounds, { padding: [36, 36], maxZoom: 16, duration: 0.6 });
+    if (googleMapRef.current && window.google?.maps) {
+      const bounds = new window.google.maps.LatLngBounds();
+      for (const pt of routeCoords) {
+        bounds.extend({ lat: pt.latitude, lng: pt.longitude });
+      }
+      googleMapRef.current.fitBounds(bounds, 36);
+      return;
+    }
+
+    if (leafletMapRef.current && window.L) {
+      const latLngs: [number, number][] = routeCoords.map((pt) => [
+        pt.latitude,
+        pt.longitude,
+      ]);
+      if (latLngs.length >= 2) {
+        const bounds = window.L.latLngBounds(latLngs);
+        leafletMapRef.current.flyToBounds(bounds, {
+          padding: [36, 36],
+          maxZoom: 16,
+          duration: 0.6,
+        });
+      }
     }
   };
 
@@ -221,7 +408,7 @@ export function RouteMap({
       className={`relative w-full overflow-hidden bg-[#F2F1EE] ${
         borderless ? '' : 'rounded-card border-[1.5px] border-[#191A26]'
       }`}>
-      {/* Interactive Leaflet Map Host Container */}
+      {/* Interactive Google Map Host Container */}
       <div
         ref={containerRef}
         style={{ width: '100%', height: '100%', zIndex: 1 }}
@@ -236,13 +423,13 @@ export function RouteMap({
           />
           <View className="rounded-pill border-[1.5px] border-[#191A26] bg-white px-4 py-1.5">
             <Text className="text-xs font-extrabold text-[#191A26]">
-              Loading GPS map…
+              Loading Google Maps…
             </Text>
           </View>
         </View>
       ) : null}
 
-      {/* Right-Side Map Controls (Outlined Ink-on-White Circular Badges matching Reference) */}
+      {/* Right-Side Map Controls (Outlined Ink-on-White Circular Badges) */}
       <View
         style={{ zIndex: 20 }}
         className="absolute bottom-4 right-3.5 items-center gap-2">
@@ -266,13 +453,13 @@ export function RouteMap({
         </Pressable>
       </View>
 
-      {/* Bottom-left GPS points pill */}
+      {/* Bottom-left Google Maps status pill */}
       <View
         style={{ zIndex: 20 }}
         className="absolute bottom-4 left-3.5 flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] bg-white px-3 py-1">
         <View className="h-2 w-2 rounded-pill bg-[#F4A97B]" />
         <Text className="text-[10px] font-extrabold text-[#191A26]">
-          {routeCoords.length} GPS pts
+          Google Maps · {routeCoords.length} pts
         </Text>
       </View>
     </View>
