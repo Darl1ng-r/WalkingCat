@@ -19,6 +19,7 @@ export interface RouteMapProps {
 declare global {
   interface Window {
     google?: any;
+    gm_authFailure?: () => void;
     L?: any;
   }
 }
@@ -162,6 +163,7 @@ export function RouteMap({
   const [styleOverride, setStyleOverride] = useState<'satellite' | 'street' | null>(null);
   const [lastPropStyle, setLastPropStyle] = useState(initialMapStyle);
   const [mapReady, setMapReady] = useState(false);
+  const [useTileFallback, setUseTileFallback] = useState(false);
 
   if (lastPropStyle !== initialMapStyle) {
     setLastPropStyle(initialMapStyle);
@@ -179,7 +181,14 @@ export function RouteMap({
       if (!el) return;
 
       // Path A: Official Google Maps JavaScript SDK when EXPO_PUBLIC_GOOGLE_MAPS_API_KEY is configured
-      if (isGoogleMapsConfigured && env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY) {
+      if (!useTileFallback && isGoogleMapsConfigured && env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY) {
+        if (typeof window !== 'undefined') {
+          window.gm_authFailure = () => {
+            if (isMounted) {
+              setUseTileFallback(true);
+            }
+          };
+        }
         const gmaps = await ensureGoogleMapsLoaded(env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY);
         if (!isMounted) return;
 
@@ -374,7 +383,7 @@ export function RouteMap({
         leafletMapRef.current = null;
       }
     };
-  }, [activeStyle, routeCoords, showSightingPins]);
+  }, [activeStyle, routeCoords, showSightingPins, useTileFallback]);
 
   const handleRecenter = () => {
     if (googleMapRef.current && window.google?.maps) {
