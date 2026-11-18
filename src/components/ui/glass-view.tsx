@@ -47,8 +47,10 @@ export function GlassPill({
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
       onPress={onPress}
-      className={`flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] px-4 py-1.5 ${
-        active ? 'bg-[#191A26]' : 'bg-white'
+      className={`min-h-[40px] flex-row items-center gap-1.5 rounded-pill border-[1.5px] px-4 py-2 transition-opacity duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F4A97B] ${
+        active
+          ? 'border-[#191A26] bg-[#191A26] dark:border-[#F4A97B] dark:bg-[#F4A97B]'
+          : 'border-[#191A26] bg-white dark:border-[#35384F] dark:bg-[#232536]'
       }`}>
       {icon ? (
         <AppIcon
@@ -60,18 +62,22 @@ export function GlassPill({
       <Text
         variant="caption"
         className={`text-xs font-bold ${
-          active ? 'text-white' : 'text-[#191A26]'
+          active
+            ? 'text-white dark:text-[#191A26]'
+            : 'text-[#191A26] dark:text-[#FAF8F5]'
         }`}>
         {label}
       </Text>
       {badgeCount !== undefined ? (
         <View
           className={`rounded-pill px-1.5 py-0.5 ${
-            active ? 'bg-[#F4A97B]' : 'bg-[#FCE8D5]'
+            active ? 'bg-[#F4A97B] dark:bg-[#191A26]' : 'bg-[#FCE8D5]'
           }`}>
           <Text
             variant="caption"
-            className="text-[10px] font-bold text-[#191A26]">
+            className={`text-[10px] font-bold ${
+              active ? 'text-[#191A26] dark:text-white' : 'text-[#191A26]'
+            }`}>
             {badgeCount}
           </Text>
         </View>

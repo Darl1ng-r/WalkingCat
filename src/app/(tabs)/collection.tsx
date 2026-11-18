@@ -13,7 +13,6 @@ import {
   GlassPill,
   ProgressStripBento,
   Screen,
-  StatTile,
   Text,
 } from '@/components/ui';
 import {
@@ -64,16 +63,9 @@ export default function CollectionScreen() {
               accessibilityRole="button"
               accessibilityLabel="Open Card Themes Boutique"
               onPress={() => router.push('/cosmetics')}
-              className="flex-row items-center gap-1.5 rounded-pill border border-white/30 bg-[#252738] px-3 py-1">
+              className="min-h-[38px] flex-row items-center gap-1.5 rounded-pill border border-white/30 bg-[#252738] px-3.5 py-1.5">
               <AppIcon name="sparkles" size={12} color="#F4A97B" />
               <Text className="text-xs font-bold text-[#F4A97B]">Themes</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Spot a Cat"
-              onPress={() => router.push('/sighting/capture')}
-              className="h-8 w-8 items-center justify-center rounded-pill border border-white/30 bg-[#F4A97B]">
-              <Text className="text-base font-extrabold text-[#191A26]">+</Text>
             </Pressable>
           </View>
         </View>
@@ -142,7 +134,7 @@ export default function CollectionScreen() {
             accessibilityRole="button"
             accessibilityLabel="Spot new cat"
             onPress={() => router.push('/sighting/capture')}
-            className="h-9 w-9 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#F4A97B]">
+            className="h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#F4A97B]">
             <AppIcon name="camera" size={16} color="#191A26" />
           </Pressable>
           {SORT_OPTIONS.map((opt) => (
@@ -186,28 +178,6 @@ export default function CollectionScreen() {
               icon: 'sun',
             },
           ]}
-        />
-      </View>
-
-      {/* Header Stat Tiles */}
-      <View className="flex-row gap-2.5 px-4">
-        <StatTile
-          label="Total Cats"
-          value={formatNumber(headerStats.totalCats)}
-          accentColor="primary"
-          unit={headerStats.totalCats === 1 ? 'card' : 'cards'}
-        />
-        <StatTile
-          label="Total Sightings"
-          value={formatNumber(headerStats.totalSightings)}
-          accentColor="coral"
-          unit={headerStats.totalSightings === 1 ? 'visit' : 'visits'}
-        />
-        <StatTile
-          label="Discovery Days"
-          value={formatNumber(headerStats.discoveryDaysCount)}
-          accentColor="secondary"
-          unit={headerStats.discoveryDaysCount === 1 ? 'day' : 'days'}
         />
       </View>
 

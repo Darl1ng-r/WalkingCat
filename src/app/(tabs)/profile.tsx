@@ -208,29 +208,29 @@ export default function ProfileScreen() {
 
         {/* 3. Three Outlined Pill Attribute Chips ("Черный | 10 месяцев | 14 кг" in Reference) */}
         <View className="flex-row items-center justify-between gap-2.5">
-          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:bg-[#191A26]">
+          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:border-[#35384F] dark:bg-[#232536]">
             <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
               {activeTier.name}
             </Text>
-            <Text className="text-[10px] font-semibold text-[#6E7085]">
+            <Text className="text-[10px] font-semibold text-[#6E7085] dark:text-[#9EA1B8]">
               League
             </Text>
           </View>
 
-          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:bg-[#191A26]">
+          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:border-[#35384F] dark:bg-[#232536]">
             <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
               {pawBalance} pts
             </Text>
-            <Text className="text-[10px] font-semibold text-[#6E7085]">
+            <Text className="text-[10px] font-semibold text-[#6E7085] dark:text-[#9EA1B8]">
               Balance
             </Text>
           </View>
 
-          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:bg-[#191A26]">
+          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:border-[#35384F] dark:bg-[#232536]">
             <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
               {profile?.weight_kg ? `${profile.weight_kg} kg` : 'Standard'}
             </Text>
-            <Text className="text-[10px] font-semibold text-[#6E7085]">
+            <Text className="text-[10px] font-semibold text-[#6E7085] dark:text-[#9EA1B8]">
               Pace Mode
             </Text>
           </View>
@@ -280,7 +280,7 @@ export default function ProfileScreen() {
                     {item.subtitle}
                   </Text>
                 </View>
-                <Text className="text-sm font-black text-[#F4A97B]">›</Text>
+                <AppIcon name="chevronRight" size={14} color="#F4A97B" />
               </View>
             </Pressable>
           ))}

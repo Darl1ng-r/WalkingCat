@@ -44,12 +44,12 @@ export function ProgressStripBento({
 
           const content = (
             <View
-              className={`items-center justify-between rounded-pill border-[1.5px] border-[#191A26] px-3 py-2.5 ${
+              className={`items-center justify-between rounded-pill border-[1.5px] border-[#191A26] px-3 py-2.5 dark:border-[#35384F] ${
                 isDark
                   ? 'bg-[#191A26]'
                   : isPeach
-                    ? 'bg-[#FCE8D5]'
-                    : 'bg-white'
+                    ? 'bg-[#FCE8D5] dark:bg-[#2A2522]'
+                    : 'bg-white dark:bg-[#232536]'
               }`}>
               <View className="flex-row items-center gap-1.5">
                 <AppIcon
@@ -60,7 +60,9 @@ export function ProgressStripBento({
                 <Text
                   numberOfLines={1}
                   className={`font-display text-xs font-bold ${
-                    isDark ? 'text-white' : 'text-[#191A26]'
+                    isDark
+                      ? 'text-white'
+                      : 'text-[#191A26] dark:text-[#FAF8F5]'
                   }`}>
                   {formatted}
                 </Text>
@@ -69,7 +71,9 @@ export function ProgressStripBento({
               <Text
                 numberOfLines={1}
                 className={`mt-0.5 text-[10px] font-semibold ${
-                  isDark ? 'text-[#F4A97B]' : 'text-[#6E7085]'
+                  isDark
+                    ? 'text-[#F4A97B]'
+                    : 'text-[#6E7085] dark:text-[#9EA1B8]'
                 }`}>
                 {m.label}
               </Text>

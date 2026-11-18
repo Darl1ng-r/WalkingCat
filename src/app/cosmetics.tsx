@@ -178,21 +178,18 @@ export default function CosmeticsScreen() {
           </Pressable>
         </View>
 
-        <View className="flex-row gap-2.5">
+        <View className="flex-row gap-3">
           <StatTile
             label="Available"
             value={formatNumber(wallet.availablePoints)}
             unit="pts to spend"
+            accentColor="coral"
           />
           <StatTile
-            label="Lifetime"
+            label="Lifetime Earned"
             value={formatNumber(wallet.totalEarnedPoints)}
-            unit="pts earned"
-          />
-          <StatTile
-            label="Spent"
-            value={formatNumber(wallet.totalSpentPoints)}
-            unit="pts unlocked"
+            unit={`${formatNumber(wallet.totalSpentPoints)} spent`}
+            accentColor="secondary"
           />
         </View>
 

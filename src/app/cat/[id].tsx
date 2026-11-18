@@ -262,15 +262,15 @@ export default function CatDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel="Back"
             onPress={() => router.back()}
-            className="h-9 w-9 items-center justify-center rounded-pill">
-            <Text className="text-xl font-bold text-white">‹</Text>
+            className="h-11 w-11 items-center justify-center rounded-pill">
+            <AppIcon name="chevronLeft" size={18} color="#FFFFFF" />
           </Pressable>
 
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Rename ${displayName}`}
             onPress={handleStartEditNickname}
-            className="flex-row items-center gap-1.5">
+            className="min-h-[44px] flex-row items-center gap-1.5 px-2">
             <Text className="text-lg font-extrabold text-white">
               {displayName}
             </Text>
@@ -281,19 +281,23 @@ export default function CatDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel="Report"
             onPress={() => setShowReportModal(true)}
-            className="h-9 w-9 items-center justify-center rounded-pill">
-            <Text className="text-base font-extrabold text-white">⋮</Text>
+            className="h-11 w-11 items-center justify-center rounded-pill">
+            <AppIcon name="moreVertical" size={18} color="#FFFFFF" />
           </Pressable>
         </View>
 
         {/* White Arched Dome Rising into Midnight-Ink Header ("Огурец" Portrait Arch) */}
         <View className="items-center pt-2">
           <View className="relative w-full items-center rounded-t-[200px] bg-white pt-6 dark:bg-[#12131C]">
-            {/* Flanking circular mini-badges from the "Огурец" reference mockup */}
+            {/* Symmetric interactive flanking circular badges */}
             <View className="flex-row items-center justify-center gap-4">
-              <View className="mt-12 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
-                <AppIcon name="paw" size={16} color="#191A26" />
-              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Spot another cat"
+                onPress={() => router.push('/sighting/capture')}
+                className="mt-12 h-11 w-11 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white active:scale-95">
+                <AppIcon name="camera" size={16} color="#191A26" />
+              </Pressable>
 
               <View className="relative h-40 w-40 items-center justify-center overflow-hidden rounded-pill border-[3px] border-[#191A26] bg-[#FAF8F5]">
                 {cat.coverUrl ? (
@@ -319,7 +323,7 @@ export default function CatDetailScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Open Boutique"
                 onPress={() => router.push('/cosmetics' as never)}
-                className="mt-12 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
+                className="mt-12 h-11 w-11 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white active:scale-95">
                 <AppIcon name="palette" size={16} color="#191A26" />
               </Pressable>
             </View>
@@ -423,13 +427,12 @@ export default function CatDetailScreen() {
           </Card>
         ) : null}
 
-        {/* 4. Discovery Stats ("Динамика" Dark Midnight-Ink Stat Tiles from Reference Bottom-Left Screen) */}
+        {/* 4. Discovery Stats */}
         <Card className="gap-3">
           <View className="flex-row items-center justify-between">
             <Text className="text-sm font-extrabold text-[#191A26] dark:text-white">
-              Discovery Dynamics
+              Discovery Stats
             </Text>
-            <Text className="text-xs font-bold text-[#191A26] dark:text-[#F4A97B]">⌄</Text>
           </View>
           <View className="flex-row gap-3">
             <StatTile
@@ -569,7 +572,7 @@ export default function CatDetailScreen() {
                   </Text>
                 </View>
                 <Button
-                  label={showLinkPicker ? 'Close' : "I've seen this cat before"}
+                  label={showLinkPicker ? 'Close' : 'Merge with another cat'}
                   size="sm"
                   variant="ghost"
                   onPress={() => setShowLinkPicker((prev) => !prev)}

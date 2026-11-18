@@ -188,22 +188,19 @@ export default function SocialScreen() {
         ]}
       />
 
-      {/* 2. Dark Midnight-Ink Filter Pill Bar ("Кто: [ Все ]" in Reference Right-Column Screen) */}
+      {/* 2. Section Context Bar + Invite Action */}
       <View className="flex-row items-center justify-between gap-2.5">
-        <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
-          Who:
-        </Text>
-        <View className="flex-1 flex-row items-center justify-between rounded-pill bg-[#191A26] px-4 py-2">
+        <View className="flex-1 flex-row items-center justify-between rounded-pill bg-[#191A26] px-4 py-2.5">
           <Text className="text-xs font-extrabold text-white">
             {section === 'leaderboard'
-              ? 'All Friends League'
+              ? "This Week's Circle"
               : section === 'activity'
                 ? 'Clubhouse Milestones'
                 : section === 'friends'
                   ? 'Connected Walkers'
                   : 'Pending Invites'}
           </Text>
-          <Text className="text-xs font-bold text-[#F4A97B]">▾</Text>
+          <View className="h-2 w-2 rounded-pill bg-[#F4A97B]" />
         </View>
         <Button
           label="Invite"

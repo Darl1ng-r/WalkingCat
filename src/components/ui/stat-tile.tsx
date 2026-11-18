@@ -52,8 +52,8 @@ export function StatTile({
         )}
       </View>
 
-      {/* Decorative dotted curve line from the "Динамика" cards in the reference */}
-      <View className="my-2 flex-row items-center justify-between opacity-45">
+      {/* Subtle dotted wave accent */}
+      <View className="my-1.5 flex-row items-center justify-between opacity-30">
         {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((idx) => (
           <View
             key={idx}

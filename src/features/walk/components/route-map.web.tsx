@@ -495,10 +495,11 @@ export function RouteMap({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Reset map north and toggle satellite"
+          hitSlop={6}
           onPress={() =>
             setStyleOverride(activeStyle === 'satellite' ? 'street' : 'satellite')
           }
-          className="h-9 w-9 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white active:scale-95">
+          className="h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white active:scale-95">
           <View className="h-1.5 w-1.5 rounded-pill bg-[#F4A97B]" />
           <Text className="text-[10px] font-extrabold leading-none text-[#191A26]">N</Text>
         </Pressable>
@@ -506,19 +507,20 @@ export function RouteMap({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Recenter walked route"
+          hitSlop={6}
           onPress={handleRecenter}
-          className="h-9 w-9 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] active:scale-95">
+          className="h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] active:scale-95">
           <AppIcon name="navigation" size={14} color="#FFFFFF" />
         </Pressable>
       </View>
 
-      {/* Bottom-left Google Maps status pill */}
+      {/* Bottom-left live route status pill */}
       <View
         style={{ zIndex: 20 }}
         className="absolute bottom-4 left-3.5 flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] bg-white px-3 py-1">
         <View className="h-2 w-2 rounded-pill bg-[#F4A97B]" />
         <Text className="text-[10px] font-extrabold text-[#191A26]">
-          Google Maps · {routeCoords.length} pts
+          Live Route · {routeCoords.length} stops
         </Text>
       </View>
     </View>

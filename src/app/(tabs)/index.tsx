@@ -109,13 +109,6 @@ export default function HomeScreen() {
           </Pressable>
           <View className="flex-row items-center gap-2">
             <PointsChip />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Spot a cat"
-              onPress={() => router.push('/sighting/capture')}
-              className="h-8 w-8 items-center justify-center rounded-pill border border-white/30 bg-[#252738]">
-              <Text className="text-base font-bold text-white">+</Text>
-            </Pressable>
           </View>
         </View>
       </View>
@@ -169,7 +162,7 @@ export default function HomeScreen() {
             accessibilityRole="button"
             accessibilityLabel="Start Walk"
             onPress={() => router.push('/walk')}
-            className="h-9 w-9 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#F4A97B]">
+            className="h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-[#F4A97B]">
             <AppIcon name="paw" size={16} color="#191A26" />
           </Pressable>
           <GlassPill
@@ -209,37 +202,41 @@ export default function HomeScreen() {
               </Pressable>
             </View>
 
-            {/* Horizontal Day Strip ("10 11 [12] 13 14 15 16" in Reference) */}
+            {/* Dynamic Weekly Activity Day Strip */}
             <View className="my-3 flex-row items-center justify-between px-1">
-              {[
-                { day: '10', label: 'Mon', active: false },
-                { day: '11', label: 'Tue', active: false },
-                { day: '12', label: 'Wed', active: true },
-                { day: '13', label: 'Thu', active: false },
-                { day: '14', label: 'Fri', active: false },
-                { day: '15', label: 'Sat', active: false },
-                { day: '16', label: 'Sun', active: false },
-              ].map((d) => (
-                <View key={d.day} className="items-center gap-0.5">
-                  <View
-                    className={`h-7 w-7 items-center justify-center rounded-pill ${
-                      d.active ? 'bg-[#F4A97B]' : 'bg-transparent'
-                    }`}>
-                    <Text
-                      className={`text-xs font-extrabold ${
-                        d.active ? 'text-[#191A26]' : 'text-white/70'
+              {(weekSummary?.days ?? []).slice(-7).map((d) => {
+                const dayNum = d.date.slice(8, 10);
+                const active = d.isToday || d.distanceMeters > 0;
+                return (
+                  <View key={d.date} className="items-center gap-0.5">
+                    <View
+                      className={`h-7 w-7 items-center justify-center rounded-pill ${
+                        d.isToday
+                          ? 'bg-[#F4A97B]'
+                          : d.distanceMeters > 0
+                            ? 'bg-white/15'
+                            : 'bg-transparent'
                       }`}>
-                      {d.day}
+                      <Text
+                        className={`text-xs font-extrabold ${
+                          d.isToday
+                            ? 'text-[#191A26]'
+                            : active
+                              ? 'text-white'
+                              : 'text-white/55'
+                        }`}>
+                        {dayNum}
+                      </Text>
+                    </View>
+                    <Text
+                      className={`text-[9px] font-bold ${
+                        d.isToday ? 'text-[#F4A97B]' : 'text-white/55'
+                      }`}>
+                      {d.shortLabel}
                     </Text>
                   </View>
-                  <Text
-                    className={`text-[9px] font-bold ${
-                      d.active ? 'text-[#F4A97B]' : 'text-white/50'
-                    }`}>
-                    {d.label}
-                  </Text>
-                </View>
-              ))}
+                );
+              })}
             </View>
 
             {/* Warm Peach Pill Row & Dark Slate Pill Row inside the Midnight-Ink Card */}
@@ -279,11 +276,11 @@ export default function HomeScreen() {
                   <Text
                     numberOfLines={1}
                     className="text-xs font-bold text-white">
-                    Walk & spot cats along your route…
+                    Ready for a neighborhood stroll?
                   </Text>
                 </View>
                 <Text className="text-xs font-extrabold text-[#F4A97B]">
-                  09:00 ›
+                  Go ›
                 </Text>
               </Pressable>
             </View>
@@ -297,28 +294,28 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* 5. Outlined White Action Pill Rows ("Не забудь о встречах! <" in Reference) */}
+        {/* 5. Outlined Action Pill Rows */}
         <View className="gap-2.5">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Open Friends League"
             onPress={() => router.push('/social')}
-            className="flex-row items-center justify-between rounded-pill border-[1.5px] border-[#191A26] bg-white px-5 py-3.5 active:opacity-80">
-            <Text className="text-xs font-extrabold text-[#191A26]">
+            className="min-h-[46px] flex-row items-center justify-between rounded-pill border-[1.5px] border-[#191A26] bg-white px-5 py-3 transition-opacity duration-150 hover:opacity-90 active:opacity-80 dark:border-[#35384F] dark:bg-[#232536]">
+            <Text className="text-xs font-extrabold text-[#191A26] dark:text-[#FAF8F5]">
               Don&apos;t miss the Friends League race!
             </Text>
-            <Text className="text-sm font-black text-[#191A26]">‹</Text>
+            <AppIcon name="chevronRight" size={15} color="#191A26" />
           </Pressable>
 
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Open Cosmetics Boutique"
             onPress={() => router.push('/cosmetics')}
-            className="flex-row items-center justify-between rounded-pill border-[1.5px] border-[#191A26] bg-white px-5 py-3.5 active:opacity-80">
-            <Text className="text-xs font-extrabold text-[#191A26]">
+            className="min-h-[46px] flex-row items-center justify-between rounded-pill border-[1.5px] border-[#191A26] bg-white px-5 py-3 transition-opacity duration-150 hover:opacity-90 active:opacity-80 dark:border-[#35384F] dark:bg-[#232536]">
+            <Text className="text-xs font-extrabold text-[#191A26] dark:text-[#FAF8F5]">
               Visit the Card Themes & Boutique
             </Text>
-            <Text className="text-sm font-black text-[#191A26]">‹</Text>
+            <AppIcon name="chevronRight" size={15} color="#191A26" />
           </Pressable>
         </View>
 
@@ -382,10 +379,10 @@ export default function HomeScreen() {
           </View>
         </Card>
 
-        {/* 8. Today's Activity ("Динамика" Dark Midnight-Ink Stat Tiles) */}
+        {/* 8. Today's Activity (Concise 2-tile row to reduce vertical bloat) */}
         <View className="gap-2.5">
           <Text variant="label" className="text-[#191A26] dark:text-white">
-            Today&apos;s Dynamics
+            Today&apos;s Activity
           </Text>
           <View className="flex-row gap-3">
             <StatTile
@@ -395,29 +392,19 @@ export default function HomeScreen() {
               unit={
                 permState === 'connected'
                   ? `from ${providerName}`
-                  : 'Connect Health'
+                  : `${formatNumber(walksToday)} walks`
               }
             />
-            <StatTile
-              label="Walks Today"
-              value={formatNumber(walksToday)}
-              accentColor="primary"
-            />
-          </View>
-
-          <View className="flex-row gap-3">
             <StatTile
               label="Distance Today"
               value={formatDistance(displayDistance)}
               accentColor="coral"
+              unit={
+                data?.activeKcalToday
+                  ? `${formatNumber(data.activeKcalToday)} kcal`
+                  : undefined
+              }
             />
-            {data?.activeKcalToday ? (
-              <StatTile
-                label={`Active Calories (from ${providerName})`}
-                value={formatNumber(data.activeKcalToday)}
-                unit="kcal"
-              />
-            ) : null}
           </View>
         </View>
 

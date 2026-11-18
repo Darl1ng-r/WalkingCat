@@ -364,24 +364,24 @@ export default function WalkScreen() {
 
     return (
       <Screen scroll padded={false} contentContainerClassName="pb-32">
-        {/* Midnight-Ink Top Header ("< GPS ⋮") from Reference Middle-Right Screen */}
+        {/* Midnight-Ink Top Header */}
         <View className="bg-[#191A26] px-5 pb-8 pt-3">
           <View className="flex-row items-center justify-between">
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="View Walk History"
               onPress={() => router.push('/history')}
-              className="h-9 w-9 items-center justify-center rounded-pill">
-              <Text className="text-lg font-bold text-white">‹</Text>
+              className="h-11 w-11 items-center justify-center rounded-pill">
+              <AppIcon name="chevronLeft" size={18} color="#FFFFFF" />
             </Pressable>
             <Text className="text-base font-extrabold text-white">
-              GPS · {formatDuration(movingTimeSeconds)}
+              Walk · {formatDuration(movingTimeSeconds)}
             </Text>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Toggle screen awake"
               onPress={() => setKeepAwakeEnabled((prev) => !prev)}
-              className="h-9 items-center justify-center rounded-pill px-2">
+              className="min-h-[44px] items-center justify-center rounded-pill px-2">
               <Text className="text-xs font-bold text-[#F4A97B]">
                 {keepAwakeEnabled ? 'Awake' : 'Sleep'}
               </Text>
@@ -434,13 +434,12 @@ export default function WalkScreen() {
           />
         </View>
 
-        {/* Bottom Sheet ("Динамика" style from Reference GPS Screen) */}
         <View className="-mt-5 gap-4 rounded-t-[28px] border-t-[1.5px] border-[#191A26] bg-white px-5 pt-5 dark:bg-[#191A26]">
           <View className="flex-row items-center justify-between">
             <Text className="text-base font-extrabold text-[#191A26] dark:text-white">
-              {status === 'paused' ? 'Walk Paused' : 'Dynamics & Pace'}
+              {status === 'paused' ? 'Walk Paused' : 'Live Pace'}
             </Text>
-            <Text className="text-sm font-bold text-[#191A26] dark:text-[#F4A97B]">⌄</Text>
+            <AppIcon name="chevronDown" size={16} color="#F4A97B" />
           </View>
 
           {isWeakGps ? (
@@ -521,18 +520,18 @@ export default function WalkScreen() {
   // 3. Idle Screen — Styled Directly After the Reference Middle-Right "GPS" Screen
   return (
     <Screen scroll padded={false} contentContainerClassName="pb-32">
-      {/* Midnight-Ink Top Header ("< GPS ⋮") */}
+      {/* Midnight-Ink Top Header */}
       <View className="bg-[#191A26] px-5 pb-9 pt-3">
         <View className="flex-row items-center justify-between">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="View Walk History"
             onPress={() => router.push('/history')}
-            className="h-9 w-9 items-center justify-center rounded-pill">
-            <Text className="text-xl font-bold text-white">‹</Text>
+            className="h-11 w-11 items-center justify-center rounded-pill">
+            <AppIcon name="chevronLeft" size={18} color="#FFFFFF" />
           </Pressable>
           <Text className="text-base font-extrabold tracking-wide text-white">
-            GPS
+            Walk & Map
           </Text>
           <Pressable
             accessibilityRole="button"
@@ -540,8 +539,8 @@ export default function WalkScreen() {
             onPress={() =>
               setMapFilter((prev) => (prev === 'street' ? 'all' : 'street'))
             }
-            className="h-9 w-9 items-center justify-center rounded-pill">
-            <Text className="text-base font-extrabold text-white">⋮</Text>
+            className="h-11 w-11 items-center justify-center rounded-pill">
+            <AppIcon name="moreVertical" size={18} color="#FFFFFF" />
           </Pressable>
         </View>
       </View>
@@ -586,32 +585,33 @@ export default function WalkScreen() {
         />
       </View>
 
-      {/* Bottom Sheet ("Динамика" Card with Two Dark Midnight-Ink Stat Tiles from Reference) */}
+      {/* Bottom Sheet */}
       <View className="-mt-5 gap-4 rounded-t-[28px] border-t-[1.5px] border-[#191A26] bg-white px-5 pt-5 dark:bg-[#191A26]">
         <View className="flex-row items-center justify-between">
           <Text className="text-base font-extrabold text-[#191A26] dark:text-white">
-            Dynamics
+            Route Goal
           </Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="View Walk History"
-            onPress={() => router.push('/history')}>
+            onPress={() => router.push('/history')}
+            className="min-h-[36px] flex-row items-center gap-0.5">
             <Text className="text-xs font-extrabold text-[#191A26] dark:text-[#F4A97B]">
-              History ⌄
+              History
             </Text>
+            <AppIcon name="chevronRight" size={13} color="#F4A97B" />
           </Pressable>
         </View>
 
-        {/* Two Side-by-Side Dark Midnight-Ink Tiles ("123 мм. рт. ст." | "12 км/ч" in Reference) */}
         <View className="flex-row gap-3">
           <StatTile
-            label="Target Distance"
+            label="Loop Goal"
             value="3.2 km"
             unit="+65 Paw Pts"
             accentColor="secondary"
           />
           <StatTile
-            label="Target Speed"
+            label="Easy Pace"
             value="4.8 km/h"
             unit="+120 XP"
             accentColor="primary"

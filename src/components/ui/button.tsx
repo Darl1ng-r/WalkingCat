@@ -47,7 +47,7 @@ const variantTextClasses: Record<ButtonVariant, string> = {
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'min-h-[38px] px-4 py-1.5 rounded-pill',
+  sm: 'min-h-[42px] px-4 py-2 rounded-pill',
   md: 'min-h-[48px] px-5 py-3 rounded-pill',
   lg: 'min-h-[54px] px-6 py-3.5 rounded-pill',
 };
@@ -89,7 +89,7 @@ export function Button({
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       disabled={isDisabled}
       onPress={handlePress}
-      className={`flex-row items-center justify-center ${variantContainerClasses[variant]} ${sizeClasses[size]} ${
+      className={`flex-row items-center justify-center transition-opacity duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F4A97B] ${variantContainerClasses[variant]} ${sizeClasses[size]} ${
         isDisabled ? 'opacity-50' : ''
       } ${className}`.trim()}
       {...props}>

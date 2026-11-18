@@ -86,7 +86,11 @@ export type AppIconName =
   | 'check'
   | 'clap'
   | 'search'
-  | 'navigation';
+  | 'navigation'
+  | 'chevronLeft'
+  | 'chevronRight'
+  | 'chevronDown'
+  | 'moreVertical';
 
 const EMOJI_TO_ICON_MAP: Record<string, AppIconName> = {
   '🐾': 'paw',
@@ -277,6 +281,20 @@ function buildVectorIconSvg(name: AppIconName, color: string): string {
     case 'search':
       paths = `<circle cx="11" cy="11" r="7" ${s} />
         <path d="m20 20-3.5-3.5" ${s} />`;
+      break;
+    case 'chevronLeft':
+      paths = `<path d="m15 18-6-6 6-6" ${s} />`;
+      break;
+    case 'chevronRight':
+      paths = `<path d="m9 18 6-6-6-6" ${s} />`;
+      break;
+    case 'chevronDown':
+      paths = `<path d="m6 9 6 6 6-6" ${s} />`;
+      break;
+    case 'moreVertical':
+      paths = `<circle cx="12" cy="6" r="1.5" fill="${color}" />
+        <circle cx="12" cy="12" r="1.5" fill="${color}" />
+        <circle cx="12" cy="18" r="1.5" fill="${color}" />`;
       break;
     case 'navigation':
     default:

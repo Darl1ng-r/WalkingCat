@@ -56,9 +56,9 @@ interface DockTabMeta {
 
 const TAB_META: Record<string, DockTabMeta> = {
   index: { label: 'Home' },
-  walk: { label: 'GPS' },
+  walk: { label: 'Walk' },
   collection: { label: 'Cats' },
-  social: { label: 'League', badgeCount: 3 },
+  social: { label: 'League' },
   profile: { label: 'Profile' },
 };
 
@@ -209,7 +209,7 @@ export function FloatingDock({
                 accessibilityState={isFocused ? { selected: true } : {}}
                 accessibilityLabel={meta.label}
                 onPress={onPress}
-                className="relative flex-1 items-center justify-center py-0.5">
+                className="relative flex-1 items-center justify-center rounded-pill py-0.5 transition-opacity duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F4A97B]">
                 <View className="relative items-center justify-center">
                   <DockIcon name={route.name} active={isFocused} />
                   {meta.badgeCount ? (
@@ -236,8 +236,8 @@ export function FloatingDock({
           accessibilityRole="button"
           accessibilityLabel="Log cat sighting"
           onPress={() => router.push('/sighting/capture')}
-          className="h-14 w-14 items-center justify-center rounded-pill border-[2px] border-[#191A26] bg-[#F4A97B] shadow-md active:scale-95">
-          <Text className="text-2xl font-bold leading-none text-white">+</Text>
+          className="h-14 w-14 items-center justify-center rounded-pill border-[2px] border-[#191A26] bg-[#F4A97B] shadow-md transition-transform duration-150 hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95">
+          <Text className="text-2xl font-bold leading-none text-[#191A26]">+</Text>
         </Pressable>
       </View>
     </View>

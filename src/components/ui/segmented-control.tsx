@@ -21,10 +21,12 @@ export function SegmentedControl<T extends string>({
   onChange,
   className = '',
 }: SegmentedControlProps<T>) {
+  const isDense = options.length >= 4;
+
   // Styled directly after the "Календарь | Трекеры" pill switcher in the reference image
   return (
     <View
-      className={`flex-row rounded-pill border-[1.5px] border-[#191A26] bg-white p-0.5 dark:border-[#FAF8F5]/40 dark:bg-[#232536] ${className}`.trim()}>
+      className={`flex-row rounded-pill border-[1.5px] border-[#191A26] bg-white p-0.5 dark:border-[#35384F] dark:bg-[#232536] ${className}`.trim()}>
       {options.map((opt) => {
         const active = opt.key === value;
         return (
@@ -33,13 +35,15 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             onPress={() => onChange(opt.key)}
-            className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-pill px-3 py-2 ${
+            className={`min-h-[40px] flex-1 flex-row items-center justify-center gap-1 rounded-pill py-2 ${
+              isDense ? 'px-1.5' : 'px-3'
+            } ${
               active ? 'bg-[#191A26] dark:bg-[#F4A97B]' : 'bg-transparent'
             }`}>
             <Text
               variant="caption"
               numberOfLines={1}
-              className={`text-xs font-extrabold ${
+              className={`font-bold ${isDense ? 'text-[11px]' : 'text-xs'} ${
                 active
                   ? 'text-white dark:text-[#191A26]'
                   : 'text-[#191A26] dark:text-[#FAF8F5]'
