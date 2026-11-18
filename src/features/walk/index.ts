@@ -19,6 +19,10 @@ export {
   type RouteSightingMarker,
 } from './components/route-map';
 export {
+  WeeklyAreaChart,
+  type WeeklyAreaChartProps,
+} from './components/weekly-area-chart';
+export {
   buildActivityDashboardSummary,
   enumerateDateKeys,
   getCurrentWeekDateRange,

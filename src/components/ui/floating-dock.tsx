@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -62,95 +63,45 @@ const TAB_META: Record<string, DockTabMeta> = {
   profile: { label: 'Profile' },
 };
 
-function DockIcon({ name, active }: { name: string; active: boolean }) {
-  // Reference bottom nav uses circular slate-violet/peach icon badges inside the #191A26 bar
-  const circleBg = active ? '#F4A97B' : '#32344A';
-  const strokeColor = active ? '#191A26' : '#FFFFFF';
+function getDockSvgUri(name: string, active: boolean): string {
+  const color = active ? '#F4A97B' : '#A6A8BA';
 
   if (name === 'index') {
-    // House / Home icon (like "Главная" in the reference bottom bar)
-    return (
-      <View
-        style={{ backgroundColor: circleBg }}
-        className="h-8 w-8 items-center justify-center rounded-pill">
-        <View className="items-center">
-          <View
-            style={{
-              borderBottomColor: strokeColor,
-            }}
-            className="h-0 w-0 border-b-[6px] border-l-[7px] border-r-[7px] border-l-transparent border-r-transparent"
-          />
-          <View
-            style={{ backgroundColor: strokeColor }}
-            className="h-2 w-2.5 rounded-b-[2px]"
-          />
-        </View>
-      </View>
-    );
+    const svg = active
+      ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${color}"><path d="M12 3.2L3.5 10.2V20.5C3.5 21.1 3.9 21.5 4.5 21.5H9.5V15.5H14.5V21.5H19.5C20.1 21.5 20.5 21.1 20.5 20.5V10.2L12 3.2Z"/></svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1v-9.5z"/></svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
 
   if (name === 'walk') {
-    // GPS Teardrop Pin icon (matching the reference bottom bar middle pin icon)
-    return (
-      <View
-        style={{ backgroundColor: circleBg }}
-        className="h-8 w-8 items-center justify-center rounded-pill">
-        <View
-          style={{ borderColor: strokeColor }}
-          className="h-3.5 w-3.5 items-center justify-center rounded-pill border-[2px]">
-          <View
-            style={{ backgroundColor: strokeColor }}
-            className="h-1.5 w-1.5 rounded-pill"
-          />
-        </View>
-      </View>
-    );
+    // Clean concentric record/GPS ring icon matching the reference center icon
+    const svg = active
+      ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="${color}" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="${color}"/></svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="${color}" stroke-width="1.8"/><circle cx="12" cy="12" r="4.5" fill="${color}"/></svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
 
   if (name === 'collection') {
-    // Cards / Book icon (matching "Статьи" in the reference bottom bar)
-    return (
-      <View
-        style={{ backgroundColor: circleBg }}
-        className="h-8 w-8 items-center justify-center rounded-pill">
-        <View
-          style={{ borderColor: strokeColor }}
-          className="h-3.5 w-3.5 items-center justify-center rounded-[3px] border-[1.75px]">
-          <View
-            style={{ backgroundColor: strokeColor }}
-            className="h-[1.5px] w-2 rounded-pill"
-          />
-        </View>
-      </View>
-    );
+    // Cat silhouette / cards icon
+    const svg = active
+      ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${color}"><path d="M5 4l3 3.5A7.5 7.5 0 0 1 12 6.5c1.5 0 2.9.4 4 1L19 4v7.5a7 7 0 0 1-14 0V4z"/></svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l3.2 3.4A7 7 0 0 1 12 6.5c1.4 0 2.7.3 3.8.9L19 4v7.5a7 7 0 0 1-14 0V4z"/></svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
 
   if (name === 'social') {
-    // League / Calendar-Events icon
-    return (
-      <View
-        style={{ backgroundColor: circleBg }}
-        className="h-8 w-8 items-center justify-center rounded-pill">
-        <View className="flex-row items-end gap-[2px]">
-          <View style={{ backgroundColor: strokeColor }} className="h-2 w-1 rounded-[1px]" />
-          <View style={{ backgroundColor: strokeColor }} className="h-3.5 w-1.5 rounded-[1px]" />
-          <View style={{ backgroundColor: strokeColor }} className="h-2.5 w-1 rounded-[1px]" />
-        </View>
-      </View>
-    );
+    // Activity / League pulse bars icon
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${
+      active ? '2.4' : '1.9'
+    }" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-6 5 12 2.5-6h4"/></svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
 
-  // Profile / Blob Cat face icon
-  return (
-    <View
-      style={{ backgroundColor: circleBg }}
-      className="h-8 w-8 items-center justify-center rounded-pill">
-      <View className="items-center gap-[1.5px]">
-        <View style={{ backgroundColor: strokeColor }} className="h-1.5 w-1.5 rounded-pill" />
-        <View style={{ backgroundColor: strokeColor }} className="h-1.5 w-3 rounded-t-pill" />
-      </View>
-    </View>
-  );
+  // Profile icon
+  const svg = active
+    ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${color}"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6"/></svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.8"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 export function FloatingDock({
@@ -161,84 +112,79 @@ export function FloatingDock({
   navigateToTab,
 }: FloatingDockProps) {
   const insets = useSafeAreaInsets();
-  const bottomOffset = Math.max(insets.bottom, 10);
+  const bottomPad = Math.max(insets.bottom, 10);
 
   return (
     <View
-      style={{ bottom: bottomOffset, pointerEvents: 'box-none' }}
-      className="absolute left-0 right-0 z-50 items-center px-3">
-      <View className="w-full max-w-[460px] flex-row items-center gap-2.5">
-        {/* Solid Deep Midnight-Ink Bottom Bar (#191A26) matching the Reference */}
-        <View className="flex-1 flex-row items-center justify-between rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] px-2 py-2 shadow-lg">
-          {state.routes.map((route, index) => {
-            const { options } = descriptors[route.key];
-            const isFocused = state.index === index;
-            const meta = TAB_META[route.name] ?? {
-              label:
-                typeof options.tabBarLabel === 'string'
-                  ? options.tabBarLabel
-                  : options.title ?? route.name,
-            };
+      style={{ bottom: 0, pointerEvents: 'box-none' }}
+      className="absolute left-0 right-0 z-50 items-center">
+      {/* Full-width edge-to-edge bottom navigation bar */}
+      <View
+        style={{ paddingBottom: bottomPad }}
+        className="w-full max-w-[480px] flex-row items-center justify-between border-t border-white/10 bg-[#191A26] px-2 pt-2.5">
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const isFocused = state.index === index;
+          const meta = TAB_META[route.name] ?? {
+            label:
+              typeof options.tabBarLabel === 'string'
+                ? options.tabBarLabel
+                : options.title ?? route.name,
+          };
 
-            const onPress = () => {
-              const emitFn = emitter?.emit ?? navigation?.emit;
-              const event = emitFn
-                ? emitFn({
-                    type: 'tabPress',
-                    target: route.key,
-                    canPreventDefault: true,
-                  })
-                : { defaultPrevented: false };
+          const onPress = () => {
+            const emitFn = emitter?.emit ?? navigation?.emit;
+            const event = emitFn
+              ? emitFn({
+                  type: 'tabPress',
+                  target: route.key,
+                  canPreventDefault: true,
+                })
+              : { defaultPrevented: false };
 
-              if (!isFocused && !event.defaultPrevented) {
-                if (navigateToTab) {
-                  navigateToTab(route.key);
-                } else if (navigation?.navigate) {
-                  navigation.navigate(route.name, route.params);
-                } else {
-                  const targetPath = route.name === 'index' ? '/' : `/${route.name}`;
-                  router.navigate(targetPath as never);
-                }
+            if (!isFocused && !event.defaultPrevented) {
+              if (navigateToTab) {
+                navigateToTab(route.key);
+              } else if (navigation?.navigate) {
+                navigation.navigate(route.name, route.params);
+              } else {
+                const targetPath = route.name === 'index' ? '/' : `/${route.name}`;
+                router.navigate(targetPath as never);
               }
-            };
+            }
+          };
 
-            return (
-              <Pressable
-                key={route.key}
-                accessibilityRole="button"
-                accessibilityState={isFocused ? { selected: true } : {}}
-                accessibilityLabel={meta.label}
-                onPress={onPress}
-                className="relative flex-1 items-center justify-center rounded-pill py-0.5 transition-opacity duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F4A97B]">
-                <View className="relative items-center justify-center">
-                  <DockIcon name={route.name} active={isFocused} />
-                  {meta.badgeCount ? (
-                    <View className="absolute -right-1.5 -top-1 h-4 min-w-[16px] items-center justify-center rounded-pill border border-[#191A26] bg-[#F4A97B] px-1">
-                      <Text className="text-[9px] font-extrabold leading-none text-[#191A26]">
-                        {meta.badgeCount}
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
-                <Text
-                  className={`mt-1 text-[10px] font-bold tracking-tight ${
-                    isFocused ? 'text-[#F4A97B]' : 'text-white/75'
-                  }`}>
-                  {meta.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {/* Warm Peach Circular "+" Button (#F4A97B with #191A26 border) from Reference */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Log cat sighting"
-          onPress={() => router.push('/sighting/capture')}
-          className="h-14 w-14 items-center justify-center rounded-pill border-[2px] border-[#191A26] bg-[#F4A97B] shadow-md transition-transform duration-150 hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95">
-          <Text className="text-2xl font-bold leading-none text-[#191A26]">+</Text>
-        </Pressable>
+          return (
+            <Pressable
+              key={route.key}
+              accessibilityRole="button"
+              accessibilityState={isFocused ? { selected: true } : {}}
+              accessibilityLabel={meta.label}
+              onPress={onPress}
+              className="relative min-h-[44px] flex-1 items-center justify-center py-0.5 transition-opacity duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F4A97B]">
+              <View className="relative items-center justify-center">
+                <Image
+                  source={{ uri: getDockSvgUri(route.name, isFocused) }}
+                  style={{ width: 22, height: 22 }}
+                  contentFit="contain"
+                />
+                {meta.badgeCount ? (
+                  <View className="absolute -right-2 -top-1 h-4 min-w-[16px] items-center justify-center rounded-pill border border-[#191A26] bg-[#F4A97B] px-1">
+                    <Text className="text-[9px] font-extrabold leading-none text-[#191A26]">
+                      {meta.badgeCount}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+              <Text
+                className={`mt-1 text-[11px] font-bold tracking-tight ${
+                  isFocused ? 'text-[#F4A97B]' : 'text-[#A6A8BA]'
+                }`}>
+                {meta.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
