@@ -24,6 +24,7 @@ function getCardName(
 }
 
 export type LeaderboardMetric =
+  | 'cats'
   | 'steps'
   | 'distance_m'
   | 'walks'
@@ -97,6 +98,10 @@ export function formatLeaderboardValue(
 ): string {
   const safeVal = Math.max(0, Number(value) || 0);
   switch (metric) {
+    case 'cats':
+      return `${formatNumber(Math.round(safeVal))} ${
+        Math.round(safeVal) === 1 ? 'cat' : 'cats'
+      }`;
     case 'steps':
       return `${formatNumber(Math.round(safeVal))} steps`;
     case 'distance_m':

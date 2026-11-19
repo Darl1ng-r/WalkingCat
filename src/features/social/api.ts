@@ -410,6 +410,7 @@ export async function getFriendsLeaderboard(
     if (isDemoMode) {
       const mult = weekPeriod === 'last_week' ? 0.9 : 1;
       const metricMap: Record<LeaderboardMetric, number[]> = {
+        cats: [14, 11, 8, 5],
         steps: [48210, 44900, 39120, 31400],
         distance_m: [34800, 31950, 27600, 22100],
         walks: [7, 6, 5, 4],

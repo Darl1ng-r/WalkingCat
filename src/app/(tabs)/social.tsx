@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, Share, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Pressable, ScrollView, Share, View } from 'react-native';
 
 import {
   AppIcon,
@@ -9,16 +9,11 @@ import {
   Card,
   EmptyState,
   Input,
-  LeagueEmblemRow,
-  LeaguePodium,
-  ProgressStripBento,
   Screen,
   SegmentedControl,
   Text,
 } from '@/components/ui';
-import { useCatCollection } from '@/features/collection';
-import { getCardThemeTokens } from '@/features/cosmetics';
-import { usePointsSummary } from '@/features/gamification';
+import { useSession } from '@/features/auth';
 import {
   ReportModal,
   type ReportTargetType,
@@ -26,8 +21,6 @@ import {
 import {
   buildInviteDeepLink,
   formatLeaderboardValue,
-  LEADERBOARD_METRICS,
-  REACTION_EMOJIS,
   useCreateInviteMutation,
   useFriendActivityEvents,
   useFriendshipsOverview,
@@ -39,12 +32,38 @@ import {
   useShowOnLeaderboardSetting,
   useToggleReactionMutation,
   useUsernameSearch,
-  type LeaderboardMetric,
+  type ActivityEventItem,
   type LeaderboardWeekPeriod,
 } from '@/features/social';
-import { DEMO_AVATARS } from '@/lib/demo-data';
+import { DEMO_AVATARS, demoState } from '@/lib/demo-data';
 
-type SocialSection = 'leaderboard' | 'activity' | 'friends' | 'requests';
+type FriendsSection = 'discovery' | 'ranking' | 'manage';
+
+// Clean dark route map SVG for friend discovery carousels
+function makeFriendRouteSvgUri(variant: number): string {
+  const paths = [
+    'M28,175 C55,165 65,125 95,120 C125,115 135,148 160,122 C180,100 165,65 190,48',
+    'M35,168 C48,132 82,136 104,104 C126,72 152,96 178,62',
+    'M26,148 C64,158 76,100 112,92 C148,84 156,120 188,70',
+  ];
+  const path = paths[variant % paths.length];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="240" viewBox="0 0 220 240">
+    <rect width="220" height="240" rx="22" fill="#191A26" />
+    <path d="M0,48 L220,48 M0,96 L220,96 M0,144 L220,144 M0,192 L220,192 M44,0 L44,240 M88,0 L88,240 M132,0 L132,240 M176,0 L176,240" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="1" />
+    <path d="${path}" fill="none" stroke="#F4A97B" stroke-width="5" stroke-linecap="round" />
+    <circle cx="95" cy="120" r="8" fill="#F4A97B" stroke="#191A26" stroke-width="2.5" />
+    <circle cx="160" cy="122" r="8" fill="#F4A97B" stroke="#191A26" stroke-width="2.5" />
+    <circle cx="190" cy="48" r="6" fill="#FFFFFF" stroke="#191A26" stroke-width="2" />
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+const DEMO_CAT_PHOTOS = [
+  '/demo/marmalade.jpg',
+  '/demo/whiskers.jpg',
+  '/demo/mochi.jpg',
+  '/demo/boots.jpg',
+];
 
 function getInitials(
   displayName?: string | null,
@@ -58,40 +77,32 @@ function getInitials(
   return source.slice(0, 2).toUpperCase();
 }
 
-function formatRelativeDate(isoString: string): string {
-  const date = new Date(isoString);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+function formatTimeAgo(isoString: string): string {
+  const diffMs = Date.now() - new Date(isoString).getTime();
+  if (Number.isNaN(diffMs) || diffMs < 0) return 'Just now';
+  const mins = Math.floor(diffMs / 60_000);
+  if (mins < 60) return `${Math.max(1, mins)}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
-function getLeagueBadgeForRank(rank: number): {
-  label: string;
-  color: string;
-  bg: string;
-  icon: string;
-} {
-  if (rank === 1) {
-    return { label: 'Diamond', color: '#FFFFFF', bg: '#191A26', icon: 'gem' };
-  }
-  if (rank === 2) {
-    return { label: 'Gold', color: '#191A26', bg: '#F4A97B', icon: 'award' };
-  }
-  if (rank === 3) {
-    return { label: 'Silver', color: '#191A26', bg: '#FCE8D5', icon: 'award' };
-  }
-  return { label: 'Bronze', color: '#191A26', bg: '#FAF8F5', icon: 'shield' };
+function getAvatarForUser(userId: string, avatarUrl?: string | null): string {
+  if (avatarUrl) return avatarUrl;
+  if (userId === demoState.userId) return DEMO_AVATARS.mina;
+  if (userId.includes('2')) return DEMO_AVATARS.layla;
+  if (userId.includes('1')) return DEMO_AVATARS.tariq;
+  if (userId.includes('3')) return DEMO_AVATARS.omar;
+  return DEMO_AVATARS.nadia;
 }
 
-export default function SocialScreen() {
-  const [section, setSection] = useState<SocialSection>('leaderboard');
-  const [metric, setMetric] = useState<LeaderboardMetric>('steps');
+export default function FriendsScreen() {
+  const { profile } = useSession();
+  const [section, setSection] = useState<FriendsSection>('discovery');
   const [weekPeriod, setWeekPeriod] =
     useState<LeaderboardWeekPeriod>('this_week');
+  const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [redeemInput, setRedeemInput] = useState('');
@@ -104,15 +115,12 @@ export default function SocialScreen() {
   } | null>(null);
 
   const { data: friendships } = useFriendshipsOverview();
-  const { data: leaderboard = [], isLoading: isLoadingLeaderboard } =
-    useFriendsLeaderboard(metric, weekPeriod);
+  const { data: catRanking = [], isLoading: isLoadingRanking } =
+    useFriendsLeaderboard('cats', weekPeriod);
   const { data: activityEvents = [], isLoading: isLoadingActivity } =
     useFriendActivityEvents();
   const { data: searchResults = [], isFetching: isSearching } =
     useUsernameSearch(searchQuery);
-  const { data: pointsSummary } = usePointsSummary();
-  const pawBalance = pointsSummary?.totalPoints ?? 620;
-  const { data: collectionCards = [] } = useCatCollection('newest');
 
   const {
     showOnLeaderboard,
@@ -131,7 +139,12 @@ export default function SocialScreen() {
   const incomingRequests = friendships?.incomingRequests ?? [];
   const outgoingRequests = friendships?.outgoingRequests ?? [];
 
-  const selfEntry = leaderboard.find((e) => e.isSelf);
+  const filteredEvents = useMemo<ActivityEventItem[]>(() => {
+    if (!selectedFriendId) return activityEvents;
+    return activityEvents.filter((ev) => ev.actor.id === selectedFriendId);
+  }, [activityEvents, selectedFriendId]);
+
+  const topSpotter = catRanking[0] ?? null;
 
   const handleShareInviteLink = async () => {
     setErrorMsg(null);
@@ -141,7 +154,7 @@ export default function SocialScreen() {
       const link = buildInviteDeepLink(invite.code);
       setFeedbackMsg(`Your invite code: ${invite.code}`);
       await Share.share({
-        message: `Join me for a friendly walking race on StrayCat Walk! Use my invite code ${invite.code} or open ${link}`,
+        message: `Join me on StrayCat Walk to share cat sightings and see who finds more cats! Code: ${invite.code} or ${link}`,
       }).catch(() => {});
     } catch (err) {
       setErrorMsg(
@@ -154,12 +167,9 @@ export default function SocialScreen() {
     setErrorMsg(null);
     setFeedbackMsg(null);
     try {
-      const friendId = await redeemInviteMutation.mutateAsync(redeemInput);
+      await redeemInviteMutation.mutateAsync(redeemInput);
       setRedeemInput('');
-      setFeedbackMsg('Invite accepted! You are now connected.');
-      if (friendId) {
-        router.push(`/friend/${friendId}`);
-      }
+      setFeedbackMsg('Invite accepted! You are now friends.');
     } catch (err) {
       setErrorMsg(
         err instanceof Error ? err.message : 'Could not redeem invite code.'
@@ -168,758 +178,718 @@ export default function SocialScreen() {
   };
 
   return (
-    <Screen scroll contentContainerClassName="gap-4 pb-32 pt-2">
-      {/* 1. Top Segmented Switcher ("Календарь | Трекеры" style in Reference Right-Column Screens) */}
-      <SegmentedControl
-        value={section}
-        onChange={(next) => {
-          setSection(next);
-          setErrorMsg(null);
-        }}
-        options={[
-          { key: 'leaderboard', label: 'League' },
-          { key: 'activity', label: 'Events' },
-          { key: 'friends', label: `Friends (${acceptedFriends.length})` },
-          {
-            key: 'requests',
-            label: 'Requests',
-            badge: incomingRequests.length,
-          },
-        ]}
-      />
-
-      {/* 2. Section Context Bar + Invite Action */}
-      <View className="flex-row items-center justify-between gap-2.5">
-        <View className="flex-1 flex-row items-center justify-between rounded-pill bg-[#191A26] px-4 py-2.5">
-          <Text className="text-xs font-extrabold text-white">
-            {section === 'leaderboard'
-              ? "This Week's Circle"
-              : section === 'activity'
-                ? 'Clubhouse Milestones'
-                : section === 'friends'
-                  ? 'Connected Walkers'
-                  : 'Pending Invites'}
+    <Screen scroll padded={false} contentContainerClassName="gap-4 pb-32">
+      {/* 1. Midnight-Ink Header + Strava-Style Friend Story Avatars */}
+      <View className="bg-[#191A26] pb-4 pt-3">
+        <View className="flex-row items-center justify-between px-5 pb-3">
+          <Text className="font-display text-xl font-extrabold tracking-tight text-white">
+            Friends
           </Text>
-          <View className="h-2 w-2 rounded-pill bg-[#F4A97B]" />
+
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Invite a friend"
+              onPress={handleShareInviteLink}
+              className="min-h-[36px] flex-row items-center gap-1.5 rounded-pill border border-white/20 bg-white/10 px-3">
+              <AppIcon name="share" size={13} color="#F4A97B" />
+              <Text className="text-xs font-bold text-white">Invite</Text>
+            </Pressable>
+          </View>
         </View>
-        <Button
-          label="Invite"
-          size="sm"
-          variant="primary"
-          loading={createInviteMutation.isPending}
-          onPress={() => {
-            handleShareInviteLink().catch(() => {});
-          }}
-        />
+
+        {/* Horizontal Friends Story Strip */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 18, gap: 14 }}>
+          {/* Your quick-walk bubble */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Start a walk to share with friends"
+            onPress={() => router.push('/walk')}
+            className="items-center gap-1">
+            <View className="relative h-14 w-14 items-center justify-center rounded-full border-2 border-dashed border-white/40 bg-[#252738] p-0.5">
+              <Image
+                source={{ uri: profile?.avatar_url || DEMO_AVATARS.mina }}
+                style={{ width: '100%', height: '100%', borderRadius: 999 }}
+                contentFit="cover"
+              />
+              <View className="absolute -bottom-0.5 -right-0.5 h-5 w-5 items-center justify-center rounded-full border-2 border-[#191A26] bg-[#F4A97B]">
+                <Text className="text-[11px] font-extrabold leading-none text-[#191A26]">
+                  +
+                </Text>
+              </View>
+            </View>
+            <Text className="text-[11px] font-semibold text-white/80">You</Text>
+          </Pressable>
+
+          {/* Friends bubbles */}
+          {acceptedFriends.map((item) => {
+            const isSelected = selectedFriendId === item.friend.id;
+            const firstName = (
+              item.friend.display_name || item.friend.username
+            ).split(' ')[0];
+            return (
+              <Pressable
+                key={item.friendshipId}
+                accessibilityRole="button"
+                accessibilityLabel={`Filter feed by ${firstName}`}
+                onPress={() => {
+                  setSection('discovery');
+                  setSelectedFriendId((prev) =>
+                    prev === item.friend.id ? null : item.friend.id
+                  );
+                }}
+                className="items-center gap-1">
+                <View
+                  className={`h-14 w-14 rounded-full p-0.5 ${
+                    isSelected
+                      ? 'border-[2.5px] border-white bg-[#F4A97B]'
+                      : 'border-2 border-[#F4A97B]'
+                  }`}>
+                  <View className="h-full w-full overflow-hidden rounded-full bg-[#252738]">
+                    <Image
+                      source={{
+                        uri: getAvatarForUser(
+                          item.friend.id,
+                          item.friend.avatar_url
+                        ),
+                      }}
+                      style={{ width: '100%', height: '100%' }}
+                      contentFit="cover"
+                    />
+                  </View>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  className={`max-w-[58px] text-[11px] font-semibold ${
+                    isSelected ? 'text-[#F4A97B]' : 'text-white/80'
+                  }`}>
+                  {firstName}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       </View>
 
-      {/* 3. Circular Blob-Cat League Emblem Row */}
-      <LeagueEmblemRow
-        totalPoints={pawBalance}
-        showAllUnlocked={section === 'leaderboard'}
-      />
+      <View className="gap-4 px-4">
+        {/* 2. Section Switch: Discovery | Most Cats | Friends */}
+        <SegmentedControl<FriendsSection>
+          value={section}
+          onChange={setSection}
+          options={[
+            { key: 'discovery', label: 'Discovery' },
+            { key: 'ranking', label: 'Most Cats' },
+            {
+              key: 'manage',
+              label: 'Friends',
+              badge: incomingRequests.length || undefined,
+            },
+          ]}
+        />
 
-      {feedbackMsg ? (
-        <Card elevated className="py-2.5">
-          <Text variant="caption" className="font-bold text-[#191A26]">
-            {feedbackMsg}
-          </Text>
-        </Card>
-      ) : null}
+        {feedbackMsg ? (
+          <View className="rounded-2xl border border-[#191A26] bg-[#FCE8D5] px-4 py-2.5">
+            <Text className="text-xs font-bold text-[#191A26]">{feedbackMsg}</Text>
+          </View>
+        ) : null}
 
-      {errorMsg ? (
-        <Card className="border-danger bg-danger-muted py-2.5">
-          <Text variant="caption" className="font-semibold text-danger">
-            {errorMsg}
-          </Text>
-        </Card>
-      ) : null}
+        {errorMsg ? (
+          <View className="rounded-2xl border border-danger bg-danger-muted px-4 py-2.5">
+            <Text className="text-xs font-bold text-danger">{errorMsg}</Text>
+          </View>
+        ) : null}
 
-      {/* SECTION 1: FRIENDS LEAGUE PODIUM & RANKINGS */}
-      {section === 'leaderboard' ? (
-        <View className="gap-4">
-          {/* 3-Pill Progress Strip */}
-          <ProgressStripBento
-            title="My Progress"
-            metrics={[
-              {
-                id: 'points',
-                label: 'Paw Points',
-                current: pawBalance,
-                target: 750,
-                color: 'coral',
-                icon: 'paw',
-              },
-              {
-                id: 'cats',
-                label: 'Cat Cards',
-                current: collectionCards.length || 4,
-                target: 10,
-                color: 'primary',
-                icon: 'cards',
-              },
-              {
-                id: 'steps',
-                label: 'Weekly Goal',
-                current: 428,
-                target: 500,
-                color: 'secondary',
-                icon: 'flame',
-              },
-            ]}
-          />
-
-          {/* Metric Filter Pills */}
-          <View className="flex-row gap-1.5">
-            {LEADERBOARD_METRICS.map((m) => {
-              const active = metric === m.key;
-              return (
+        {/* 3A. DISCOVERY FEED (Friends-Only Strava-Style Photo & Route Carousels) */}
+        {section === 'discovery' ? (
+          <View className="gap-5">
+            {selectedFriendId ? (
+              <View className="flex-row items-center justify-between rounded-pill border border-[#191A26]/15 bg-white px-4 py-2 dark:bg-[#191A26]">
+                <Text variant="caption" className="font-semibold">
+                  Showing walks from selected friend
+                </Text>
                 <Pressable
-                  key={m.key}
                   accessibilityRole="button"
-                  accessibilityLabel={`Leaderboard metric ${m.label}`}
-                  onPress={() => setMetric(m.key)}
-                  className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] py-2 ${
-                    active ? 'bg-[#191A26]' : 'bg-white'
-                  }`}>
-                  <AppIcon
-                    name={m.emoji}
-                    size={13}
-                    color={active ? '#F4A97B' : '#191A26'}
-                  />
-                  <Text
-                    variant="caption"
-                    className={`text-xs font-bold ${
-                      active ? 'text-white' : 'text-[#191A26]'
-                    }`}>
-                    {m.shortLabel}
+                  onPress={() => setSelectedFriendId(null)}>
+                  <Text className="text-xs font-extrabold text-[#F4A97B]">
+                    Show All
                   </Text>
                 </Pressable>
-              );
-            })}
-          </View>
+              </View>
+            ) : null}
 
-          {acceptedFriends.length === 0 ? (
-            <EmptyState
-              emoji="🏆"
-              title="Invite a friend to start a friendly race"
-              message="Weekly leaderboards are strictly friends-only and reset every Monday. Add a friend by username or share an invite link to compare steps, distance, walks, and challenge points."
-              actionLabel="Add or Invite Friends"
-              onAction={() => setSection('friends')}
-            />
-          ) : isLoadingLeaderboard ? (
-            <Card className="items-center py-8">
-              <Text variant="caption">Loading weekly leaderboard…</Text>
-            </Card>
-          ) : (
-            <>
-              <LeaguePodium
-                periodLabel={
-                  weekPeriod === 'this_week' ? 'This Week' : 'Last Week'
-                }
-                onTogglePeriod={() =>
-                  setWeekPeriod((prev) =>
-                    prev === 'this_week' ? 'last_week' : 'this_week'
-                  )
-                }
-                entries={leaderboard.slice(0, 3).map((entry) => ({
-                  userId: entry.userId,
-                  rank: entry.rank,
-                  displayName: entry.displayName || entry.username,
-                  username: entry.username,
-                  avatarUrl: entry.avatarUrl ?? null,
-                  value: entry.value,
-                  formattedValue: formatLeaderboardValue(metric, entry.value),
-                  isSelf: entry.isSelf,
-                }))}
-                onPressUser={(userId, isSelf) => {
-                  if (!isSelf) {
-                    router.push(`/friend/${userId}`);
-                  }
-                }}
+            {isLoadingActivity ? (
+              <Card className="items-center py-8">
+                <Text variant="caption">Loading friends&apos; walks…</Text>
+              </Card>
+            ) : filteredEvents.length === 0 ? (
+              <EmptyState
+                emoji="🐱"
+                title="Your Friends Feed is quiet"
+                message="Invite a friend or take a neighborhood walk so your cat sightings appear here."
+                actionLabel="Invite a Friend"
+                onAction={handleShareInviteLink}
               />
+            ) : (
+              filteredEvents.map((ev, idx) => {
+                const actorName = ev.actor.display_name || ev.actor.username;
+                const primaryPhoto =
+                  ev.sharedCatPhotoUrl ||
+                  DEMO_CAT_PHOTOS[idx % DEMO_CAT_PHOTOS.length];
+                const secondaryPhoto =
+                  DEMO_CAT_PHOTOS[(idx + 1) % DEMO_CAT_PHOTOS.length];
+                const routeThumb = makeFriendRouteSvgUri(idx);
 
-              {/* Warm Peach/Cream Tracker-Style Ranked List Card (Matching Reference Right-Column Cards) */}
-              <View className="relative">
-                <Card elevated className="gap-2.5 p-3.5">
-                  <View className="flex-row items-center justify-between px-1">
-                    <Text className="text-xs font-extrabold uppercase tracking-wider text-[#191A26]">
-                      Weekly Standings
-                    </Text>
-                    <Text className="text-xs font-bold text-[#191A26]/70">
-                      {leaderboard.length} walkers ⌄
-                    </Text>
-                  </View>
+                const heartReaction = ev.reactions.find((r) => r.emoji === '❤️');
+                const pawReaction = ev.reactions.find((r) => r.emoji === '🐾');
+                const heartCount = heartReaction?.count ?? 0;
+                const pawCount = pawReaction?.count ?? 0;
+                const likedByMe = Boolean(heartReaction?.reactedByMe);
+                const pawedByMe = Boolean(pawReaction?.reactedByMe);
 
-                  {leaderboard.map((entry) => {
-                    const name = entry.displayName || entry.username;
-                    const initials = getInitials(
-                      entry.displayName,
-                      entry.username
-                    );
-                    const tierBadge = getLeagueBadgeForRank(entry.rank);
-                    const paddedRank = String(entry.rank).padStart(2, '0');
-
-                    return (
-                      <Pressable
-                        key={entry.userId}
-                        disabled={entry.isSelf}
-                        accessibilityRole={entry.isSelf ? undefined : 'button'}
-                        accessibilityLabel={`${name}, rank ${entry.rank}, ${formatLeaderboardValue(
-                          metric,
-                          entry.value
-                        )}`}
-                        onPress={() => {
-                          if (!entry.isSelf) {
-                            router.push(`/friend/${entry.userId}`);
-                          }
-                        }}
-                        className={`flex-row items-center gap-3 rounded-pill border-[1.5px] border-[#191A26] px-3.5 py-2.5 ${
-                          entry.isSelf ? 'bg-[#191A26]' : 'bg-white'
-                        }`}>
-                        <View
-                          className={`h-7 w-7 items-center justify-center rounded-pill border border-[#191A26] ${
-                            entry.rank === 1
-                              ? 'bg-[#F4A97B]'
-                              : entry.isSelf
-                                ? 'bg-white'
-                                : 'bg-[#FCE8D5]'
-                          }`}>
-                          <Text className="text-[11px] font-extrabold text-[#191A26]">
-                            {paddedRank}
+                return (
+                  <Card key={ev.id} className="gap-3.5 overflow-hidden p-0">
+                    {/* Post Author Header */}
+                    <View className="flex-row items-center justify-between px-4 pt-4">
+                      <View className="flex-row items-center gap-2.5">
+                        <View className="h-10 w-10 overflow-hidden rounded-full border-[1.5px] border-[#191A26] bg-[#FAF8F5]">
+                          <Image
+                            source={{
+                              uri: getAvatarForUser(
+                                ev.actor.id,
+                                ev.actor.avatar_url
+                              ),
+                            }}
+                            style={{ width: '100%', height: '100%' }}
+                            contentFit="cover"
+                          />
+                        </View>
+                        <View>
+                          <Text className="text-sm font-extrabold text-[#191A26] dark:text-white">
+                            {actorName}
+                          </Text>
+                          <Text className="text-xs font-medium text-[#6E7085] dark:text-[#9EA1B8]">
+                            {ev.copy.headline}
                           </Text>
                         </View>
+                      </View>
 
-                        <View className="h-10 w-10 items-center justify-center overflow-hidden rounded-pill border-[1.5px] border-[#191A26] bg-white">
-                          {entry.avatarUrl ? (
-                            <Image
-                              source={{ uri: entry.avatarUrl }}
-                              style={{ width: '100%', height: '100%' }}
-                              contentFit="cover"
-                            />
-                          ) : (
-                            <Text className="text-xs font-extrabold text-[#191A26]">
-                              {initials}
-                            </Text>
-                          )}
+                      <Text className="text-[11px] font-semibold text-[#6E7085] dark:text-[#9EA1B8]">
+                        {formatTimeAgo(ev.createdAt)}
+                      </Text>
+                    </View>
+
+                    {ev.copy.subtitle ? (
+                      <Text className="px-4 text-xs font-medium text-[#191A26]/80 dark:text-white/80">
+                        {ev.copy.subtitle}
+                      </Text>
+                    ) : null}
+
+                    {/* Horizontal Swipeable Media Carousel (Cat Photo + Route Map + Extra Cat Photo) */}
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}>
+                      {/* Slide 1: Spotted Cat Photo with Compact Stat Overlay */}
+                      <View className="relative h-[230px] w-[205px] overflow-hidden rounded-[20px] border border-[#191A26]/20 bg-[#191A26]">
+                        <Image
+                          source={{ uri: primaryPhoto }}
+                          style={{ width: '100%', height: '100%' }}
+                          contentFit="cover"
+                        />
+                        <View className="absolute bottom-2.5 left-2.5 rounded-pill bg-[#191A26]/85 px-2.5 py-1">
+                          <Text className="text-[10px] font-extrabold text-[#F4A97B]">
+                            Cat Spotted
+                          </Text>
                         </View>
+                      </View>
 
-                        <View className="flex-1">
-                          <View className="flex-row items-center gap-1.5">
-                            <Text
-                              numberOfLines={1}
-                              className={`text-sm font-extrabold ${
-                                entry.isSelf ? 'text-white' : 'text-[#191A26]'
-                              }`}>
-                              {name}
-                            </Text>
-                            {entry.isSelf ? (
-                              <View className="rounded-pill bg-[#F4A97B] px-2 py-0.5">
-                                <Text className="text-[9px] font-extrabold text-[#191A26]">
-                                  YOU
-                                </Text>
-                              </View>
-                            ) : null}
-                          </View>
-
-                          <View className="mt-0.5 flex-row items-center gap-1.5">
-                            <View
-                              style={{ backgroundColor: tierBadge.bg }}
-                              className="flex-row items-center gap-1 rounded-pill border border-[#191A26] px-2 py-0.5">
-                              <AppIcon
-                                name={tierBadge.icon}
-                                size={10}
-                                color={tierBadge.color}
-                              />
-                              <Text
-                                style={{ color: tierBadge.color }}
-                                className="text-[9px] font-bold">
-                                {tierBadge.label}
-                              </Text>
-                            </View>
-                            <Text
-                              className={`text-[11px] font-semibold ${
-                                entry.isSelf ? 'text-white/75' : 'text-[#6E7085]'
-                              }`}>
-                              @{entry.username}
-                            </Text>
-                          </View>
+                      {/* Slide 2: Walk Route & Cat Pins Map Card */}
+                      <View className="relative h-[230px] w-[205px] overflow-hidden rounded-[20px] border border-[#191A26] bg-[#191A26]">
+                        <Image
+                          source={{ uri: routeThumb }}
+                          style={{ width: '100%', height: '100%' }}
+                          contentFit="cover"
+                        />
+                        <View className="absolute left-3 top-3 rounded-pill bg-white/15 px-2.5 py-1">
+                          <Text className="text-[10px] font-bold text-white">
+                            Route & Pins
+                          </Text>
                         </View>
+                      </View>
 
-                        <View className="flex-row items-center gap-1.5">
+                      {/* Slide 3: Second Sighting Photo */}
+                      <View className="relative h-[230px] w-[170px] overflow-hidden rounded-[20px] border border-[#191A26]/20 bg-[#191A26]">
+                        <Image
+                          source={{ uri: secondaryPhoto }}
+                          style={{ width: '100%', height: '100%' }}
+                          contentFit="cover"
+                        />
+                      </View>
+                    </ScrollView>
+
+                    {/* Footer Actions: Heart Kudos + Paw Reaction + Report */}
+                    <View className="flex-row items-center justify-between border-t border-[#191A26]/10 px-4 py-3 dark:border-white/10">
+                      <View className="flex-row items-center gap-3">
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel="Like walk"
+                          onPress={() =>
+                            toggleReactionMutation.mutate({
+                              eventId: ev.id,
+                              emoji: '❤️',
+                              currentMyReaction: ev.myReaction,
+                            })
+                          }
+                          className={`min-h-[36px] flex-row items-center gap-1.5 rounded-pill px-3 ${
+                            likedByMe
+                              ? 'bg-[#F4A97B]'
+                              : 'bg-[#FAF8F5] dark:bg-[#252738]'
+                          }`}>
+                          <AppIcon
+                            name="heart"
+                            size={14}
+                            color={likedByMe ? '#191A26' : '#6E7085'}
+                          />
                           <Text
                             className={`text-xs font-extrabold ${
-                              entry.isSelf ? 'text-[#F4A97B]' : 'text-[#191A26]'
+                              likedByMe
+                                ? 'text-[#191A26]'
+                                : 'text-[#191A26] dark:text-white'
                             }`}>
-                            {formatLeaderboardValue(metric, entry.value)}
+                            {heartCount}
                           </Text>
-                        </View>
-                      </Pressable>
-                    );
-                  })}
-                </Card>
+                        </Pressable>
 
-                {selfEntry ? (
-                  <View className="mt-3 items-center">
-                    <View className="flex-row items-center gap-2.5 rounded-pill border-[1.5px] border-[#191A26] bg-white px-4 py-2">
-                      <View className="h-7 w-7 overflow-hidden rounded-pill border border-[#191A26] bg-[#FCE8D5]">
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel="Celebrate cat sighting"
+                          onPress={() =>
+                            toggleReactionMutation.mutate({
+                              eventId: ev.id,
+                              emoji: '🐾',
+                              currentMyReaction: ev.myReaction,
+                            })
+                          }
+                          className={`min-h-[36px] flex-row items-center gap-1.5 rounded-pill px-3 ${
+                            pawedByMe
+                              ? 'bg-[#191A26]'
+                              : 'bg-[#FAF8F5] dark:bg-[#252738]'
+                          }`}>
+                          <AppIcon
+                            name="paw"
+                            size={14}
+                            color={pawedByMe ? '#F4A97B' : '#6E7085'}
+                          />
+                          <Text
+                            className={`text-xs font-extrabold ${
+                              pawedByMe
+                                ? 'text-[#F4A97B]'
+                                : 'text-[#191A26] dark:text-white'
+                            }`}>
+                            {pawCount}
+                          </Text>
+                        </Pressable>
+                      </View>
+
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Report post"
+                        onPress={() =>
+                          setReportTarget({
+                            type: 'activity_event',
+                            id: ev.id,
+                            title: `Post by ${actorName}`,
+                          })
+                        }
+                        className="min-h-[36px] justify-center px-2">
+                        <Text className="text-[11px] font-semibold text-[#6E7085] dark:text-[#9EA1B8]">
+                          Report
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </Card>
+                );
+              })
+            )}
+          </View>
+        ) : null}
+
+        {/* 3B. MOST CATS FOUND (Friends-Only Cat Ranking — Zero Points!) */}
+        {section === 'ranking' ? (
+          <View className="gap-4">
+            <View className="flex-row items-center justify-between">
+              <Text variant="heading">Most Cats Found</Text>
+              <View className="flex-row rounded-pill border border-[#191A26] bg-white p-0.5 dark:bg-[#191A26]">
+                {(
+                  [
+                    { id: 'this_week', label: 'This Week' },
+                    { id: 'last_week', label: 'Last Week' },
+                  ] as const
+                ).map((period) => {
+                  const active = weekPeriod === period.id;
+                  return (
+                    <Pressable
+                      key={period.id}
+                      accessibilityRole="button"
+                      onPress={() => setWeekPeriod(period.id)}
+                      className={`rounded-pill px-3 py-1 ${
+                        active ? 'bg-[#191A26]' : 'bg-transparent'
+                      }`}>
+                      <Text
+                        className={`text-[11px] font-bold ${
+                          active ? 'text-[#F4A97B]' : 'text-[#6E7085]'
+                        }`}>
+                        {period.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* #1 Top Cat Spotter Spotlight */}
+            {topSpotter ? (
+              <View className="flex-row items-center justify-between rounded-[24px] border-[1.5px] border-[#191A26] bg-[#191A26] p-4">
+                <View className="flex-row items-center gap-3">
+                  <View className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-[#F4A97B] bg-white">
+                    <Image
+                      source={{
+                        uri: getAvatarForUser(
+                          topSpotter.userId,
+                          topSpotter.avatarUrl
+                        ),
+                      }}
+                      style={{ width: '100%', height: '100%' }}
+                      contentFit="cover"
+                    />
+                  </View>
+                  <View>
+                    <View className="flex-row items-center gap-1">
+                      <AppIcon name="trophy" size={13} color="#F4A97B" />
+                      <Text className="text-[11px] font-extrabold uppercase tracking-wider text-[#F4A97B]">
+                        Top Cat Spotter
+                      </Text>
+                    </View>
+                    <Text className="text-base font-extrabold text-white">
+                      {topSpotter.displayName || topSpotter.username}
+                      {topSpotter.isSelf ? ' (You)' : ''}
+                    </Text>
+                  </View>
+                </View>
+
+                <View className="items-end">
+                  <Text className="font-display text-2xl font-extrabold text-[#F4A97B]">
+                    {topSpotter.value}
+                  </Text>
+                  <Text className="text-[11px] font-semibold text-white/70">
+                    cats found
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+
+            {/* Ranked Friends List */}
+            {isLoadingRanking ? (
+              <Card className="items-center py-8">
+                <Text variant="caption">Loading cat rankings…</Text>
+              </Card>
+            ) : catRanking.length === 0 ? (
+              <EmptyState
+                emoji="🐱"
+                title="No rankings yet"
+                message="Add friends and spot cats on your walks to see who finds the most."
+                actionLabel="Invite Friends"
+                onAction={handleShareInviteLink}
+              />
+            ) : (
+              <Card className="gap-2 p-3">
+                {catRanking.map((entry) => (
+                  <View
+                    key={entry.userId}
+                    className={`flex-row items-center justify-between rounded-2xl px-3 py-2.5 ${
+                      entry.isSelf
+                        ? 'border border-[#191A26] bg-[#FCE8D5]/60 dark:bg-[#252738]'
+                        : 'bg-transparent'
+                    }`}>
+                    <View className="flex-row items-center gap-3">
+                      <Text
+                        className={`w-6 text-center text-sm font-extrabold ${
+                          entry.rank === 1
+                            ? 'text-[#F4A97B]'
+                            : 'text-[#6E7085] dark:text-[#9EA1B8]'
+                        }`}>
+                        #{entry.rank}
+                      </Text>
+                      <View className="h-10 w-10 overflow-hidden rounded-full border border-[#191A26] bg-white">
                         <Image
                           source={{
-                            uri: selfEntry.avatarUrl || DEMO_AVATARS.mina,
+                            uri: getAvatarForUser(entry.userId, entry.avatarUrl),
                           }}
                           style={{ width: '100%', height: '100%' }}
                           contentFit="cover"
                         />
                       </View>
-                      <Text className="text-xs font-extrabold text-[#191A26]">
-                        You · #{selfEntry.rank} in Gold League ↑
+                      <View>
+                        <Text className="text-sm font-extrabold text-[#191A26] dark:text-white">
+                          {entry.displayName || entry.username}
+                          {entry.isSelf ? ' (You)' : ''}
+                        </Text>
+                        <Text className="text-[11px] text-[#6E7085] dark:text-[#9EA1B8]">
+                          @{entry.username}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View className="rounded-pill bg-[#191A26] px-3 py-1">
+                      <Text className="text-xs font-extrabold text-[#F4A97B]">
+                        {formatLeaderboardValue('cats', entry.value)}
                       </Text>
                     </View>
                   </View>
-                ) : null}
-              </View>
-            </>
-          )}
-
-          {/* Opt-in / Opt-out toggle */}
-          <Card className="flex-row items-center justify-between gap-3 py-3">
-            <View className="flex-1">
-              <Text variant="label">Show me on Friends Leaderboard</Text>
-              <Text variant="caption" className="mt-0.5 text-xs">
-                {showOnLeaderboard
-                  ? 'Visible to your accepted friends. Turn off anytime to hide your stats.'
-                  : 'Hidden — your weekly stats are not shown to friends.'}
-              </Text>
-            </View>
-            <Button
-              label={showOnLeaderboard ? 'Visible' : 'Hidden'}
-              size="sm"
-              variant={showOnLeaderboard ? 'secondary' : 'ghost'}
-              loading={isUpdatingOptIn}
-              onPress={() => setShowOnLeaderboard(!showOnLeaderboard)}
-            />
-          </Card>
-        </View>
-      ) : null}
-
-      {/* SECTION 2: FRIEND ACTIVITY (MILESTONES & SHARED CAT CARDS) */}
-      {section === 'activity' ? (
-        <View className="gap-3">
-          <Text variant="caption" className="text-xs leading-5">
-            Milestone updates and shared cat cards from the last 14 days—routes and locations are
-            never shared.
-          </Text>
-
-          {isLoadingActivity ? (
-            <Card className="items-center py-8">
-              <Text variant="caption">Loading friend milestones…</Text>
-            </Card>
-          ) : activityEvents.length === 0 ? (
-            <EmptyState
-              emoji="sparkles"
-              title="No recent milestones yet"
-              message="Completed walks, unlocked badges, challenge completions, and shared cat cards from you and your friends will appear here."
-            />
-          ) : (
-            activityEvents.map((ev) => (
-              <Card key={ev.id} className="gap-3 p-4">
-                <View className="flex-row items-start gap-3">
-                  <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-pill border-[1.5px] border-[#191A26] bg-[#FCE8D5]">
-                    {ev.actor.avatar_url ? (
-                      <Image
-                        source={{ uri: ev.actor.avatar_url }}
-                        style={{ width: '100%', height: '100%' }}
-                        contentFit="cover"
-                      />
-                    ) : (
-                      <AppIcon name={ev.copy.emoji} size={20} color="#191A26" />
-                    )}
-                  </View>
-
-                  <View className="flex-1 gap-0.5">
-                    <Text variant="body" className="font-extrabold">
-                      {ev.copy.headline}
-                    </Text>
-                    <Text variant="caption" className="text-xs">
-                      {ev.copy.subtitle} · {formatRelativeDate(ev.createdAt)}
-                    </Text>
-                  </View>
-
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Report milestone"
-                    hitSlop={12}
-                    onPress={() =>
-                      setReportTarget({
-                        type: 'activity_event',
-                        id: ev.id,
-                        title: ev.copy.headline,
-                      })
-                    }
-                    className="p-1">
-                    <Text
-                      variant="caption"
-                      className="text-sm font-bold text-[#191A26]">
-                      ⋯
-                    </Text>
-                  </Pressable>
-                </View>
-
-                {ev.sharedCatPhotoUrl ? (
-                  (() => {
-                    const sharedTheme = getCardThemeTokens(
-                      ev.copy.sharedCatCard?.themeId
-                    );
-                    return (
-                      <View className="relative overflow-hidden rounded-2xl border-[1.5px] border-[#191A26] bg-[#FAF8F5] p-1.5">
-                        <Image
-                          source={{ uri: ev.sharedCatPhotoUrl }}
-                          style={{ width: '100%', height: 210, borderRadius: 12 }}
-                          contentFit="cover"
-                          cachePolicy="memory-disk"
-                          accessibilityLabel="Shared cat card photo"
-                        />
-                        {sharedTheme.accentLabel ? (
-                          <View className="absolute bottom-3 left-3 rounded-pill border border-[#191A26] bg-[#FCE8D5] px-2.5 py-0.5">
-                            <Text
-                              variant="caption"
-                              className="text-[10px] font-extrabold text-[#191A26]">
-                              {sharedTheme.accentLabel}
-                            </Text>
-                          </View>
-                        ) : null}
-                      </View>
-                    );
-                  })()
-                ) : null}
-
-                {/* Reactions Row */}
-                <View className="flex-row items-center gap-2 border-t border-[#191A26]/15 pt-2.5">
-                  {REACTION_EMOJIS.map((emoji) => {
-                    const found = ev.reactions.find((r) => r.emoji === emoji);
-                    const count = found?.count ?? 0;
-                    const active = ev.myReaction === emoji;
-
-                    return (
-                      <Pressable
-                        key={emoji}
-                        accessibilityRole="button"
-                        accessibilityLabel={`React with ${emoji}`}
-                        onPress={() => {
-                          toggleReactionMutation.mutate({
-                            eventId: ev.id,
-                            emoji,
-                            currentMyReaction: ev.myReaction,
-                          });
-                        }}
-                        className={`flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] px-3 py-1 ${
-                          active ? 'bg-[#F4A97B]' : 'bg-white'
-                        }`}>
-                        <AppIcon name={emoji} size={13} color="#191A26" />
-                        {count > 0 ? (
-                          <Text
-                            variant="caption"
-                            className="font-display text-xs font-bold text-[#191A26]">
-                            {count}
-                          </Text>
-                        ) : null}
-                      </Pressable>
-                    );
-                  })}
-                </View>
+                ))}
               </Card>
-            ))
-          )}
-        </View>
-      ) : null}
+            )}
 
-      {/* SECTION 3: FRIENDS, SEARCH & INVITES */}
-      {section === 'friends' ? (
-        <View className="gap-4">
-          <Card elevated className="gap-3">
-            <View className="flex-row items-center justify-between gap-3">
+            {/* Privacy Opt-In Toggle */}
+            <Card className="flex-row items-center justify-between gap-3">
               <View className="flex-1">
-                <Text variant="label">Invite by Link or Code</Text>
-                <Text variant="caption" className="mt-0.5 text-xs">
-                  Share a `walkingcat://invite/...` link or enter a friend&apos;s invite code.
+                <Text className="text-sm font-extrabold text-[#191A26] dark:text-white">
+                  Show me on friend rankings
+                </Text>
+                <Text variant="caption">
+                  Only accepted friends can see your weekly cat count.
                 </Text>
               </View>
               <Button
-                label="Share Link"
+                label={showOnLeaderboard ? 'Visible' : 'Hidden'}
                 size="sm"
-                loading={createInviteMutation.isPending}
+                variant={showOnLeaderboard ? 'primary' : 'secondary'}
+                loading={isUpdatingOptIn}
                 onPress={() => {
-                  handleShareInviteLink().catch(() => {});
+                  setShowOnLeaderboard(!showOnLeaderboard);
                 }}
               />
-            </View>
+            </Card>
+          </View>
+        ) : null}
 
-            <View className="flex-row items-end gap-2">
-              <View className="flex-1">
-                <Input
-                  label="Have an invite code?"
-                  placeholder="e.g. AB23CD45"
-                  value={redeemInput}
-                  onChangeText={setRedeemInput}
-                  autoCapitalize="characters"
+        {/* 3C. MANAGE FRIENDS & REQUESTS */}
+        {section === 'manage' ? (
+          <View className="gap-4">
+            {/* Share / Redeem Invite */}
+            <Card className="gap-3">
+              <Text variant="heading">Add a Friend</Text>
+              <Button
+                label="Share Invite Link"
+                variant="primary"
+                loading={createInviteMutation.isPending}
+                onPress={handleShareInviteLink}
+              />
+
+              <View className="flex-row items-center gap-2">
+                <View className="flex-1">
+                  <Input
+                    value={redeemInput}
+                    onChangeText={setRedeemInput}
+                    placeholder="Paste invite code"
+                    autoCapitalize="none"
+                  />
+                </View>
+                <Button
+                  label="Redeem"
+                  variant="secondary"
+                  loading={redeemInviteMutation.isPending}
+                  disabled={!redeemInput.trim()}
+                  onPress={handleRedeemCode}
                 />
               </View>
-              <Button
-                label="Redeem"
-                variant="secondary"
-                disabled={!redeemInput.trim()}
-                loading={redeemInviteMutation.isPending}
-                onPress={() => {
-                  handleRedeemCode().catch(() => {});
-                }}
+            </Card>
+
+            {/* Search by Username */}
+            <Card className="gap-3">
+              <Text variant="heading">Find by Username</Text>
+              <Input
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Search @username"
+                autoCapitalize="none"
               />
-            </View>
-          </Card>
-
-          <Card className="gap-3">
-            <Input
-              label="Find Friends by Username"
-              placeholder="Type at least 3 characters (e.g. @maya)"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
-            {searchQuery.trim().replace(/^@/, '').length >= 3 ? (
-              isSearching ? (
-                <Text variant="caption" className="text-xs">
-                  Searching…
-                </Text>
-              ) : searchResults.length === 0 ? (
-                <Text variant="caption" className="text-xs">
-                  No discoverable users found matching &quot;{searchQuery.trim()}&quot;.
-                </Text>
-              ) : (
+              {isSearching ? (
+                <Text variant="caption">Searching…</Text>
+              ) : searchResults.length > 0 ? (
                 <View className="gap-2">
                   {searchResults.map((user) => (
                     <View
                       key={user.id}
-                      className="flex-row items-center justify-between rounded-pill border-[1.5px] border-[#191A26] px-4 py-2.5">
-                      <View className="flex-1">
-                        <Text variant="body" className="font-bold">
+                      className="flex-row items-center justify-between rounded-2xl border border-[#191A26]/10 px-3 py-2">
+                      <View>
+                        <Text className="text-sm font-bold text-[#191A26] dark:text-white">
                           {user.display_name || user.username}
                         </Text>
-                        <Text variant="caption" className="text-xs">
-                          @{user.username}
-                        </Text>
+                        <Text variant="caption">@{user.username}</Text>
                       </View>
-
-                      {user.friendship_status === 'accepted' ? (
-                        <Button
-                          label="Friends ✓"
-                          size="sm"
-                          variant="ghost"
-                          onPress={() => router.push(`/friend/${user.id}`)}
-                        />
-                      ) : user.friendship_status === 'pending' ? (
-                        <Text variant="caption" className="text-xs font-semibold">
-                          Pending
-                        </Text>
-                      ) : (
-                        <Button
-                          label="Add Friend"
-                          size="sm"
-                          loading={sendRequestMutation.isPending}
-                          onPress={() => {
-                            sendRequestMutation
-                              .mutateAsync(user.id)
-                              .then(() => {
-                                setFeedbackMsg(
-                                  `Sent friend request to @${user.username}`
-                                );
-                              })
-                              .catch((err) => {
-                                setErrorMsg(
-                                  err instanceof Error
-                                    ? err.message
-                                    : 'Could not send request.'
-                                );
-                              });
-                          }}
-                        />
-                      )}
+                      <Button
+                        label={
+                          user.friendship_status === 'accepted'
+                            ? 'Friends'
+                            : user.friendship_status === 'pending'
+                              ? 'Pending'
+                              : 'Add'
+                        }
+                        size="sm"
+                        variant={
+                          user.friendship_status ? 'ghost' : 'primary'
+                        }
+                        disabled={Boolean(user.friendship_status)}
+                        onPress={() => {
+                          sendRequestMutation.mutate(user.id);
+                        }}
+                      />
                     </View>
                   ))}
                 </View>
-              )
-            ) : null}
-          </Card>
+              ) : null}
+            </Card>
 
-          <View className="gap-2.5">
-            <Text variant="label">
-              Your Friends ({acceptedFriends.length})
-            </Text>
-            {acceptedFriends.length === 0 ? (
-              <Card className="py-6">
-                <Text variant="caption" className="text-center">
-                  No friends connected yet. Share an invite link or search by username above!
+            {/* Incoming Requests */}
+            {incomingRequests.length > 0 ? (
+              <Card className="gap-3">
+                <Text variant="heading">
+                  Incoming Requests ({incomingRequests.length})
                 </Text>
-              </Card>
-            ) : (
-              acceptedFriends.map((item) => {
-                const name =
-                  item.friend.display_name || item.friend.username;
-                const initials = getInitials(
-                  item.friend.display_name,
-                  item.friend.username
-                );
-
-                return (
-                  <Pressable
-                    key={item.friendshipId}
-                    accessibilityRole="button"
-                    accessibilityLabel={`View profile for ${name}`}
-                    onPress={() => router.push(`/friend/${item.friend.id}`)}>
-                    <Card className="flex-row items-center justify-between p-3.5">
-                      <View className="flex-1 flex-row items-center gap-3">
-                        <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-pill border-[1.5px] border-[#191A26] bg-[#FCE8D5]">
-                          {item.friend.avatar_url ? (
-                            <Image
-                              source={{ uri: item.friend.avatar_url }}
-                              style={{ width: '100%', height: '100%' }}
-                              contentFit="cover"
-                            />
-                          ) : (
-                            <Text
-                              variant="caption"
-                              className="font-extrabold text-[#191A26]">
-                              {initials}
-                            </Text>
-                          )}
-                        </View>
-                        <View className="flex-1">
-                          <Text variant="body" className="font-extrabold">
-                            {name}
-                          </Text>
-                          <Text variant="caption" className="text-xs">
-                            @{item.friend.username}
-                          </Text>
-                        </View>
-                      </View>
-                      <Text
-                        variant="caption"
-                        className="text-xs font-extrabold text-[#191A26] dark:text-[#F4A97B]">
-                        Profile ›
-                      </Text>
-                    </Card>
-                  </Pressable>
-                );
-              })
-            )}
-          </View>
-        </View>
-      ) : null}
-
-      {/* SECTION 4: FRIEND REQUESTS */}
-      {section === 'requests' ? (
-        <View className="gap-4">
-          <View className="gap-2.5">
-            <Text variant="label">
-              Incoming Requests ({incomingRequests.length})
-            </Text>
-            {incomingRequests.length === 0 ? (
-              <Card className="py-6">
-                <Text variant="caption" className="text-center">
-                  No pending incoming friend requests.
-                </Text>
-              </Card>
-            ) : (
-              incomingRequests.map((req) => {
-                const name =
-                  req.friend.display_name || req.friend.username;
-                return (
-                  <Card
+                {incomingRequests.map((req) => (
+                  <View
                     key={req.friendshipId}
-                    className="flex-row items-center justify-between gap-3 p-3.5">
+                    className="flex-row items-center justify-between gap-2">
                     <View className="flex-1">
-                      <Text variant="body" className="font-bold">
-                        {name}
+                      <Text className="text-sm font-bold text-[#191A26] dark:text-white">
+                        {req.friend.display_name || req.friend.username}
                       </Text>
-                      <Text variant="caption" className="text-xs">
-                        @{req.friend.username}
-                      </Text>
+                      <Text variant="caption">@{req.friend.username}</Text>
                     </View>
                     <View className="flex-row gap-2">
+                      <Button
+                        label="Accept"
+                        size="sm"
+                        variant="primary"
+                        onPress={() =>
+                          respondRequestMutation.mutate({
+                            friendshipId: req.friendshipId,
+                            decision: 'accepted',
+                          })
+                        }
+                      />
                       <Button
                         label="Decline"
                         size="sm"
                         variant="ghost"
-                        loading={respondRequestMutation.isPending}
-                        onPress={() => {
+                        onPress={() =>
                           respondRequestMutation.mutate({
                             friendshipId: req.friendshipId,
                             decision: 'declined',
-                          });
-                        }}
-                      />
-                      <Button
-                        label="Accept"
-                        size="sm"
-                        loading={respondRequestMutation.isPending}
-                        onPress={() => {
-                          respondRequestMutation.mutate({
-                            friendshipId: req.friendshipId,
-                            decision: 'accepted',
-                          });
-                        }}
+                          })
+                        }
                       />
                     </View>
-                  </Card>
-                );
-              })
-            )}
-          </View>
+                  </View>
+                ))}
+              </Card>
+            ) : null}
 
-          {outgoingRequests.length > 0 ? (
-            <View className="gap-2.5">
-              <Text variant="label">
-                Sent Requests ({outgoingRequests.length})
-              </Text>
-              {outgoingRequests.map((req) => {
-                const name =
-                  req.friend.display_name || req.friend.username;
-                return (
-                  <Card
+            {/* Outgoing Requests */}
+            {outgoingRequests.length > 0 ? (
+              <Card className="gap-2">
+                <Text variant="heading">
+                  Sent Requests ({outgoingRequests.length})
+                </Text>
+                {outgoingRequests.map((req) => (
+                  <View
                     key={req.friendshipId}
-                    className="flex-row items-center justify-between gap-3 p-3.5">
-                    <View className="flex-1">
-                      <Text variant="body" className="font-bold">
-                        {name}
-                      </Text>
-                      <Text variant="caption" className="text-xs">
-                        @{req.friend.username} · Waiting for response
-                      </Text>
-                    </View>
+                    className="flex-row items-center justify-between">
+                    <Text className="text-sm font-semibold text-[#191A26] dark:text-white">
+                      {req.friend.display_name || req.friend.username}
+                    </Text>
                     <Button
                       label="Cancel"
                       size="sm"
                       variant="ghost"
-                      loading={removeFriendshipMutation.isPending}
-                      onPress={() => {
-                        removeFriendshipMutation.mutate(req.friend.id);
-                      }}
+                      onPress={() =>
+                        removeFriendshipMutation.mutate(req.friendshipId)
+                      }
                     />
-                  </Card>
-                );
-              })}
-            </View>
-          ) : null}
-        </View>
-      ) : null}
+                  </View>
+                ))}
+              </Card>
+            ) : null}
 
-      <ReportModal
-        visible={Boolean(reportTarget)}
-        targetType={reportTarget?.type ?? 'activity_event'}
-        targetId={reportTarget?.id ?? ''}
-        targetTitle={reportTarget?.title}
-        onClose={() => setReportTarget(null)}
-      />
+            {/* Accepted Friends */}
+            <Card className="gap-3">
+              <Text variant="heading">
+                Your Friends ({acceptedFriends.length})
+              </Text>
+              {acceptedFriends.length === 0 ? (
+                <Text variant="caption">
+                  No friends connected yet. Share your invite link above!
+                </Text>
+              ) : (
+                acceptedFriends.map((item) => (
+                  <View
+                    key={item.friendshipId}
+                    className="flex-row items-center justify-between">
+                    <View className="flex-row items-center gap-2.5">
+                      <View className="h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-[#191A26] bg-[#FAF8F5]">
+                        <Image
+                          source={{
+                            uri: getAvatarForUser(
+                              item.friend.id,
+                              item.friend.avatar_url
+                            ),
+                          }}
+                          style={{ width: '100%', height: '100%' }}
+                          contentFit="cover"
+                        />
+                      </View>
+                      <View>
+                        <Text className="text-sm font-bold text-[#191A26] dark:text-white">
+                          {item.friend.display_name || item.friend.username}
+                        </Text>
+                        <Text variant="caption">
+                          @{item.friend.username} ·{' '}
+                          {getInitials(
+                            item.friend.display_name,
+                            item.friend.username
+                          )}
+                        </Text>
+                      </View>
+                    </View>
+                    <Button
+                      label="Remove"
+                      size="sm"
+                      variant="ghost"
+                      onPress={() =>
+                        removeFriendshipMutation.mutate(item.friendshipId)
+                      }
+                    />
+                  </View>
+                ))
+              )}
+            </Card>
+          </View>
+        ) : null}
+      </View>
+
+      {reportTarget ? (
+        <ReportModal
+          visible
+          targetType={reportTarget.type}
+          targetId={reportTarget.id}
+          targetTitle={reportTarget.title}
+          onClose={() => setReportTarget(null)}
+        />
+      ) : null}
     </Screen>
   );
 }

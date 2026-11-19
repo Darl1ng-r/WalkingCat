@@ -10,7 +10,6 @@ import { AppConfig } from '@/constants/config';
 import { useSession } from '@/features/auth';
 import {
   GAMIFICATION_QUERY_KEYS,
-  WalkRewardsCard,
 } from '@/features/gamification';
 import {
   SIGHTINGS_QUERY_KEYS,
@@ -326,12 +325,6 @@ export default function WalkScreen() {
           }
           fitToBounds
           height={260}
-        />
-
-        <WalkRewardsCard
-          walkId={summary.walkId}
-          distanceMeters={summary.distanceMeters}
-          movingTimeSeconds={summary.movingTimeSeconds}
         />
 
         <View className="flex-row gap-3">

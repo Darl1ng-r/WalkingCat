@@ -12,7 +12,6 @@ import {
 } from '@/components/ui';
 import { useSession } from '@/features/auth';
 import { useCatCollection } from '@/features/collection';
-import { PointsChip } from '@/features/gamification';
 import { useTodayHealthSummary } from '@/features/health';
 import {
   useActivityDashboard,
@@ -134,7 +133,16 @@ export default function HomeScreen() {
               {profile?.display_name || 'StrayCat Walk'}
             </Text>
           </Pressable>
-          <PointsChip />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View cat collection"
+            onPress={() => router.push('/collection')}
+            className="min-h-[36px] flex-row items-center gap-1.5 rounded-pill border border-white/20 bg-white/10 px-3">
+            <AppIcon name="cat" size={14} color="#F4A97B" />
+            <Text className="text-xs font-extrabold text-white">
+              {favoriteCats.length || 4} cats
+            </Text>
+          </Pressable>
         </View>
       </View>
 
@@ -185,8 +193,8 @@ export default function HomeScreen() {
             <Text variant="heading">Today&apos;s Training</Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="View all challenges"
-              onPress={() => router.push('/challenges')}
+              accessibilityLabel="View walk history"
+              onPress={() => router.push('/history')}
               className="min-h-[32px] flex-row items-center gap-0.5">
               <Text className="text-xs font-bold text-[#6E7085] dark:text-[#9EA1B8]">
                 View All

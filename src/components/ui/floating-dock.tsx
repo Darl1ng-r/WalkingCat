@@ -59,7 +59,7 @@ const TAB_META: Record<string, DockTabMeta> = {
   index: { label: 'Home' },
   walk: { label: 'Walk' },
   collection: { label: 'Cats' },
-  social: { label: 'League' },
+  social: { label: 'Friends' },
   profile: { label: 'Profile' },
 };
 
@@ -90,10 +90,10 @@ function getDockSvgUri(name: string, active: boolean): string {
   }
 
   if (name === 'social') {
-    // Activity / League pulse bars icon
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${
-      active ? '2.4' : '1.9'
-    }" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-6 5 12 2.5-6h4"/></svg>`;
+    // Clean Friends / Discovery people icon
+    const svg = active
+      ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${color}"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c0-3.1 2.9-5.2 6.5-5.2s6.5 2.1 6.5 5.2"/><circle cx="17" cy="9.5" r="2.6" fill-opacity="0.85"/><path d="M16.2 14.8c2.6.3 5.3 1.9 5.3 4.7h-4.2" fill-opacity="0.85"/></svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><circle cx="17" cy="9.5" r="2.3"/><path d="M16.5 14.5a4.8 4.8 0 0 1 4.5 5"/></svg>`;
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
 

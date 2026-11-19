@@ -1,94 +1,62 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import { useMemo } from 'react';
 import { Pressable, View } from 'react-native';
 
 import {
   AppIcon,
   Button,
-  Card,
-  getActiveLeagueTier,
-  LeagueEmblemRow,
   Screen,
   Text,
 } from '@/components/ui';
 import { useSession } from '@/features/auth';
-import {
-  getProfileTitleLabel,
-  useCosmeticsOverview,
-} from '@/features/cosmetics';
-import { PointsChip, usePointsSummary } from '@/features/gamification';
+import { useCatCollection } from '@/features/collection';
+import { useWalkHistory } from '@/features/walk';
 import { DEMO_AVATARS } from '@/lib/demo-data';
+import { formatDistance } from '@/lib/format';
 
 const SETTINGS_ITEMS = [
   {
-    emoji: '🎨',
-    title: 'Themes & Cosmetics',
-    subtitle: 'Unlock collectible cat card frames, profile banners, and walker titles',
-    href: '/cosmetics' as const,
-    enabled: true,
-  },
-  {
-    emoji: '🏅',
-    title: 'Achievements',
-    subtitle: 'View unlocked badges and personal milestone goals',
-    href: '/achievements' as const,
-    enabled: true,
-  },
-  {
-    emoji: '🎯',
-    title: 'Challenges & Points',
-    subtitle: 'Daily and weekly goals, Easy/Standard difficulty toggle',
-    href: '/challenges' as const,
-    enabled: true,
-  },
-  {
-    emoji: '🥾',
+    icon: 'walk' as const,
     title: 'Walk History',
     subtitle: 'Browse past walks, routes, and offline uploads',
     href: '/history' as const,
-    enabled: true,
   },
   {
-    emoji: '📊',
+    icon: 'chart' as const,
     title: 'Activity Progress',
     subtitle: 'Weekly and 30-day personal walking summaries',
     href: '/history/progress' as const,
-    enabled: true,
   },
   {
-    emoji: '📍',
+    icon: 'pin' as const,
     title: 'Permissions',
-    subtitle: 'Manage Location, Apple Health / Health Connect access',
+    subtitle: 'Manage Location and Health access',
     href: '/settings/permissions' as const,
-    enabled: true,
   },
   {
-    emoji: '🔒',
+    icon: 'lock' as const,
     title: 'Privacy',
-    subtitle: 'Route trimming, leaderboard & sharing defaults',
+    subtitle: 'Route trimming, friends feed & sharing defaults',
     href: '/settings/privacy' as const,
-    enabled: true,
   },
   {
-    emoji: '⚙️',
+    icon: 'settings' as const,
     title: 'Account & Data',
     subtitle: 'Export or delete walks, sightings, and account data',
     href: '/settings/account' as const,
-    enabled: true,
   },
   {
-    emoji: '🐾',
+    icon: 'paw' as const,
     title: 'Cat Welfare Guide',
     subtitle: 'Respectful cat spotting and distance photography ethics',
     href: '/settings/welfare' as const,
-    enabled: true,
   },
   {
-    emoji: '💌',
+    icon: 'mail' as const,
     title: 'Send Beta Feedback',
     subtitle: 'Report a bug, suggest features, or share thoughts',
     href: '/settings/feedback' as const,
-    enabled: true,
   },
 ] as const;
 
@@ -102,9 +70,9 @@ function getInitials(displayName?: string | null, username?: string | null): str
 }
 
 function formatMemberSince(isoDate?: string | null): string {
-  if (!isoDate) return 'Member';
+  if (!isoDate) return 'Neighborhood Cat Spotter';
   const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return 'Member';
+  if (Number.isNaN(date.getTime())) return 'Neighborhood Cat Spotter';
   return `Member since ${date.toLocaleDateString('en-US', {
     month: 'short',
     year: 'numeric',
@@ -113,26 +81,25 @@ function formatMemberSince(isoDate?: string | null): string {
 
 export default function ProfileScreen() {
   const { user, profile, signOut } = useSession();
-  const { data: cosmeticsOverview } = useCosmeticsOverview();
-  const { data: pointsSummary } = usePointsSummary();
-  const pawBalance = pointsSummary?.totalPoints ?? 620;
+  const { data: collectionCards = [] } = useCatCollection('most_seen');
+  const { walks } = useWalkHistory();
+
+  const totalDistanceMeters = useMemo(
+    () => walks.reduce((sum, w) => sum + (w.distance_m ?? 0), 0),
+    [walks]
+  );
 
   const displayName = profile?.display_name || profile?.username || 'Walker';
   const username = profile?.username ? `@${profile.username}` : user?.email ?? '';
   const initials = getInitials(profile?.display_name, profile?.username);
   const avatarUri = profile?.avatar_url || DEMO_AVATARS.mina;
-  const titleLabel = getProfileTitleLabel(
-    cosmeticsOverview?.equippedTitleId ?? profile?.equipped_title_id
-  );
-  const activeTier = getActiveLeagueTier(pawBalance);
 
-  // Styled directly after the Reference Image's "Огурец" Profile Screen (Midnight-Ink Header + White Arched Dome + 3 Outlined Attribute Pills + Dark Midnight-Ink Action Rows)
   return (
     <Screen scroll padded={false} contentContainerClassName="bg-white dark:bg-[#12131C] pb-32">
-      {/* 1. Deep Midnight-Ink Top Header with Large White Arched Dome */}
+      {/* 1. Deep Midnight-Ink Top Header with White Arched Dome */}
       <View className="bg-[#191A26] pt-3">
         <View className="flex-row items-center justify-between px-5 pb-4">
-          <PointsChip />
+          <View className="w-12" />
           <Text className="text-lg font-extrabold text-white">
             {displayName}
           </Text>
@@ -140,45 +107,27 @@ export default function ProfileScreen() {
             accessibilityRole="button"
             accessibilityLabel="Edit profile"
             onPress={() => router.push('/settings/edit-profile')}
-            className="rounded-pill border border-white/30 bg-[#252738] px-3 py-1">
+            className="min-h-[34px] items-center justify-center rounded-pill border border-white/25 bg-[#252738] px-3.5">
             <Text className="text-xs font-bold text-[#F4A97B]">Edit</Text>
           </Pressable>
         </View>
 
         <View className="items-center pt-2">
           <View className="w-full items-center rounded-t-[200px] bg-white pt-6 dark:bg-[#12131C]">
-            <View className="flex-row items-center justify-center gap-4">
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="View Achievements"
-                onPress={() => router.push('/achievements')}
-                className="mt-10 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
-                <AppIcon name="award" size={16} color="#191A26" />
-              </Pressable>
-
-              <View
-                accessibilityLabel={`Avatar for ${displayName}`}
-                className="h-36 w-36 items-center justify-center overflow-hidden rounded-pill border-[3px] border-[#191A26] bg-[#FAF8F5]">
-                {avatarUri ? (
-                  <Image
-                    source={{ uri: avatarUri }}
-                    style={{ width: '100%', height: '100%' }}
-                    contentFit="cover"
-                  />
-                ) : (
-                  <Text variant="heading" className="text-3xl font-extrabold text-[#191A26]">
-                    {initials}
-                  </Text>
-                )}
-              </View>
-
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="View Walk History"
-                onPress={() => router.push('/history')}
-                className="mt-10 h-10 w-10 items-center justify-center rounded-pill border-[1.5px] border-[#191A26] bg-white">
-                <AppIcon name="clock" size={16} color="#191A26" />
-              </Pressable>
+            <View
+              accessibilityLabel={`Avatar for ${displayName}`}
+              className="h-32 w-32 items-center justify-center overflow-hidden rounded-pill border-[3px] border-[#191A26] bg-[#FAF8F5]">
+              {avatarUri ? (
+                <Image
+                  source={{ uri: avatarUri }}
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit="cover"
+                />
+              ) : (
+                <Text variant="heading" className="text-3xl font-extrabold text-[#191A26]">
+                  {initials}
+                </Text>
+              )}
             </View>
           </View>
         </View>
@@ -186,19 +135,9 @@ export default function ProfileScreen() {
 
       {/* Main Content */}
       <View className="gap-5 px-5 pt-3">
-        {/* 2. Centered Midnight-Ink Title Badge & Username */}
-        <View className="items-center gap-1">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Customize banner and title"
-            onPress={() => router.push('/cosmetics' as never)}
-            className="flex-row items-center gap-1.5 rounded-pill border-[1.5px] border-[#191A26] bg-[#191A26] px-6 py-2">
-            <AppIcon name="palette" size={13} color="#F4A97B" />
-            <Text className="text-xs font-bold text-white">
-              {titleLabel}
-            </Text>
-          </Pressable>
-          <Text className="mt-1 text-base font-extrabold text-[#191A26] dark:text-white">
+        {/* 2. Username & Member Info */}
+        <View className="items-center gap-0.5">
+          <Text className="text-base font-extrabold text-[#191A26] dark:text-white">
             {username}
           </Text>
           <Text variant="caption" className="text-xs text-[#6E7085]">
@@ -206,48 +145,49 @@ export default function ProfileScreen() {
           </Text>
         </View>
 
-        {/* 3. Three Outlined Pill Attribute Chips ("Черный | 10 месяцев | 14 кг" in Reference) */}
+        {/* 3. Real Personal Stats (Cats Found | Walks | Total Distance) */}
         <View className="flex-row items-center justify-between gap-2.5">
-          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:border-[#35384F] dark:bg-[#232536]">
-            <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
-              {activeTier.name}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View cats found"
+            onPress={() => router.push('/collection')}
+            className="flex-1 items-center rounded-[20px] border-[1.5px] border-[#191A26] bg-white py-3 dark:border-[#35384F] dark:bg-[#232536]">
+            <Text className="font-display text-lg font-extrabold text-[#191A26] dark:text-white">
+              {collectionCards.length}
             </Text>
-            <Text className="text-[10px] font-semibold text-[#6E7085] dark:text-[#9EA1B8]">
-              League
+            <Text className="text-[11px] font-semibold text-[#6E7085] dark:text-[#9EA1B8]">
+              Cats Found
             </Text>
-          </View>
+          </Pressable>
 
-          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:border-[#35384F] dark:bg-[#232536]">
-            <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
-              {pawBalance} pts
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View walk history"
+            onPress={() => router.push('/history')}
+            className="flex-1 items-center rounded-[20px] border-[1.5px] border-[#191A26] bg-white py-3 dark:border-[#35384F] dark:bg-[#232536]">
+            <Text className="font-display text-lg font-extrabold text-[#191A26] dark:text-white">
+              {walks.length}
             </Text>
-            <Text className="text-[10px] font-semibold text-[#6E7085] dark:text-[#9EA1B8]">
-              Balance
+            <Text className="text-[11px] font-semibold text-[#6E7085] dark:text-[#9EA1B8]">
+              Walks
             </Text>
-          </View>
+          </Pressable>
 
-          <View className="flex-1 items-center rounded-pill border-[1.5px] border-[#191A26] bg-white py-2.5 dark:border-[#35384F] dark:bg-[#232536]">
-            <Text className="text-xs font-extrabold text-[#191A26] dark:text-white">
-              {profile?.weight_kg ? `${profile.weight_kg} kg` : 'Standard'}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View activity progress"
+            onPress={() => router.push('/history/progress')}
+            className="flex-1 items-center rounded-[20px] border-[1.5px] border-[#191A26] bg-white py-3 dark:border-[#35384F] dark:bg-[#232536]">
+            <Text className="font-display text-lg font-extrabold text-[#191A26] dark:text-white">
+              {formatDistance(totalDistanceMeters)}
             </Text>
-            <Text className="text-[10px] font-semibold text-[#6E7085] dark:text-[#9EA1B8]">
-              Pace Mode
+            <Text className="text-[11px] font-semibold text-[#6E7085] dark:text-[#9EA1B8]">
+              Total Dist
             </Text>
-          </View>
+          </Pressable>
         </View>
 
-        {/* 4. Circular Blob-Cat League Progression */}
-        <Card className="gap-2">
-          <View className="flex-row items-center justify-between">
-            <Text variant="label">League Progression</Text>
-            <Text className="text-xs font-extrabold uppercase text-[#F4A97B]">
-              {activeTier.name} League
-            </Text>
-          </View>
-          <LeagueEmblemRow totalPoints={pawBalance} />
-        </Card>
-
-        {/* 5. Deep Midnight-Ink Settings Section ("Прививки 2 > / Посещение врача 3 >" in Reference Middle-Left Screen) */}
+        {/* 4. Midnight-Ink Settings Section */}
         <View className="gap-2.5 rounded-[28px] bg-[#191A26] p-4">
           <Text className="px-1 text-xs font-extrabold uppercase tracking-wider text-[#F4A97B]">
             Settings & Tools
@@ -257,16 +197,11 @@ export default function ProfileScreen() {
               key={item.title}
               accessibilityRole="button"
               accessibilityLabel={item.title}
-              disabled={!item.enabled}
-              onPress={() => {
-                if (item.href) {
-                  router.push(item.href as never);
-                }
-              }}
-              className={item.enabled ? 'active:opacity-80' : 'opacity-70'}>
-              <View className="flex-row items-center gap-3 rounded-pill border border-white/25 bg-[#232536] px-4 py-3">
+              onPress={() => router.push(item.href as never)}
+              className="active:opacity-80">
+              <View className="flex-row items-center gap-3 rounded-pill border border-white/15 bg-[#232536] px-4 py-3">
                 <View className="h-9 w-9 items-center justify-center rounded-pill bg-[#191A26]">
-                  <AppIcon name={item.emoji} size={16} color="#F4A97B" />
+                  <AppIcon name={item.icon} size={16} color="#F4A97B" />
                 </View>
                 <View className="flex-1">
                   <Text
